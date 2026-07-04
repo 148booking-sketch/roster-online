@@ -48,6 +48,7 @@
 .detgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:560px){.detgrid{grid-template-columns:1fr}}
 .det{border:1px solid var(--line2);border-radius:12px;padding:13px 15px}
+.det.wide{grid-column:1/-1}
 .det .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9a9aa2}
 .det .v{font-size:14.5px;font-weight:600;margin-top:3px}
 .det .tags{margin-top:6px}
@@ -212,8 +213,8 @@ function render(){
   if(a.management) det.push(['Agenzia', esc(a.management)]);
   if(!a.locked && a.tech_sheet_url) det.push(['Scheda tecnica', `<a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener" style="color:var(--brand2);font-weight:600">Apri documento →</a>`]);
   if(a.locked) det.push(['Scheda tecnica', icon('lock',13)+' riservata ai promoter']);
-  if((a.gear_bring||[]).length) det.push(["Cosa porta l'artista", `<div class="tags">${a.gear_bring.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`]);
-  if((a.gear_need||[]).length)  det.push(['Cosa serve sul posto', `<div class="tags">${a.gear_need.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`]);
+  if((a.gear_bring||[]).length) det.push(["Cosa porta l'artista", `<div class="tags">${a.gear_bring.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`, 'wide']);
+  if((a.gear_need||[]).length)  det.push(['Cosa serve sul posto', `<div class="tags">${a.gear_need.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`, 'wide']);
 
   // gallerie
   const igPhotos=((a.stats||{}).instagram_photos||[]).slice(0,4);
@@ -272,7 +273,7 @@ function render(){
     ${(a.bio||det.length)?`<div class="bio-det">
       ${a.bio?`<div class="bio-sec"><div class="secT">Chi è ${esc(a.stage_name||'')}</div><p>${esc(a.bio)}</p></div>`:'<div></div>'}
       ${det.length?`<div><div class="secT">Dettagli per il booking</div>
-        <div class="detgrid">${det.map(([l,v])=>`<div class="det"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}</div></div>`:''}
+        <div class="detgrid">${det.map(([l,v,w])=>`<div class="det${w?' wide':''}"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}</div></div>`:''}
     </div>`:''}
     ${media.length?`<div class="mediagrid">${media.map(m=>`<div class="mediabox">${m}</div>`).join('')}</div>`:''}
     ${igSec}
