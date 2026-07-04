@@ -65,7 +65,7 @@ function current_user(): ?array {
   if (empty($_SESSION['uid'])) return null;
   static $u = null;
   if ($u === null) {
-    $st = db()->prepare('SELECT id, email, role, display_name, status, email_verified FROM users WHERE id = ?');
+    $st = db()->prepare('SELECT id, email, role, display_name, status, email_verified, admin_super FROM users WHERE id = ?');
     $st->execute([$_SESSION['uid']]);
     $u = $st->fetch() ?: null;
   }

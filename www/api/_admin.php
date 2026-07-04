@@ -14,6 +14,15 @@ function require_admin(): array {
   return $u;
 }
 
+/** Admin "ridotto" (admin_super=0): può fare tutto tranne gestire altri admin ed
+ *  eliminare artisti/promoter/agenzie (solo aggiornarli). Usata dagli endpoint riservati
+ *  ai super admin (gestione account admin) — vedi anche require_not_restricted_delete(). */
+function require_super_admin(): array {
+  $u = require_admin();
+  if ((int)($u['admin_super'] ?? 0) !== 1) fail('forbidden_not_super_admin', 403);
+  return $u;
+}
+
 /** slug "nome-arte-<id>" coerente con artist-save.php */
 function make_slug(string $name, int $id): ?string {
   if ($name === '') return null;

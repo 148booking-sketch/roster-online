@@ -43,6 +43,8 @@ const ERR = {
   forbidden_not_owner:'Questo artista non è gestito dal tuo account',
   applemusic_required:'Serve il link Apple Music per verificare l’artista',
   not_eligible:'Artista non idoneo: servono almeno 4 brani pubblicati negli ultimi 2 anni',
+  forbidden_not_super_admin:'Azione riservata ai super admin: il tuo account admin ha privilegi ridotti',
+  cannot_edit_self:'Non puoi modificare il tuo stesso account admin da qui', not_an_admin:'Non è un admin',
 };
 const errMsg = e => {
   const base = ERR[e?.message] || 'Errore: ' + (e?.message || 'imprevisto');

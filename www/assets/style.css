@@ -121,6 +121,11 @@ a{color:inherit;text-decoration:none}
 .grid{display:grid;gap:16px}
 @media(min-width:760px){.grid.cols-3{grid-template-columns:repeat(3,1fr)}.grid.cols-2{grid-template-columns:repeat(2,1fr)}}
 label{display:block;font-size:13px;font-weight:600;color:var(--txt);margin:0 0 6px}
+/* label con un bottone dentro (es. "genera" password): allinea su una riga alla stessa
+   altezza del testo, invece di farlo traboccare e spingere in basso il campo sotto
+   (disallineava "Email"/"Password" nella stessa .row). */
+label:has(>button){display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+label>button.btn{padding:4px 12px;font-size:12px;border-radius:7px}
 .field{margin-bottom:16px}
 input,select,textarea{width:100%;background:#fff;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:13px 14px;font-size:15px;font-family:inherit}
 input:focus,select:focus,textarea:focus{outline:0;border-color:var(--txt);box-shadow:0 0 0 2px rgba(0,0,0,.04)}

@@ -182,6 +182,7 @@ try {
   $pdo->commit();
 } catch (Throwable $e) {
   $pdo->rollBack();
+  error_log('admin-update-artist.php: ' . $e->getMessage());
   fail('update_failed', 500);
 }
 

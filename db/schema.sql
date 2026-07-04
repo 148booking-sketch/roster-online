@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
   reset_expires  DATETIME DEFAULT NULL,
   created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login     DATETIME DEFAULT NULL,
+  admin_super    TINYINT(1) NOT NULL DEFAULT 1,   -- rilevante solo per role='admin': 0 = privilegi ridotti (migration-18)
   PRIMARY KEY (id),
   UNIQUE KEY uq_email (email),
   KEY idx_role (role)

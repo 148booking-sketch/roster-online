@@ -44,6 +44,8 @@
       <button id="tabA" onclick="tab('artisti')">🎤 Artisti</button>
       <button id="tabP" onclick="tab('promoter')">📣 Promoter</button>
       <button id="tabG" onclick="tab('agenzia')">🎧 Agenzia</button>
+      <button id="tabR" onclick="tab('richieste')">📨 Richieste</button>
+      <button id="tabAd" onclick="tab('admins')" style="display:none">👑 Admin</button>
       <button id="tabS" onclick="tab('set')">⚙️ Impostazioni</button>
     </div>
 
@@ -239,6 +241,61 @@
       </form>
     </div><!-- /promoterW -->
 
+    <!-- ═══ 👑 ADMIN (solo super admin) ═══ -->
+    <div id="adminsW" style="display:none">
+      <div id="adminsList">
+        <div class="sec-toolbar">
+          <h3 class="ls-title" style="margin:0">👑 Admin <span class="ls-count" id="cntAd"></span></h3>
+          <button type="button" class="btn primary sm" onclick="startNewAdmin()">➕ Nuovo admin</button>
+        </div>
+        <div class="hint" style="margin:0 0 12px">Un admin "ridotto" può fare tutto tranne: creare/modificare/eliminare altri admin, ed eliminare artisti/promoter/agenzie (può solo aggiornarli).</div>
+        <div id="listAd" class="admin-list"></div>
+      </div>
+
+      <!-- FORM ADMIN (crea/modifica) -->
+      <form class="panel" id="formAd" style="display:none" onsubmit="return saveAdmin(event)">
+      <div id="ad_banner" class="edit-banner" style="display:none"></div>
+      <div class="row">
+        <div class="field"><label>Email *</label><input type="email" id="ad_email" required></div>
+        <div class="field" id="ad_passWrap"><label>Password * (min 8)
+          <button type="button" class="btn ghost sm" style="margin-left:6px" onclick="genPass('ad_pass')">genera</button></label>
+          <input id="ad_pass" minlength="8"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Nome *</label><input id="ad_name" required></div>
+        <div class="field" id="ad_statusWrap" style="max-width:160px"><label>Stato</label>
+          <select id="ad_status"><option value="active">Attivo</option><option value="blocked">Bloccato</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="check"><input type="checkbox" id="ad_super"> Super admin (privilegi pieni)</label>
+        <div class="hint">Senza spunta: privilegi ridotti — vedi nota sopra.</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1" id="ad_submit">Crea admin</button>
+        <button type="button" class="btn ghost" onclick="cancelAdmin()">← Torna all'elenco</button>
+      </div>
+      </form>
+    </div><!-- /adminsW -->
+
+    <!-- ═══ 📨 RICHIESTE (promoter → artista) ═══ -->
+    <div id="richiesteW" style="display:none">
+      <div class="sec-toolbar">
+        <h3 class="ls-title" style="margin:0">📨 Richieste <span class="ls-count" id="cntReqTab"></span></h3>
+      </div>
+      <div class="list-filters">
+        <input id="rq_q" placeholder="Cerca per artista o promoter…" oninput="renderRequestsTab()">
+        <select id="rq_status" onchange="renderRequestsTab()">
+          <option value="">Tutti gli stati</option>
+          <option value="pending">⏳ In attesa (inviata/vista)</option>
+          <option value="accettata">✅ Accettate</option>
+          <option value="rifiutata">❌ Rifiutate</option>
+          <option value="ritirata">↩︎ Ritirate</option>
+        </select>
+      </div>
+      <div id="listReq" class="admin-list"></div>
+    </div><!-- /richiesteW -->
+
     <!-- IMPOSTAZIONI STATISTICHE -->
     <form id="settingsW" class="panel" style="display:none" onsubmit="return saveSettings(event)">
       <h3 style="margin:0 0 6px">📊 Chiavi statistiche social</h3>
@@ -273,13 +330,17 @@ let editAId = null, editPId = null;
 
 (async function init(){
   const me = await getMe(true);
-  if (me.user && me.user.role === 'admin') showPanel();
+  if (me.user && me.user.role === 'admin') showPanel(me);
   else document.getElementById('gate').style.display = '';
 })();
 
-async function showPanel(){
+let IS_SUPER = false, ME_ID = null;
+async function showPanel(me){
   gate.style.display = 'none';
   panel.style.display = '';
+  IS_SUPER = !!(me && me.user && me.user.admin_super);
+  ME_ID = me && me.user ? me.user.id : null;
+  tabAd.style.display = IS_SUPER ? '' : 'none';
   await loadGenres();
   artistFormMount('artistFormMount', 'a_');
   artistFormReset('a_');
@@ -292,8 +353,9 @@ let CUR = 'dash';
 /* "agenzia" è una vista alternativa dello STESSO pannello promoterW (stessa tabella dati,
  * promoter_profiles, filtrata per role) — non un pannello duplicato. promoMode ricorda quale. */
 let promoMode = 'promoter';
-const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], set:['settingsW',tabS]};
+const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], richieste:['richiesteW',tabR], admins:['adminsW',tabAd], set:['settingsW',tabS]};
 function tab(t){
+  if (t==='admins' && !IS_SUPER) return;
   CUR = t;
   const wrappers = new Set(Object.values(TABS).map(x => x[0]));
   wrappers.forEach(w => document.getElementById(w).style.display = 'none');
@@ -302,6 +364,8 @@ function tab(t){
   if (t==='artisti'){ showArtistList(); loadList(); }
   else if (t==='promoter'){ promoMode='promoter'; showPromoterList(); loadList(); }
   else if (t==='agenzia'){ promoMode='agenzia'; showPromoterList(); loadList(); }
+  else if (t==='richieste'){ loadRequestsTab(); }
+  else if (t==='admins'){ showAdminList(); loadAdmins(); }
   else if (t==='dash') loadDash();
   else if (t==='set') loadSettings();
 }
@@ -314,8 +378,81 @@ function startNewArtist(){ newArtist(); showArtistForm(); window.scrollTo({top:0
 function startNewPromoter(){ newPromoter(); showPromoterForm(); window.scrollTo({top:0,behavior:'smooth'}); }
 function cancelArtist(){ newArtist(); showArtistList(); }
 function cancelPromoter(){ newPromoter(); showPromoterList(); }
+function showAdminForm(){ adminsList.style.display='none'; formAd.style.display=''; }
+function showAdminList(){ formAd.style.display='none'; adminsList.style.display=''; }
+function startNewAdmin(){ newAdmin(); showAdminForm(); window.scrollTo({top:0,behavior:'smooth'}); }
+function cancelAdmin(){ newAdmin(); showAdminList(); }
 /* ricarica la vista attiva dopo una modifica */
-function refreshCurrent(){ if (CUR==='dash') loadDash(); else loadList(); }
+function refreshCurrent(){ if (CUR==='dash') loadDash(); else if (CUR==='admins') loadAdmins(); else loadList(); }
+
+/* ---- 👑 ADMIN (solo super admin) ---- */
+let editAdId = null;
+function newAdmin(){
+  editAdId = null; formAd.reset();
+  ad_passWrap.style.display=''; ad_pass.required=true;
+  ad_statusWrap.style.display='none'; ad_banner.style.display='none';
+  ad_super.checked = false;
+  ad_submit.textContent = 'Crea admin';
+}
+async function saveAdmin(e){ e.preventDefault();
+  const bodyBase = { email:val('ad_email'), display_name:val('ad_name'), admin_super: ad_super.checked?1:0 };
+  try {
+    if (editAdId){
+      await api('admin-update-admin.php',{method:'POST',body:{...bodyBase, id:editAdId, status:val('ad_status')}});
+      toast('Admin aggiornato ✓');
+    } else {
+      const r = await api('admin-create-admin.php',{method:'POST',body:{...bodyBase, password:val('ad_pass')}});
+      toast('Admin creato (#'+r.id+')');
+    }
+    newAdmin(); showAdminList(); loadAdmins();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+async function loadAdmins(){
+  try {
+    const r = await api('admin-list-admins.php');
+    const admins = r.admins || [];
+    cntAd.textContent = admins.length;
+    listAd.innerHTML = admins.map(adminRow).join('') || '<div class="empty">Nessun admin</div>';
+  } catch(err){ toast(errMsg(err), true); }
+}
+function adminRow(a){
+  const isMe = ME_ID === a.id;
+  return `<div class="admin-row" title="${isMe?'Il tuo account':'Clicca per modificare'}" ${isMe?'':`onclick="editAdmin(${a.id})"`}>
+    <div class="ar-left">
+      <b>${esc(a.display_name||a.email)}</b>
+      <span class="muted">${esc(a.email)}</span>
+    </div>
+    <div class="ar-right">
+      <span class="ar-badges">${a.admin_super==1?'<span class="tg ok">👑 super</span>':'<span class="tg warn">🔒 ridotto</span>'}${a.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':''}${isMe?'<span class="tg mail">tu</span>':''}</span>
+      ${isMe?'':`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.display_name||a.email||'')}"
+        onclick="event.stopPropagation();deleteAdmin(${a.id},this)">🗑 cancella</button>`}
+    </div></div>`;
+}
+async function editAdmin(id){
+  try {
+    const r = await api('admin-list-admins.php');
+    const a = (r.admins||[]).find(x=>x.id===id); if (!a) return;
+    editAdId = id; showAdminForm();
+    ad_passWrap.style.display='none'; ad_pass.required=false; ad_pass.value='';
+    ad_statusWrap.style.display='';
+    ad_banner.style.display=''; ad_banner.textContent = 'Modifica admin #'+id+' — '+(a.display_name||a.email);
+    ad_submit.textContent = 'Salva modifiche';
+    setV('ad_email',a.email); setV('ad_name',a.display_name); setV('ad_status',a.status);
+    ad_super.checked = a.admin_super==1;
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(err){ toast(errMsg(err), true); }
+}
+async function deleteAdmin(id, btn){
+  const name = (btn && btn.dataset ? btn.dataset.name : '') || ('#'+id);
+  if (!confirm('Vuoi eliminare definitivamente l\'admin "'+name+'"?\n\nL\'operazione è IRREVERSIBILE.')) return;
+  try {
+    await api('admin-delete-admin.php',{method:'POST',body:{id}});
+    toast('Eliminato ✓');
+    if (editAdId===id){ newAdmin(); showAdminList(); }
+    loadAdmins();
+  } catch(err){ toast(errMsg(err), true); }
+}
 
 /* ---- 📊 PANORAMICA ---- */
 async function loadDash(){
@@ -374,6 +511,26 @@ function renderReqList(){
   const L = _reqs.filter(x => !q || ((x.promoter_name||'')+' '+(x.artist_name||'')).toLowerCase().includes(q));
   cntReq.textContent = q ? `${L.length} / ${_reqs.length}` : _reqs.length;
   reqList.innerHTML = L.map(reqRow).join('') || '<div class="empty">Nessuna richiesta</div>';
+}
+
+/* ---- 📨 Tab dedicata Richieste: stessa lista, con filtro di stato (in attesa/accettate/rifiutate/ritirate) ---- */
+async function loadRequestsTab(){
+  try {
+    const r = await api('admin-requests.php?limit=1000');
+    _reqs = r.requests || [];
+    renderRequestsTab();
+  } catch(err){ toast(errMsg(err), true); }
+}
+function renderRequestsTab(){
+  const q = rq_q.value.trim().toLowerCase(), status = rq_status.value;
+  const L = _reqs.filter(x => {
+    if (q && !((x.promoter_name||'')+' '+(x.artist_name||'')).toLowerCase().includes(q)) return false;
+    if (status==='pending' && !['inviata','vista'].includes(x.status)) return false;
+    if (status && status!=='pending' && x.status!==status) return false;
+    return true;
+  });
+  cntReqTab.textContent = (q||status) ? `${L.length} / ${_reqs.length}` : _reqs.length;
+  listReq.innerHTML = L.map(reqRow).join('') || '<div class="empty">Nessuna richiesta</div>';
 }
 
 const SETKEYS=['spotify_client_id','spotify_client_secret','youtube_api_key','apify_token'];
@@ -599,8 +756,8 @@ function artistRow(a){
         : `<button type="button" class="btn primary sm" title="Rendi visibile nella ricerca" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">✅ Approva</button>`}
       <button type="button" class="btn ghost sm" title="Aggiorna statistiche social e calendario disponibilità"
         onclick="event.stopPropagation();refreshStats(${a.id},this)">🔄 aggiorna</button>
-      <button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.stage_name||a.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">🗑 cancella</button>
+      ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.stage_name||a.display_name||'')}"
+        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">🗑 cancella</button>`:''}
     </div></div>`;
 }
 function promoterRow(p){
@@ -611,8 +768,8 @@ function promoterRow(p){
     </div>
     <div class="ar-right">
       <span class="ar-badges">${p.role==='management'?'<span class="tg mail">🎧 booking</span>':''}<span class="tg ok">${esc(p.tipo)}</span>${p.email_verified==0?'<span class="tg mail">📧 email da verificare</span>':''}${p.status==='active'?'<span class="tg ok">✓ verificato</span>':p.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':'<span class="tg warn">⏳ da verificare</span>'}</span>
-      <button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(p.org_name||p.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">🗑 cancella</button>
+      ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(p.org_name||p.display_name||'')}"
+        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">🗑 cancella</button>`:''}
     </div></div>`;
 }
 function sortRows(rows, sortKey, nameFn){
@@ -715,14 +872,14 @@ async function doLogin(e){ e.preventDefault();
   try {
     const u = await api('login.php',{method:'POST',body:{email:li_email.value,password:li_pass.value}});
     if (u.user.role !== 'admin'){ toast('Questo account non è admin', true); return false; }
-    _me=null; renderNav(); showPanel();
+    _me=null; renderNav(); showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
 async function doBootstrap(e){ e.preventDefault();
   try {
     await api('admin-bootstrap.php',{method:'POST',body:{token:bs_token.value, email:bs_email.value, password:bs_pass.value}});
-    toast('Admin creato!'); _me=null; renderNav(); showPanel();
+    toast('Admin creato!'); _me=null; renderNav(); showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }

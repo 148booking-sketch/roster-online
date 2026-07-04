@@ -10,3 +10,5 @@ www/api/cache/
 .DS_Store
 Thumbs.db
 .claude/
+.playwright-mcp/
+/*.png
