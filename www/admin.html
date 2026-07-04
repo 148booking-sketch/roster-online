@@ -43,6 +43,7 @@
       <button id="tabD" class="on" onclick="tab('dash')">📊 Panoramica</button>
       <button id="tabA" onclick="tab('artisti')">🎤 Artisti</button>
       <button id="tabP" onclick="tab('promoter')">📣 Promoter</button>
+      <button id="tabG" onclick="tab('agenzia')">🎧 Agenzia</button>
       <button id="tabS" onclick="tab('set')">⚙️ Impostazioni</button>
     </div>
 
@@ -165,11 +166,11 @@
     <div id="promoterW" style="display:none">
       <div id="promoterList">
         <div class="sec-toolbar">
-          <h3 class="ls-title" style="margin:0">📣 Promoter <span class="ls-count" id="cntP"></span></h3>
-          <button type="button" class="btn primary sm" onclick="startNewPromoter()">➕ Nuovo promoter</button>
+          <h3 class="ls-title" style="margin:0"><span id="pTitleLabel">📣 Promoter</span> <span class="ls-count" id="cntP"></span></h3>
+          <button type="button" class="btn primary sm" id="pNewBtn" onclick="startNewPromoter()">➕ Nuovo promoter</button>
         </div>
         <div class="list-filters">
-          <input id="fp_q" placeholder="Cerca promoter…" oninput="renderLists()">
+          <input id="fp_q" placeholder="Cerca…" oninput="renderLists()">
           <select id="fp_tipo" onchange="renderLists()">
             <option value="">Tutti i tipi</option>
             <option value="locale">Locale</option><option value="festival">Festival</option>
@@ -288,12 +289,19 @@ async function showPanel(){
 }
 
 let CUR = 'dash';
-const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], set:['settingsW',tabS]};
+/* "agenzia" è una vista alternativa dello STESSO pannello promoterW (stessa tabella dati,
+ * promoter_profiles, filtrata per role) — non un pannello duplicato. promoMode ricorda quale. */
+let promoMode = 'promoter';
+const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], set:['settingsW',tabS]};
 function tab(t){
   CUR = t;
-  for (const k in TABS){ const [w,btn]=TABS[k]; document.getElementById(w).style.display = (k===t)?'':'none'; btn.classList.toggle('on', k===t); }
+  const wrappers = new Set(Object.values(TABS).map(x => x[0]));
+  wrappers.forEach(w => document.getElementById(w).style.display = 'none');
+  document.getElementById(TABS[t][0]).style.display = '';
+  for (const k in TABS) TABS[k][1].classList.toggle('on', k===t);
   if (t==='artisti'){ showArtistList(); loadList(); }
-  else if (t==='promoter'){ showPromoterList(); loadList(); }
+  else if (t==='promoter'){ promoMode='promoter'; showPromoterList(); loadList(); }
+  else if (t==='agenzia'){ promoMode='agenzia'; showPromoterList(); loadList(); }
   else if (t==='dash') loadDash();
   else if (t==='set') loadSettings();
 }
@@ -324,7 +332,8 @@ async function loadDash(){
       card('🟢 Online', online, '#0a7d38'),
       card('⏳ Da approvare', review.length, '#a5730a'),
       card('📧 Email da verificare', unver, '#2563eb'),
-      card('📣 Promoter', _allP.length, '', "tab('promoter')"),
+      card('📣 Promoter', _allP.filter(p=>p.role!=='management').length, '', "tab('promoter')"),
+      card('🎧 Agenzia', _allP.filter(p=>p.role==='management').length, '', "tab('agenzia')"),
       card('📨 Richieste in attesa', rp.pending, '#2563eb'),
       card('✅ Accettate', rp.by_status.accettata, '#0a7d38'),
       card('💶 Valore accettato', eur(rp.accepted_value), '#0a7d38'),
@@ -499,13 +508,15 @@ async function saveArtist(e){ e.preventDefault();
   return false;
 }
 
-/* ---- PROMOTER ---- */
+/* ---- PROMOTER / AGENZIA (stesso form, stesso ruolo dei dati; promoMode decide i default) ---- */
 function newPromoter(){
   editPId = null; formP.reset();
   p_passWrap.style.display=''; p_pass.required=true;
   p_status.value = 'pending'; p_banner.style.display='none';
-  p_roleWrap.style.display='none';
-  p_submit.textContent='Crea promoter';
+  const isAgenzia = promoMode === 'agenzia';
+  p_roleWrap.style.display = isAgenzia ? '' : 'none';
+  setV('p_role', isAgenzia ? 'management' : 'promoter');
+  p_submit.textContent = isAgenzia ? 'Crea agenzia' : 'Crea promoter';
 }
 
 async function savePromoter(e){ e.preventDefault();
@@ -517,10 +528,11 @@ async function savePromoter(e){ e.preventDefault();
   try {
     if (editPId){
       await api('admin-update-promoter.php',{method:'POST',body:{...bodyBase, id:editPId, role:val('p_role')}});
-      toast('Promoter aggiornato ✓');
+      toast('Account aggiornato ✓');
     } else {
-      const r = await api('admin-create-promoter.php',{method:'POST',body:{...bodyBase, password:val('p_pass')}});
-      toast('Promoter creato (#'+r.id+')');
+      const role = promoMode==='agenzia' ? 'management' : 'promoter';
+      const r = await api('admin-create-promoter.php',{method:'POST',body:{...bodyBase, password:val('p_pass'), role}});
+      toast((role==='management'?'Agenzia creata':'Promoter creato')+' (#'+r.id+')');
     }
     newPromoter(); showPromoterList(); loadList();
   } catch(err){ toast(errMsg(err), true); }
@@ -547,7 +559,7 @@ async function editUser(id, role){
       onVerifiedToggle();
       initMultilinkAdmin(p);
     } else {
-      tab('promoter'); showPromoterForm(); editPId = id;
+      tab(u.role==='management' ? 'agenzia' : 'promoter'); showPromoterForm(); editPId = id;
       p_passWrap.style.display='none'; p_pass.required=false; p_pass.value='';
       setV('p_status', u.status);
       p_banner.style.display=''; p_banner.textContent = 'Modifica ' + (u.role==='management'?'booking/management':'promoter') + ' #'+id+' — '+ (p.org_name||u.display_name||'');
@@ -626,8 +638,10 @@ function renderLists(){
     return true;
   });
   A = sortRows(A, fa_sort.value, a => a.stage_name||a.display_name||'');
+  const wantRole = promoMode==='agenzia' ? 'management' : 'promoter';
+  const allWanted = _allP.filter(p => p.role === wantRole);
   const qp = fp_q.value.trim().toLowerCase(), tipo = fp_tipo.value, pstate = fp_state.value;
-  let P = _allP.filter(p => {
+  let P = allWanted.filter(p => {
     const hay = ((p.org_name||p.display_name||'')+' '+(p.email||'')+' '+(p.comune||'')).toLowerCase();
     if (qp && !hay.includes(qp)) return false;
     if (tipo && p.tipo !== tipo) return false;
@@ -638,9 +652,11 @@ function renderLists(){
   });
   P = sortRows(P, fp_sort.value, p => p.org_name||p.display_name||'');
   cntA.textContent = qa||show||state ? `${A.length} / ${_allA.length}` : _allA.length;
-  cntP.textContent = qp||tipo||pstate ? `${P.length} / ${_allP.length}` : _allP.length;
+  cntP.textContent = qp||tipo||pstate ? `${P.length} / ${allWanted.length}` : allWanted.length;
+  pTitleLabel.textContent = promoMode==='agenzia' ? '🎧 Agenzia' : '📣 Promoter';
+  pNewBtn.textContent = promoMode==='agenzia' ? '➕ Nuova agenzia' : '➕ Nuovo promoter';
   listA.innerHTML = A.map(artistRow).join('') || '<div class="empty">Nessun artista</div>';
-  listP.innerHTML = P.map(promoterRow).join('') || '<div class="empty">Nessun promoter</div>';
+  listP.innerHTML = P.map(promoterRow).join('') || (promoMode==='agenzia' ? '<div class="empty">Nessuna agenzia</div>' : '<div class="empty">Nessun promoter</div>');
   fillManagerOptions();
 }
 
@@ -657,7 +673,7 @@ function fillManagerOptions(){
 
 /* ---- Elimina un utente ---- */
 async function deleteUser(id, role, btn){
-  const label = role==='artist' ? 'artista' : 'promoter';
+  const label = role==='artist' ? 'artista' : (promoMode==='agenzia' ? 'account agenzia' : 'promoter');
   const name = (btn && btn.dataset ? btn.dataset.name : '') || ('#'+id);
   if (!confirm('Vuoi eliminare definitivamente il '+label+' "'+name+'"?\n\nL\'operazione è IRREVERSIBILE e rimuove profilo, statistiche e richieste collegate.')) return;
   try {

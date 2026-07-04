@@ -1,8 +1,9 @@
 <?php
 /**
  * POST /api/admin-create-promoter.php   (solo admin)
- * Crea a mano un utente promoter + profilo. Geocodifica il comune.
- * Body: { email, password, org_name, tipo, phone, comune, provincia, website }
+ * Crea a mano un utente promoter (o booking/management, vedi `role`) + profilo.
+ * Geocodifica il comune.
+ * Body: { email, password, org_name, tipo, phone, comune, provincia, website, role? }
  */
 require_once __DIR__ . '/_admin.php';
 require_once __DIR__ . '/_geo.php';
@@ -13,6 +14,7 @@ $in    = body();
 $email = strtolower(trim($in['email'] ?? ''));
 $pass  = (string)($in['password'] ?? '');
 $org   = trim($in['org_name'] ?? '');
+$role  = in_array($in['role'] ?? '', ['promoter', 'management'], true) ? $in['role'] : 'promoter';
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('email_invalid');
 if (strlen($pass) < 8) fail('password_too_short');
@@ -40,8 +42,8 @@ $pdo->beginTransaction();
 try {
   $pdo->prepare(
     'INSERT INTO users (email, password_hash, role, display_name, status, email_verified)
-     VALUES (?, ?, "promoter", ?, ?, 1)'
-  )->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $org, $status]);
+     VALUES (?, ?, ?, ?, ?, 1)'
+  )->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $role, $org, $status]);
   $uid = (int)$pdo->lastInsertId();
 
   $pdo->prepare(
@@ -56,4 +58,4 @@ try {
   fail('create_failed', 500);
 }
 
-ok(['id' => $uid, 'geocoded' => $lat !== null]);
+ok(['id' => $uid, 'geocoded' => $lat !== null, 'role' => $role]);
