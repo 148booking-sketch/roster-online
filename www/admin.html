@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
-<div id="gateWrap" class="container narrow section">
+<div id="gateWrap" class="container narrow section" style="display:none">
 
   <!-- GATE: mostrato se non sei admin -->
   <div id="gate" style="display:none;max-width:460px;margin:0 auto">
@@ -344,11 +344,12 @@ let editAId = null, editPId = null;
 (async function init(){
   const me = await getMe(true);
   if (me.user && me.user.role === 'admin') showPanel(me);
-  else document.getElementById('gate').style.display = '';
+  else { gateWrap.style.display = ''; gate.style.display = ''; }
 })();
 
 let IS_SUPER = false, ME_ID = null;
 async function showPanel(me){
+  gateWrap.style.display = 'none';
   gate.style.display = 'none';
   panel.style.display = '';
   IS_SUPER = !!(me && me.user && me.user.admin_super);
