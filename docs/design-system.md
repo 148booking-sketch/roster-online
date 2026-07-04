@@ -52,7 +52,7 @@ Uso: `icon('heart', 20, 1.8)` → markup `<svg>` con `currentColor` (eredita il 
 |---|---|
 | Pubbliche + artista loggato (home 5a, pagina artista 5b, profilo 4a, richieste artista 6a, mappa, calendario) | **Header orizzontale** con link testuali + campana + avatar |
 | **Promoter/agenzia loggati** — Preferiti (5c), Le mie richieste (6b), Account & notifiche (7a) | **Sidebar bianca** `mountPromoterShell()` (216px, voci con badge, card utente) |
-| Auth (10a/10b/11d) | Card centrata su fondo `#fafafa`, CTA brand full-width (`.auth-*`) |
+| Auth (10a/10b/11d) | Card centrata su **fondo bianco uniforme**, margini simmetrici 56px sopra/sotto, CTA brand full-width (`.auth-*`) |
 | Admin (2b, 3a-c, 10c, 12b) | Rail scuro `#17171b` |
 | Email (13a-i) | `mail_layout()`: barra brand 4px, logo centrato, CTA rosa, footer societario; digest = `digest_layout()` con header scuro + KPI |
 
@@ -64,6 +64,12 @@ Uso: `icon('heart', 20, 1.8)` → markup `<svg>` con `currentColor` (eredita il 
 - Account & notifiche (7a): impostazioni a sinistra, feed notifiche + riepilogo email (segmented control) a destra.
 - Multilink (11c): header gradiente scuro con avatar bordo bianco + social translucidi, link bianchi centrati su fondo `#fafafa`.
 - Stati vuoti (11e): `.empty` con titolo display + sottotitolo (+ `.empty-ico`).
+- Box filtri (9a): pulsanti "Tutti"+"Filtri" a destra della category bar in home; pannello con generi, tipo show, budget slider (solo chi vede i prezzi), zona (comune+raggio), opzioni con switch, "Cancella tutto"/"Mostra risultati". Badge conteggio filtri attivi.
+- Mappa (11a): elenco artisti a sinistra (360px, card foto+meta+prezzo, click → centra il pin) + mappa a destra.
+- Calendario (11b): matrice "Disponibilità artisti" — righe artisti, colonne 10 giorni, celle verde libero/rosa occupato, nav a finestre di 10 giorni.
+- Admin: KPI 10c (numero grande colorato + label, senza icone), tabelle dense 12b per artisti/promoter/agenzie/admin (avatar quadrato, colonne Tipo·Città/Stato, azioni a icona 32px), form 3a bianchi con section-label.
+- Profilo artista (4a): hero card (avatar, nome+✓, meta, pill stato online/revisione, "Anteprima pubblica") + stats grid + form bianco.
+- Roster agenzia (4b): conteggi "X gestiti · Y online", ricerca inline, filtro stato, CTA brand "Aggiungi artista".
 
 ## Stato di adozione (rollout completato 2026-07-04, template integrale 2026-07-05)
 - ✅ **Fondamenta**: token, set icone SVG (43 icone), `renderNav()` con avatar dropdown + campana, componenti condivisi, `/styleguide.html` + questo doc.

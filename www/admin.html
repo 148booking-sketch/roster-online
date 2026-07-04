@@ -100,7 +100,10 @@
             <option value="created_asc">Più vecchi (creazione)</option>
           </select>
         </div>
-        <div id="listA" class="admin-list"></div>
+        <div class="dtable">
+          <div class="dt-head cols-art"><div>Artista</div><div>Show · Città</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+          <div id="listA"></div>
+        </div>
       </div>
 
       <!-- FORM ARTISTA (crea/modifica) -->
@@ -205,7 +208,10 @@
             <option value="created_asc">Più vecchi (creazione)</option>
           </select>
         </div>
-        <div id="listP" class="admin-list"></div>
+        <div class="dtable">
+          <div class="dt-head cols-pro"><div>Organizzazione</div><div>Tipo · Città</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+          <div id="listP"></div>
+        </div>
       </div>
 
       <!-- FORM PROMOTER (crea/modifica) -->
@@ -261,7 +267,10 @@
           <button type="button" class="btn primary sm" onclick="startNewAdmin()" data-ic="plus" data-ic-size="15">Nuovo admin</button>
         </div>
         <div class="hint" style="margin:0 0 12px">Un admin "ridotto" può fare tutto tranne: creare/modificare/eliminare altri admin, ed eliminare artisti/promoter/agenzie (può solo aggiornarli).</div>
-        <div id="listAd" class="admin-list"></div>
+        <div class="dtable">
+          <div class="dt-head cols-adm"><div>Admin</div><div>Livello</div><div style="text-align:right">Azioni</div></div>
+          <div id="listAd"></div>
+        </div>
       </div>
 
       <!-- FORM ADMIN (crea/modifica) -->
@@ -449,15 +458,17 @@ async function loadAdmins(){
 }
 function adminRow(a){
   const isMe = ME_ID === a.id;
-  return `<div class="admin-row" title="${isMe?'Il tuo account':'Clicca per modificare'}" ${isMe?'':`onclick="editAdmin(${a.id})"`}>
-    <div class="ar-left">
-      <b>${esc(a.display_name||a.email)}</b>
-      <span class="muted">${esc(a.email)}</span>
+  const nm=a.display_name||a.email||'—';
+  return `<div class="dt-row cols-adm" title="${isMe?'Il tuo account':'Clicca per modificare'}" ${isMe?'':`onclick="editAdmin(${a.id})"`}>
+    <div class="dt-who">
+      <span class="dt-ava" style="background:${avatarColor(nm)}">${esc(avatarInitials(nm))}</span>
+      <div style="min-width:0"><div class="nm">${esc(nm)}${isMe?' <span class="rqt-st" style="color:#2563eb;background:#eaf1fb">tu</span>':''}</div><div class="mt">${esc(a.email)}</div></div>
     </div>
-    <div class="ar-right">
-      <span class="ar-badges">${a.admin_super==1?'<span class="tg ok">super</span>':'<span class="tg warn">ridotto</span>'}${a.status==='blocked'?'<span class="tg bad">bloccato</span>':''}${isMe?'<span class="tg mail">tu</span>':''}</span>
-      ${isMe?'':`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.display_name||a.email||'')}"
-        onclick="event.stopPropagation();deleteAdmin(${a.id},this)">${icon('trash',13)} cancella</button>`}
+    <div class="dt-st">${a.admin_super==1?'<span class="rqt-st" style="color:#4f46e5;background:#eef2ff">Super</span>':'<span class="rqt-st" style="color:#a5730a;background:#fff7e6">Ridotto</span>'}${a.status==='blocked'?'<span class="rqt-st" style="color:#c0395e;background:#fbeaef">Bloccato</span>':''}</div>
+    <div class="dt-actions">
+      ${isMe?'':`<button type="button" class="dt-ibtn" title="Modifica" onclick="event.stopPropagation();editAdmin(${a.id})">${icon('edit',14,1.8)}</button>
+      <button type="button" class="dt-ibtn danger" title="Elimina" data-name="${esc(nm)}"
+        onclick="event.stopPropagation();deleteAdmin(${a.id},this)">${icon('trash',14,1.8)}</button>`}
     </div></div>`;
 }
 async function editAdmin(id){
@@ -494,7 +505,7 @@ async function loadDash(){
     const review  = _allA.filter(a=>a.published!=1);
     const unver   = _allA.filter(a=>a.email_verified==0).length + _allP.filter(p=>p.email_verified==0).length;
     const rp = req.report;
-    const card = (ic,l,v,c,onclick) => `<div class="rc${onclick?' clk':''}" ${onclick?`onclick="${onclick}"`:''}><div class="rc-n" ${c?`style="color:${c}"`:''}>${v}</div><div class="rc-l">${icon(ic,13,2)} ${l}</div></div>`;
+    const card = (ic,l,v,c,onclick) => `<div class="rc${onclick?' clk':''}" ${onclick?`onclick="${onclick}"`:''}><div class="rc-n" ${c?`style="color:${c}"`:''}>${v}</div><div class="rc-l">${l}</div></div>`;
     dashCards.innerHTML = [
       card('mic','Artisti', _allA.length, '', "tab('artisti')"),
       card('check','Online', online, '#0a7d38'),
@@ -776,33 +787,45 @@ async function loadList(){
   } catch(err){ toast(errMsg(err), true); }
 }
 function artistRow(a){
-  return `<div class="admin-row" title="Clicca per modificare" onclick="editUser(${a.id},'artist')">
-    <div class="ar-left">
-      <b>${esc(a.stage_name||a.display_name)}${a.verified==1?'<span class="vchk" title="Artista verificato">✓</span>':''}</b>
-      <span class="muted">${esc(showLabel(a.formazione))}</span>
-      <span class="muted">${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</span>
+  const nm=a.stage_name||a.display_name||'—';
+  const ava=a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(nm));
+  const st = a.status==='blocked' ? '<span class="rqt-st" style="color:#c0395e;background:#fbeaef">Bloccato</span>'
+    : a.published==1 ? '<span class="rqt-st" style="color:#0a7d38;background:#eafaf0">Online</span>'
+    : '<span class="rqt-st" style="color:#a5730a;background:#fff7e6">In revisione</span>';
+  const extra = `${a.email_verified==0?'<span class="rqt-st" style="color:#2563eb;background:#eaf1fb">email</span>':''}${a.top8==1?'<span class="rqt-st" style="color:#4f46e5;background:#eef2ff">TOP</span>':''}`;
+  return `<div class="dt-row cols-art" title="Clicca per modificare" onclick="editUser(${a.id},'artist')">
+    <div class="dt-who">
+      <span class="dt-ava" style="background:${avatarColor(nm)}">${ava}</span>
+      <div style="min-width:0"><div class="nm">${esc(nm)}${a.verified==1?'<span class="vchk" title="Verificato">✓</span>':''}</div><div class="mt">${esc(a.email||'')}</div></div>
     </div>
-    <div class="ar-right">
-      <span class="ar-badges">${a.published==1?'<span class="tg on">online</span>':'<span class="tg warn">in revisione</span>'}${a.email_verified==0?'<span class="tg mail">email da verificare</span>':''}${a.verified==1?'<span class="tg ok">✓ verificato</span>':''}${a.top8==1?'<span class="tg ok">FEATURED</span>':''}${a.status==='blocked'?'<span class="tg bad">bloccato</span>':''}</span>
+    <div class="dt-meta">${esc(showLabel(a.formazione))}<div>${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</div></div>
+    <div class="dt-st">${st}${extra}</div>
+    <div class="dt-actions">
       ${a.published==1
-        ? `<button type="button" class="btn ghost sm" title="Nascondi dalla ricerca" onclick="event.stopPropagation();approveArtist(${a.id},0,this)">🚫 nascondi</button>`
-        : `<button type="button" class="btn primary sm" title="Rendi visibile nella ricerca" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">Approva</button>`}
-      <button type="button" class="btn ghost sm" title="Aggiorna statistiche social e calendario disponibilità"
-        onclick="event.stopPropagation();refreshStats(${a.id},this)">🔄 aggiorna</button>
-      ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.stage_name||a.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">${icon('trash',13)} cancella</button>`:''}
+        ? `<button type="button" class="dt-ibtn" title="Nascondi dalla ricerca" onclick="event.stopPropagation();approveArtist(${a.id},0,this)">${icon('eyeOff',15,1.8)}</button>`
+        : `<button type="button" class="dt-ibtn ok" title="Approva (rendi visibile)" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">${icon('check',15,2.2)}</button>`}
+      <button type="button" class="dt-ibtn" title="Aggiorna statistiche e calendario" onclick="event.stopPropagation();refreshStats(${a.id},this)">${icon('refresh',14,1.9)}</button>
+      <button type="button" class="dt-ibtn" title="Modifica" onclick="event.stopPropagation();editUser(${a.id},'artist')">${icon('edit',14,1.8)}</button>
+      ${IS_SUPER?`<button type="button" class="dt-ibtn danger" title="Elimina" data-name="${esc(nm)}"
+        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">${icon('trash',14,1.8)}</button>`:''}
     </div></div>`;
 }
 function promoterRow(p){
-  return `<div class="admin-row" title="Clicca per modificare" onclick="editUser(${p.id},'promoter')">
-    <div class="ar-left">
-      <b>${esc(p.org_name||p.display_name)}</b>
-      <span class="muted">${esc([p.comune,p.provincia].filter(Boolean).join(' '))}</span>
+  const nm=p.org_name||p.display_name||'—';
+  const st = p.status==='active' ? '<span class="rqt-st" style="color:#0a7d38;background:#eafaf0">Attivo</span>'
+    : p.status==='blocked' ? '<span class="rqt-st" style="color:#c0395e;background:#fbeaef">Bloccato</span>'
+    : '<span class="rqt-st" style="color:#a5730a;background:#fff7e6">Da verificare</span>';
+  return `<div class="dt-row cols-pro" title="Clicca per modificare" onclick="editUser(${p.id},'promoter')">
+    <div class="dt-who">
+      <span class="dt-ava" style="background:${avatarColor(nm)}">${esc(avatarInitials(nm))}</span>
+      <div style="min-width:0"><div class="nm">${esc(nm)}${p.role==='management'?' <span class="rqt-st" style="color:#b81e47;background:#fbe9ee">agenzia</span>':''}</div><div class="mt">${esc(p.email||'')}</div></div>
     </div>
-    <div class="ar-right">
-      <span class="ar-badges">${p.role==='management'?'<span class="tg mail">agenzia</span>':''}<span class="tg ok">${esc(p.tipo)}</span>${p.email_verified==0?'<span class="tg mail">email da verificare</span>':''}${p.status==='active'?'<span class="tg ok">✓ verificato</span>':p.status==='blocked'?'<span class="tg bad">bloccato</span>':'<span class="tg warn">da verificare</span>'}</span>
-      ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(p.org_name||p.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">${icon('trash',13)} cancella</button>`:''}
+    <div class="dt-meta">${esc(p.tipo||'')}<div>${esc([p.comune,p.provincia].filter(Boolean).join(' '))}</div></div>
+    <div class="dt-st">${st}${p.email_verified==0?'<span class="rqt-st" style="color:#2563eb;background:#eaf1fb">email</span>':''}</div>
+    <div class="dt-actions">
+      <button type="button" class="dt-ibtn" title="Modifica" onclick="event.stopPropagation();editUser(${p.id},'promoter')">${icon('edit',14,1.8)}</button>
+      ${IS_SUPER?`<button type="button" class="dt-ibtn danger" title="Elimina" data-name="${esc(nm)}"
+        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">${icon('trash',14,1.8)}</button>`:''}
     </div></div>`;
 }
 function sortRows(rows, sortKey, nameFn){
@@ -966,7 +989,7 @@ async function doBootstrap(e){ e.preventDefault();
 .sec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .rc.clk{cursor:pointer;transition:border-color .15s,transform .1s}
 .rc.clk:hover{border-color:var(--txt);transform:translateY(-1px)}
-.list-section{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--panel2)}
+.list-section{border:1px solid var(--line2);border-radius:14px;padding:16px 18px;background:#fff}
 .ls-title{margin:0 0 12px;font-family:var(--f-display)}
 .ls-count{color:var(--muted);font-size:14px;font-weight:600;margin-left:6px}
 .list-filters{display:flex;gap:10px;flex-wrap:nowrap;margin-bottom:14px}
@@ -993,9 +1016,35 @@ async function doBootstrap(e){ e.preventDefault();
 .infogrid{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:start;margin-bottom:14px}
 .fsec.info,.fsec.music,.fsec.money,.fsec.tech{background:#fff;border-color:var(--line2)}
 .req-report{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
-.rc-n{font-size:22px;font-weight:700;font-family:var(--f-display)}
+.rc{border:1px solid var(--line2);border-radius:14px;padding:16px 18px;background:#fff}
+.rc-n{font-size:26px;font-weight:700;font-family:var(--f-display);letter-spacing:-.5px}
 .rc-l{font-size:12px;color:var(--muted);margin-top:2px}
+/* tabella densa (design 12b) */
+.dtable{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#fff}
+.dt-head{display:grid;gap:12px;padding:9px 18px;background:#f7f7f7;border-bottom:1px solid var(--line2);font:700 10.5px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:#9a9aa2}
+.dt-row{display:grid;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid #f2f2f2;cursor:pointer}
+.dt-row:last-child{border-bottom:0}
+.dt-row:hover{background:#fafafa}
+.cols-art,.cols-pro{grid-template-columns:1fr 170px 150px 168px}
+.cols-adm{grid-template-columns:1fr 170px 110px}
+.dt-who{display:flex;align-items:center;gap:11px;min-width:0}
+.dt-ava{width:34px;height:34px;border-radius:9px;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.dt-ava img{width:100%;height:100%;object-fit:cover}
+.dt-who .nm{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt-who .mt{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt-meta{font-size:12.5px;color:#444}
+.dt-meta div{color:var(--muted)}
+.dt-st{display:flex;gap:5px;flex-wrap:wrap}
+.dt-actions{display:flex;justify-content:flex-end;gap:6px}
+.dt-ibtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#444}
+.dt-ibtn:hover{border-color:var(--txt)}
+.dt-ibtn.danger{color:#c0395e;border-color:#f2c9d5}
+.dt-ibtn.ok{color:#0a7d38;border-color:#bfe9cf}
+@media(max-width:820px){
+  .dt-head{display:none}
+  .dt-row{grid-template-columns:1fr !important;gap:8px}
+  .dt-actions{justify-content:flex-start}
+}
 .req-row{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;background:var(--panel)}
 .req-main{font-size:15px}.req-main .arrow{color:var(--muted);margin:0 4px}
 .req-main a{text-decoration:none;color:inherit}.req-main a:hover b{text-decoration:underline}

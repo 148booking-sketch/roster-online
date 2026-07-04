@@ -6,15 +6,23 @@
 <title>Il mio profilo · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.fsec{border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:16px}
-.fsec-h{font-family:var(--f-display);font-size:22px;font-weight:700;margin:0 0 16px}
-.fsec h3{margin:18px 0 8px;font-size:17px}
+body{background:#f7f7f7}
+.fsec{border:1px solid var(--line2);border-radius:16px;padding:20px 22px;margin-bottom:16px;background:#fff}
+.fsec-h{font:700 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#9a9aa2;margin:0 0 14px}
+.fsec h3{margin:18px 0 8px;font-size:16px}
 .infogrid{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:start;margin-bottom:14px}
-.fsec.info{background:#f3f8ff;border-color:#dbe7fb}
-.fsec.music{background:#faf3fb;border-color:#eed9ef}
-.fsec.money{background:#f1fbf5;border-color:#cdeed8}
-.fsec.tech{background:#fff8ef;border-color:#ffe4bd}
-.fsec.links{background:#f7f7f7;border-color:var(--line);margin-top:18px}
+.fsec.info,.fsec.music,.fsec.money,.fsec.tech{background:#fff;border-color:var(--line2)}
+.fsec.links{background:#fff;border-color:var(--line2);margin-top:18px}
+/* hero profilo (design 4a) */
+.pr-hero{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:22px;display:flex;align-items:center;gap:18px;margin-bottom:16px;flex-wrap:wrap}
+.pr-ava{width:72px;height:72px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;flex:none}
+.pr-ava img{width:100%;height:100%;object-fit:cover}
+.pr-nm{font:700 22px var(--f-display);letter-spacing:-.4px;display:flex;align-items:center;gap:8px}
+.pr-meta{font-size:13px;color:var(--muted);margin-top:2px}
+.pr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px}
+.pr-stat{background:#fff;border:1px solid var(--line2);border-radius:14px;padding:15px 17px}
+.pr-stat .l{font-size:12px;color:var(--muted)}
+.pr-stat .n{font:700 22px var(--f-display);margin-top:3px}
 .rev-banner{background:#fff7e6;border:1px solid #ffe1a8;color:#7a5b00;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;line-height:1.5}
 </style>
 </head>
@@ -22,13 +30,16 @@
 <nav class="nav" id="nav"></nav>
 
 <main class="container narrow section">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
-    <div>
-      <h1 class="title">Il mio profilo artista</h1>
-      <p class="sub">Più il profilo è completo, più i promoter ti trovano.</p>
+  <div class="pr-hero" id="prHero">
+    <span class="pr-ava" id="prAva"></span>
+    <div style="min-width:0;flex:1">
+      <div class="pr-nm"><span id="prName">Il mio profilo</span><span class="vchk" id="prVchk" style="display:none;width:15px;height:15px;font-size:8px">✓</span></div>
+      <div class="pr-meta" id="prMeta">Più il profilo è completo, più i promoter ti trovano.</div>
+      <span class="status ok" id="prStatus" style="display:none;margin-top:9px"><span class="dot"></span>Profilo online</span>
     </div>
-    <a id="viewProfileBtn" class="btn ghost" style="display:none" target="_blank" rel="noopener">👁️ Visualizza profilo</a>
+    <a id="viewProfileBtn" class="btn ghost" style="display:none" target="_blank" rel="noopener" data-ic="eye" data-ic-size="15">Anteprima pubblica</a>
   </div>
+  <div class="pr-stats" id="prStats" style="display:none"></div>
 
   <div id="reviewBanner" class="rev-banner" style="display:none"></div>
 
@@ -39,14 +50,14 @@
 
   <!-- MULTI LINK (link in bio) -->
   <section class="fsec links" id="multilinkSec" style="display:none">
-    <h2 class="fsec-h">🔗 Multi link (link in bio)</h2>
+    <h2 class="fsec-h">Multi link (link in bio)</h2>
     <div class="hint" style="margin:0 0 12px">Un unico link con tutti i tuoi social e il box booking: perfetto da mettere in bio su Instagram, TikTok e simili.</div>
-    <div id="mlUnpub" class="hint" style="display:none;color:#7a5b00;margin-bottom:10px">⏳ Sarà attivo appena lo staff approva il tuo profilo.</div>
+    <div id="mlUnpub" class="hint" style="display:none;color:#7a5b00;margin-bottom:10px">Sarà attivo appena lo staff approva il tuo profilo.</div>
     <div id="mlNoSlug" class="hint" style="display:none">Completa e salva il nome d'arte qui sopra per generare il link.</div>
     <div id="mlLinkRow" style="display:none;gap:10px;flex-wrap:wrap;align-items:center">
       <input id="mlUrl" readonly style="flex:1;min-width:200px">
-      <button type="button" class="btn ghost sm" onclick="copyMlLink()">📋 Copia</button>
-      <a id="mlOpen" class="btn ghost sm" target="_blank" rel="noopener">👁️ Apri</a>
+      <button type="button" class="btn ghost sm" onclick="copyMlLink()">Copia</button>
+      <a id="mlOpen" class="btn ghost sm" target="_blank" rel="noopener">Apri</a>
     </div>
 
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line2)">
@@ -114,6 +125,27 @@ async function init(){
   if (new URLSearchParams(location.search).get('welcome')) toast('Email verificata ✓ Completa il tuo profilo');
   artistFormPopulate('', p);
   initMultilink(p);
+
+  // hero (design 4a): avatar, nome, meta, stato, stats
+  const nm = p.stage_name || me.user.display_name || 'Il mio profilo';
+  prName.textContent = nm;
+  prAva.style.background = avatarColor(nm);
+  prAva.innerHTML = p.photo_url ? `<img src="${esc(p.photo_url)}" referrerpolicy="no-referrer">` : esc(avatarInitials(nm));
+  if (p.verified==1) prVchk.style.display='';
+  const meta=[showLabel(p.formazione), p.comune, (p.genres||[]).map(g=>g.name).slice(0,2).join(', ')].filter(Boolean).join(' · ');
+  if (meta) prMeta.textContent = meta;
+  const stEl=document.getElementById('prStatus');
+  stEl.style.display='inline-flex';
+  if (p.published==1){ stEl.className='status ok'; stEl.innerHTML='<span class="dot"></span>Profilo online'; }
+  else { stEl.className='status warn'; stEl.innerHTML='<span class="dot"></span>In revisione'; }
+  const s=(typeof p.stats==='string'?JSON.parse(p.stats||'{}'):(p.stats||{}));
+  const items=[['spotify_followers','Spotify follower'],['spotify_listeners','Spotify ascoltatori'],['instagram_followers','Instagram'],['youtube_subs','YouTube'],['tiktok_followers','TikTok']]
+    .filter(([k])=>s[k]!=null&&s[k]>0).slice(0,4);
+  if(items.length){
+    prStats.style.display='';
+    prStats.innerHTML=items.map(([k,l])=>`<div class="pr-stat"><div class="l">${l}</div><div class="n">${fmt(s[k])}</div></div>`).join('');
+  }
+  injectIcons();
 }
 
 function initMultilink(p){

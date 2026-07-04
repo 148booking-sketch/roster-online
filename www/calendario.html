@@ -6,176 +6,106 @@
 <title>Calendario artisti · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.calpage{height:calc(100vh - 80px);display:flex;flex-direction:column}
-@media(max-width:860px){.calpage{height:calc(100vh - 64px)}}
-
-.calhdr{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line2);flex:none}
-.calhdr h1{font-family:var(--f-display);font-size:20px;font-weight:700;text-transform:capitalize;min-width:200px;text-align:center;margin:0}
-.calhdr .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none}
-.calhdr .navbtn:hover{background:var(--panel2)}
-.calhdr .caltoday{border:1px solid var(--line);border-radius:20px;padding:8px 16px;background:#fff;cursor:pointer;font-weight:600;font-size:13px;flex:none}
-.calhdr .caltoday:hover{background:var(--panel2)}
-
-.calweekdays{display:grid;grid-template-columns:repeat(7,1fr);flex:none;border-bottom:1px solid var(--line2)}
-.calweekdays span{text-align:center;padding:8px 0;font-size:12px;font-weight:700;color:var(--muted)}
-
-.calbody{flex:1;display:grid;grid-template-columns:repeat(7,1fr);overflow:auto}
-.calcell{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:70px}
-.calcell.out{background:var(--panel2)}
-.calcell.out .daynum{color:#c4c4c4}
-.calcell.past{background:var(--panel2)}
-.calcell.past .daynum{color:#c4c4c4}
-.calhdr .navbtn:disabled{opacity:.35;cursor:default}
-.daynum{font-size:13px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
-.calcell.today .daynum{background:var(--brand);color:#fff}
-
-.calicons{display:flex;flex-direction:column;gap:4px;margin-top:auto;min-width:0}
-.calrow{display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0}
-.calrow img,.calrow .ph{width:20px;height:20px;border-radius:50%;object-fit:cover;flex:none;background:#eee}
-.calrow .ph{display:flex;align-items:center;justify-content:center;font-size:10px;background:linear-gradient(135deg,#f0f0f0,#ddd)}
-.calrow .nm{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.calrow:hover .nm{text-decoration:underline}
-
-.calempty{padding:16px 20px;text-align:center;color:var(--muted);font-size:13px;flex:none}
-
-/* ---- modalità agenda (mobile): lista di giorni con artisti occupati ---- */
-@media(max-width:640px){
-  .calweekdays{display:none}
-  .calbody{display:block}
-}
-.agenda-day{border-bottom:1px solid var(--line2);padding:14px 20px}
-.agenda-day h3{margin:0 0 10px;font-size:14px;font-weight:700;text-transform:capitalize;color:var(--txt)}
-.agenda-day h3 .dow{color:var(--muted);font-weight:600;margin-right:6px}
-.agenda-row{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer}
-.agenda-row img,.agenda-row .ph{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none;background:#eee}
-.agenda-row .ph{display:flex;align-items:center;justify-content:center;font-size:14px;background:linear-gradient(135deg,#f0f0f0,#ddd)}
-.agenda-row .nm{font-size:14px;font-weight:600}
-.agenda-row:hover .nm{text-decoration:underline}
-.agenda-empty{padding:60px 20px;text-align:center;color:var(--muted);font-size:14px}
+/* design 11b: matrice disponibilità — righe artisti, colonne prossimi giorni */
+.avz{max-width:var(--maxw);margin:0 auto;padding:22px 26px 60px}
+.avz-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.avz-head h1{font:700 20px var(--f-display);letter-spacing:-.4px;margin:0}
+.avz-nav{margin-left:auto;display:flex;align-items:center;gap:10px;font:600 13px var(--f-body)}
+.avz-nav .lbl{color:var(--muted);text-transform:capitalize}
+.avz-nav button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.avz-nav button:hover:not(:disabled){background:var(--panel2)}
+.avz-nav button:disabled{opacity:.35;cursor:default}
+.avz-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:14px}
+.avz-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.avz-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px 18px;overflow-x:auto}
+.avz-grid{display:grid;grid-template-columns:230px repeat(10,minmax(52px,1fr));gap:6px;align-items:center;min-width:820px}
+.avz-dow{text-align:center;font:700 11px var(--f-body);color:#9a9aa2}
+.avz-dow b{display:block;color:#222;font-size:13px}
+.avz-dow.today b{color:var(--brand)}
+.avz-artist{display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer}
+.avz-artist:hover .nm{text-decoration:underline}
+.avz-ava{width:32px;height:32px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:none}
+.avz-ava img{width:100%;height:100%;object-fit:cover}
+.avz-artist .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avz-artist .mt{font-size:11px;color:var(--muted)}
+.avz-cell{height:26px;border-radius:6px;background:#eafaf0;cursor:pointer}
+.avz-cell.busy{background:#fbeaef}
+.avz-cell:hover{outline:2px solid var(--brand);outline-offset:-1px}
+.avz-sep{grid-column:1/-1;height:1px;background:#f2f2f2}
 </style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
-<div class="calpage">
-  <div class="calhdr">
-    <button class="navbtn" id="calPrev" onclick="calNav(-1)" aria-label="Mese precedente">‹</button>
-    <h1 id="calTitle"></h1>
-    <button class="navbtn" onclick="calNav(1)" aria-label="Mese successivo">›</button>
-    <button class="caltoday" onclick="calToday()">Oggi</button>
+
+<div class="avz">
+  <div class="avz-head">
+    <h1>Disponibilità artisti</h1>
+    <div class="avz-nav">
+      <span class="lbl" id="avzLbl"></span>
+      <button id="avzPrev" onclick="nav(-10)">‹</button>
+      <button onclick="nav(10)">›</button>
+    </div>
   </div>
-  <div class="calweekdays">
-    <span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span>
+  <div class="avz-legend">
+    <span><i style="background:#eafaf0;border:1px solid #bfe9cf"></i>Libero</span>
+    <span><i style="background:#fbeaef;border:1px solid #f3d3dd"></i>Occupato</span>
   </div>
-  <div class="calbody" id="calBody"></div>
-  <div class="calempty" id="calEmpty" style="display:none">Nessun artista ha ancora un calendario collegato.</div>
+  <div class="avz-box"><div class="avz-grid" id="avzGrid"></div></div>
+  <div id="calEmpty" class="empty" style="display:none"><span class="et">Nessun calendario collegato</span>Gli artisti con Google Calendar collegato appariranno qui.</div>
 </div>
 
 <script src="/assets/api.js"></script>
 <script>
-const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-let calY, calM, busyByDay={};
+const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+let ART=[], OFFSET=0;   // OFFSET = giorni da oggi all'inizio della finestra (finestre da 10 giorni)
 
+function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function goArtist(slug){ if(slug) location.href='/'+slug; }
-function isoOf(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
-function calNav(delta){
-  let ny=calY, nm=calM+delta;
-  if(nm<0){nm=11;ny--} if(nm>11){nm=0;ny++}
-  const t=new Date();
-  if(delta<0 && (ny<t.getFullYear() || (ny===t.getFullYear() && nm<t.getMonth()))) return; // non si torna indietro nel passato
-  calY=ny; calM=nm; draw();
-}
-function calToday(){ const t=new Date(); calY=t.getFullYear(); calM=t.getMonth(); draw(); }
-
-function iconHtml(a){
-  const inner=a.photo_url
-    ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`
-    : `<div class="ph">🎵</div>`;
-  const name=esc(a.stage_name||'Artista');
-  const vchk=a.verified?'<span class="vchk" title="Artista verificato">✓</span>':'';
-  return `<div class="calrow" onclick="event.stopPropagation();goArtist('${esc(a.slug||'')}')" title="${name}">${inner}<span class="nm">${name}${vchk}</span></div>`;
-}
-
-function isMobile(){ return window.matchMedia('(max-width:640px)').matches; }
+function nav(delta){ OFFSET=Math.max(0, OFFSET+delta); draw(); }
 
 function draw(){
-  document.getElementById('calTitle').textContent = MESI[calM]+' '+calY;
-  const t=new Date();
-  document.getElementById('calPrev').disabled = (calY===t.getFullYear() && calM===t.getMonth());
-  isMobile() ? drawAgenda() : drawGrid();
-}
+  document.getElementById('avzPrev').disabled = OFFSET===0;
+  const days=[]; const base=new Date(); base.setHours(0,0,0,0); base.setDate(base.getDate()+OFFSET);
+  for(let i=0;i<10;i++){ const d=new Date(base); d.setDate(base.getDate()+i); days.push(d); }
+  const todayIso=isoOf(new Date());
+  document.getElementById('avzLbl').textContent =
+    `${days[0].getDate()} ${MESI[days[0].getMonth()]} – ${days[9].getDate()} ${MESI[days[9].getMonth()]} ${days[9].getFullYear()}`;
 
-function drawGrid(){
-  const body=document.getElementById('calBody');
-  const today=new Date(); today.setHours(0,0,0,0);
-  const todayIso=isoOf(today.getFullYear(),today.getMonth(),today.getDate());
-  const startDow=(new Date(calY,calM,1).getDay()+6)%7;
-  const daysInMonth=new Date(calY,calM+1,0).getDate();
-  const prevDays=new Date(calY,calM,0).getDate();
+  let html='<div></div>'+days.map(d=>{
+    const iso=isoOf(d);
+    return `<div class="avz-dow${iso===todayIso?' today':''}">${GG[d.getDay()]}<b>${d.getDate()}</b></div>`;
+  }).join('');
 
-  let cells='';
-  for(let i=0;i<startDow;i++){
-    cells+=`<div class="calcell out"><span class="daynum">${prevDays-startDow+1+i}</span></div>`;
-  }
-  for(let d=1;d<=daysInMonth;d++){
-    const date=new Date(calY,calM,d);
-    const iso=isoOf(calY,calM,d);
-    const isPast=date<today;
-    let icons='';
-    if(!isPast){
-      const list=busyByDay[iso]||[];
-      icons=list.map(iconHtml).join('');
-    }
-    cells+=`<div class="calcell${isPast?' past':''}${iso===todayIso?' today':''}">
-      <span class="daynum">${d}</span>
-      <div class="calicons">${icons}</div>
+  ART.forEach((a,ri)=>{
+    const busy=a._busy;
+    const pic=a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:esc(avatarInitials(a.stage_name||'A'));
+    html+='<div class="avz-sep"></div>';
+    html+=`<div class="avz-artist" onclick="goArtist('${esc(a.slug||'')}')" title="Vedi profilo">
+      <span class="avz-ava" style="background:${avatarColor(a.stage_name||'A')}">${pic}</span>
+      <span style="min-width:0"><span class="nm" style="display:block">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk">✓</span>':''}</span><span class="mt">${esc(a.comune||'')}</span></span>
     </div>`;
-  }
-  const trailing=(7-((startDow+daysInMonth)%7))%7;
-  for(let d=1; d<=trailing; d++){
-    cells+=`<div class="calcell out"><span class="daynum">${d}</span></div>`;
-  }
-  const rows=(startDow+daysInMonth+trailing)/7;
-  body.style.gridTemplateRows=`repeat(${rows}, minmax(70px, auto))`;
-  body.innerHTML=cells;
-}
-
-function drawAgenda(){
-  const body=document.getElementById('calBody');
-  body.style.gridTemplateRows='';
-  const GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-  const daysInMonth=new Date(calY,calM+1,0).getDate();
-  const today=new Date(); today.setHours(0,0,0,0);
-  let html='';
-  for(let d=1;d<=daysInMonth;d++){
-    if(new Date(calY,calM,d)<today) continue;
-    const iso=isoOf(calY,calM,d);
-    const list=busyByDay[iso]||[];
-    if(!list.length) continue;
-    const dow=GG[new Date(calY,calM,d).getDay()];
-    const rows=list.map(a=>{
-      const inner=a.photo_url
-        ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`
-        : `<div class="ph">🎵</div>`;
-      return `<div class="agenda-row" onclick="goArtist('${esc(a.slug||'')}')">${inner}<span class="nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</span></div>`;
+    html+=days.map(d=>{
+      const iso=isoOf(d);
+      const b=busy.has(iso);
+      return `<div class="avz-cell${b?' busy':''}" title="${esc(a.stage_name||'')} · ${d.getDate()} ${MESI[d.getMonth()]} · ${b?'occupato':'libero'}" onclick="goArtist('${esc(a.slug||'')}')"></div>`;
     }).join('');
-    html+=`<div class="agenda-day"><h3><span class="dow">${dow}</span>${d} ${MESI[calM].toLowerCase()}</h3>${rows}</div>`;
-  }
-  body.innerHTML = html || `<div class="agenda-empty">Nessun artista occupato in questo mese.</div>`;
+  });
+
+  document.getElementById('avzGrid').innerHTML=html;
 }
 
 async function init(){
   await renderNav();
   let data=[];
-  try{ data=(await api('calendars-busy.php')).artists; }catch(e){ toast('Errore caricamento calendario',true); }
-  data.forEach(a=>{ (a.busy||[]).forEach(iso=>{ (busyByDay[iso]=busyByDay[iso]||[]).push(a); }); });
-  const t=new Date(); calY=t.getFullYear(); calM=t.getMonth();
+  try{ data=(await api('calendars-busy.php')).artists||[]; }catch(e){ toast('Errore caricamento calendario',true); }
+  ART=data.map(a=>({...a, _busy:new Set(a.busy||[])}));
+  // prima gli artisti con più giorni liberi nei prossimi 10 giorni
+  document.getElementById('calEmpty').style.display = ART.length ? 'none' : '';
+  document.querySelector('.avz-box').style.display = ART.length ? '' : 'none';
   draw();
-  document.getElementById('calEmpty').style.display = data.length ? 'none' : '';
 }
 init();
-
-let resizeT;
-window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(draw, 150); });
 </script>
 </body>
 </html>

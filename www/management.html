@@ -46,12 +46,20 @@
       <div class="sec-toolbar">
         <div>
           <h1 class="title" style="margin:0" data-ic="agency" data-ic-size="22">Il tuo roster</h1>
-          <p class="sub" style="margin:4px 0 0">Gli artisti che gestisci. Vengono pubblicati subito, previa verifica del catalogo Apple Music.</p>
+          <p class="sub" style="margin:4px 0 0" id="rosterCount">Gli artisti che gestisci.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" class="btn ghost" onclick="showProfile()" data-ic="sliders" data-ic-size="15">Profilo agenzia</button>
           <button type="button" class="btn primary" onclick="startNew()" data-ic="plus" data-ic-size="15">Aggiungi artista</button>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:0 0 16px;flex-wrap:wrap">
+        <div class="fl-search" style="margin:0;flex:1;min-width:200px;max-width:320px"><span data-ic="search" data-ic-size="15" data-ic-stroke="1.9" style="color:var(--muted)"></span><input id="rq_search" placeholder="Cerca nel tuo roster…" oninput="paintRoster()"></div>
+        <select id="rq_state" onchange="paintRoster()" style="width:auto">
+          <option value="">Stato: Tutti</option>
+          <option value="online">Online</option>
+          <option value="review">In revisione</option>
+        </select>
       </div>
       <div id="roster" class="roster"></div>
     </div>
@@ -168,10 +176,10 @@ function startNew(){
 /* ---- elenco roster ---- */
 function rostRow(a){
   const pub = a.published==1
-    ? '<span class="tg on">online</span>'
-    : '<span class="tg warn">⏳ in revisione</span>';
+    ? '<span class="rqt-st" style="color:#0a7d38;background:#eafaf0">Online</span>'
+    : '<span class="rqt-st" style="color:#a5730a;background:#fff7e6">In revisione</span>';
   const loc = [a.comune, a.provincia].filter(Boolean).join(' · ');
-  const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : '🎵';
+  const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : icon('music',22,1.5);
   return `<div class="rost-row">
     <div class="rost-pic">${pic}</div>
     <div class="rost-main">
@@ -184,14 +192,31 @@ function rostRow(a){
     </div>
   </div>`;
 }
+let _rosterList=[];
 async function loadRoster(){
   try {
     const r = await api('management-artists.php');
-    const list = r.artists || [];
-    roster.innerHTML = list.length
-      ? list.map(rostRow).join('')
-      : '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Nessun artista ancora. Usa <b>Aggiungi artista</b> per iniziare.</div>';
+    _rosterList = r.artists || [];
+    const online=_rosterList.filter(a=>a.published==1).length;
+    document.getElementById('rosterCount').textContent =
+      _rosterList.length ? `${_rosterList.length} artist${_rosterList.length===1?'a gestito':'i gestiti'} · ${online} online` : 'Gli artisti che gestisci.';
+    paintRoster();
   } catch(err){ toast(errMsg(err), true); }
+}
+function paintRoster(){
+  const q=(document.getElementById('rq_search')?.value||'').trim().toLowerCase();
+  const st=document.getElementById('rq_state')?.value||'';
+  const L=_rosterList.filter(a=>{
+    if(q && !String(a.stage_name||'').toLowerCase().includes(q)) return false;
+    if(st==='online' && a.published!=1) return false;
+    if(st==='review' && a.published==1) return false;
+    return true;
+  });
+  roster.innerHTML = L.length
+    ? L.map(rostRow).join('')
+    : (_rosterList.length
+      ? '<div class="empty">Nessun artista con questi filtri.</div>'
+      : '<div class="empty"><span class="et">Nessun artista ancora</span>Usa <b>Aggiungi artista</b> per iniziare.</div>');
 }
 
 /* ---- step 1: idoneità (solo nuovo artista) ---- */

@@ -135,8 +135,60 @@
 
 <!-- category bar generi -->
 <div class="catbar-wrap">
-  <div class="container">
-    <div class="catbar" id="catbar"></div>
+  <div class="container" style="display:flex;align-items:center;gap:10px">
+    <div class="catbar" id="catbar" style="flex:1;min-width:0"></div>
+    <div class="cb-divider"></div>
+    <div class="cb-actions">
+      <button type="button" class="btn dark sm" onclick="resetAllFilters()">Tutti</button>
+      <button type="button" class="btn ghost sm" id="filtBtn" onclick="openFilters()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- PANNELLO FILTRI (design 9a) -->
+<div class="overlay" id="filtersModal">
+  <div class="modal fmodal" style="max-width:480px;padding:0">
+    <div class="fm-head">
+      <div style="font:700 17px var(--f-display);letter-spacing:-.2px">Filtri</div>
+      <span class="fm-count" id="fmCount" style="display:none"></span>
+      <button type="button" class="iconbtn" style="margin-left:auto" onclick="closeFilters()">✕</button>
+    </div>
+    <div class="fm-body">
+      <div class="section-label" style="margin-top:0">Generi</div>
+      <div class="fm-chips" id="fmGenres"></div>
+      <div class="section-label" style="margin-top:22px">Tipo di show</div>
+      <div class="fm-chips" id="fmShows"></div>
+      <div id="fmBudgetSec" style="display:none">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px">
+          <div class="section-label" style="margin:0">Budget massimo</div>
+          <div style="font:700 15px var(--f-display);color:var(--brand)" id="fmBudgetVal"></div>
+        </div>
+        <input type="range" id="fmBudget" min="0" step="50" style="width:100%;accent-color:var(--brand)" oninput="fmBudgetPaint()">
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:12px;color:#9a9aa2"><span>€0</span><span id="fmBudgetMax"></span></div>
+      </div>
+      <div class="section-label" style="margin-top:22px">Dove</div>
+      <div class="fm-where">
+        <span data-ic="pin" data-ic-size="16" data-ic-stroke="1.8" style="color:var(--muted)"></span>
+        <div class="autocomplete" style="flex:1;min-width:0"><input id="fmComune" placeholder="Comune (es. Milano)" autocomplete="off"></div>
+        <select id="fmKm" style="width:auto;border:0;background:none;color:var(--muted);font-size:12.5px">
+          <option value="50">+ 50 km</option><option value="100">+ 100 km</option>
+          <option value="250" selected>+ 250 km</option><option value="500">+ 500 km</option>
+        </select>
+      </div>
+      <div class="section-label" style="margin-top:22px;margin-bottom:6px">Opzioni</div>
+      <div class="fm-opt"><div><div class="t">Vicino a me</div><div class="s">Solo entro 250 km dalla mia posizione</div></div>
+        <label class="switch"><input type="checkbox" id="fmGps"><span class="slider"></span></label></div>
+      <div class="fm-opt"><div><div class="t">Cachet trattabile</div><div class="s">Aperti a negoziare il compenso</div></div>
+        <label class="switch"><input type="checkbox" id="fmTratt"><span class="slider"></span></label></div>
+      <div class="fm-opt"><div><div class="t">In promozione</div><div class="s">Artisti con promo attiva</div></div>
+        <label class="switch"><input type="checkbox" id="fmPromo"><span class="slider"></span></label></div>
+      <div class="fm-opt" style="border-bottom:0"><div><div class="t">Anche senza impegno</div><div class="s">Solo artisti con cachet da concordare</div></div>
+        <label class="switch"><input type="checkbox" id="fmNoPrice"><span class="slider"></span></label></div>
+    </div>
+    <div class="fm-foot">
+      <button type="button" class="linklike" style="font-weight:600" onclick="clearFilters()">Cancella tutto</button>
+      <button type="button" class="btn primary" style="margin-left:auto;border-radius:10px" onclick="applyFilters()">Mostra risultati</button>
+    </div>
   </div>
 </div>
 
@@ -198,7 +250,7 @@
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false };
+const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, comune:'', kmZona:'250' };
 let genres=[], lastResults=[];
 let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
 let lastArtistCount=null, promoterCount=null;
@@ -237,6 +289,7 @@ async function init(){
     genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${GENRE_ICONS[g.slug]||'🎵'}</span>${esc(g.name)}</div>`).join('');
 
   initMap();
+  paintFiltBtn();
   search();
   loadUpcomingEvents();
   loadPlatformStats();
@@ -347,6 +400,7 @@ function buildFilterParams(){
   if(state.promo) p.set('promo','1');
   if(state.form) p.set('formazione',state.form);
   if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
+  else if(state.comune){ p.set('comune',state.comune); p.set('max_km',state.kmZona||'250'); }
   state.genres.forEach(g=>p.append('genre',g));
   return p;
 }
@@ -430,6 +484,91 @@ function cardHtml(a,i){
     </div>`;
 }
 function goArtist(slug){ if(slug) location.href='/'+slug; }
+
+/* ============ PANNELLO FILTRI (design 9a) ============ */
+let ROSTER_MAX=3000, CAN_PRICES=false;
+function activeFilterCount(){
+  let n=state.genres.size;
+  if(state.form) n++;
+  if(state.cachetMax!=null) n++;
+  if(state.comune||state.gps) n++;
+  if(state.tratt) n++; if(state.promo) n++; if(state.noPrice) n++;
+  return n;
+}
+function paintFiltBtn(){
+  const n=activeFilterCount();
+  const b=document.getElementById('filtBtn'); if(!b) return;
+  b.innerHTML=icon('filter',15,1.9)+' Filtri'+(n?` <span class="fm-count on">${n}</span>`:'');
+}
+async function openFilters(){
+  const me=await getMe();
+  CAN_PRICES=!!(me.user&&(me.user.role==='admin'||(['promoter','management'].includes(me.user.role)&&me.user.status==='active')));
+  // generi
+  fmGenres.innerHTML=genres.map(g=>`<span class="fm-chip${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}"
+    onclick="this.classList.toggle('on')">${state.genres.has(g.slug)?icon('check',13,2.4)+' ':''}${esc(g.name)}</span>`).join('');
+  // tipo show
+  fmShows.innerHTML=SHOW_TYPES.map(([v,l])=>`<span class="fm-chip dark${state.form===v?' on':''}" data-v="${v}"
+    onclick="pickFmShow(this)">${esc(l)}</span>`).join('');
+  // budget (solo chi vede i prezzi)
+  if(CAN_PRICES){
+    document.getElementById('fmBudgetSec').style.display='';
+    try{ const r=await api('artists-search.php?limit=1'); if(r.roster_max_cachet>0) ROSTER_MAX=r.roster_max_cachet; }catch(e){}
+    const s=document.getElementById('fmBudget');
+    s.max=ROSTER_MAX; s.value=state.cachetMax!=null?state.cachetMax:ROSTER_MAX;
+    document.getElementById('fmBudgetMax').textContent=eur(ROSTER_MAX)+'+';
+    fmBudgetPaint();
+  }
+  // dove + opzioni
+  fmComune.value=state.comune||''; fmKm.value=state.kmZona||'250';
+  fmGps.checked=!!state.gps; fmTratt.checked=state.tratt; fmPromo.checked=state.promo; fmNoPrice.checked=state.noPrice;
+  if(!fmComune.dataset.ac){ fmComune.dataset.ac='1'; comuniAutocomplete(fmComune, ()=>{}); }
+  injectIcons(document.getElementById('filtersModal'));
+  const n=activeFilterCount(); const c=document.getElementById('fmCount');
+  if(n){ c.textContent=n+' attivi'; c.style.display=''; } else c.style.display='none';
+  document.getElementById('filtersModal').classList.add('open');
+}
+function closeFilters(){ document.getElementById('filtersModal').classList.remove('open'); }
+function pickFmShow(el){
+  const was=el.classList.contains('on');
+  document.querySelectorAll('#fmShows .fm-chip').forEach(x=>x.classList.remove('on'));
+  if(!was) el.classList.add('on');
+}
+function fmBudgetPaint(){
+  const s=document.getElementById('fmBudget');
+  document.getElementById('fmBudgetVal').textContent=(+s.value>=+s.max)?eur(+s.max)+'+':eur(+s.value);
+}
+function clearFilters(){
+  state.genres.clear(); state.form=''; state.cachetMax=null; state.comune=''; state.gps=null; state.km='';
+  state.tratt=state.promo=state.noPrice=false;
+  closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
+}
+function resetAllFilters(){ clearFilters(); }
+function applyFilters(){
+  state.genres=new Set([...document.querySelectorAll('#fmGenres .fm-chip.on')].map(x=>x.dataset.slug));
+  const showEl=document.querySelector('#fmShows .fm-chip.on');
+  state.form=showEl?showEl.dataset.v:'';
+  if(CAN_PRICES){ const s=document.getElementById('fmBudget'); state.cachetMax=(+s.value<+s.max)?+s.value:null; }
+  state.comune=fmComune.value.trim(); state.kmZona=fmKm.value;
+  state.tratt=fmTratt.checked; state.promo=fmPromo.checked; state.noPrice=fmNoPrice.checked;
+  if(fmGps.checked && !state.gps){
+    closeFilters();
+    if(navigator.geolocation&&window.isSecureContext){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        state.gps={lat:pos.coords.latitude,lng:pos.coords.longitude}; state.km='250'; state.comune='';
+        syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
+      },()=>{ toast('Geolocalizzazione non disponibile',true); syncCatbar(); paintFiltBtn(); search(); });
+      return;
+    }
+  }
+  if(!fmGps.checked){ state.gps=null; state.km=''; }
+  closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
+}
+function syncCatbar(){
+  document.querySelectorAll('#catbar .cat').forEach(c=>{
+    const s=c.dataset.slug;
+    c.classList.toggle('on', s ? state.genres.has(s) : state.genres.size===0);
+  });
+}
 
 // ---- Mappa in home (mostra sempre TUTTO il roster, indipendente dai filtri della lista) ----
 // Caricamento rimandato al consenso cookie per terze parti (la mappa usa riquadri OpenStreetMap/CARTO)
