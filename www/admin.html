@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
-<nav class="nav" id="nav"></nav>
-
 <div id="gateWrap" class="container narrow section">
 
   <!-- GATE: mostrato se non sei admin -->
@@ -340,7 +338,7 @@
 <script src="/assets/api.js"></script>
 <script src="/assets/artist-form.js"></script>
 <script>
-renderNav();
+// Niente header/footer del sito: l'area admin ha la sua sidebar (gate incluso).
 let editAId = null, editPId = null;
 
 (async function init(){
@@ -353,7 +351,6 @@ let IS_SUPER = false, ME_ID = null;
 async function showPanel(me){
   gate.style.display = 'none';
   panel.style.display = '';
-  document.getElementById('nav').style.display = 'none';   // shell admin: navigazione propria nella sidebar
   IS_SUPER = !!(me && me.user && me.user.admin_super);
   ME_ID = me && me.user ? me.user.id : null;
   tabAd.style.display = IS_SUPER ? '' : 'none';
@@ -907,14 +904,14 @@ async function doLogin(e){ e.preventDefault();
   try {
     const u = await api('login.php',{method:'POST',body:{email:li_email.value,password:li_pass.value}});
     if (u.user.role !== 'admin'){ toast('Questo account non è admin', true); return false; }
-    _me=null; renderNav(); showPanel(await getMe(true));
+    _me=null; showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
 async function doBootstrap(e){ e.preventDefault();
   try {
     await api('admin-bootstrap.php',{method:'POST',body:{token:bs_token.value, email:bs_email.value, password:bs_pass.value}});
-    toast('Admin creato!'); _me=null; renderNav(); showPanel(await getMe(true));
+    toast('Admin creato!'); _me=null; showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
