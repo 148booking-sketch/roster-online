@@ -45,7 +45,8 @@
 @media(max-width:760px){.mediagrid{grid-template-columns:1fr}}
 .mediabox{border:1px solid var(--line2);border-radius:14px;overflow:hidden;min-height:170px}
 .mediabox iframe{display:block;width:100%;height:100%;min-height:352px;border:0}
-.detgrid{display:grid;grid-template-columns:1fr;gap:12px}
+.detgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.detgrid{grid-template-columns:1fr}}
 .det{border:1px solid var(--line2);border-radius:12px;padding:13px 15px}
 .det .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9a9aa2}
 .det .v{font-size:14.5px;font-weight:600;margin-top:3px}
@@ -76,6 +77,20 @@
 .avail.free{background:#f1fbf5;border:1px solid #cbead6;color:#0a7d38}
 .avail.busy{background:#fbeaef;border:1px solid #f3d3dd;color:#c0395e}
 .reqmodal .mfoot{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line2)}
+/* mini calendario nella modale richiesta */
+.rqcal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rqcal-nav b{font:700 14px var(--f-display);text-transform:capitalize}
+.rqcal-nav button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rqcal-nav button:disabled{opacity:.35;cursor:default}
+.rqcal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.rqcal-head span{text-align:center;font:700 10px var(--f-body);color:#9a9aa2}
+.rqcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.rqd{aspect-ratio:1/1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid #f0f0f0;cursor:pointer}
+.rqd.blank{border:0;cursor:default}
+.rqd.past{color:#c9c9c9;cursor:default;background:#fafafa;border-color:#fafafa}
+.rqd.busy{background:#fbeaef;border-color:#f3d3dd;color:#c0395e;cursor:default;text-decoration:line-through}
+.rqd.free:hover{border-color:var(--brand)}
+.rqd.sel{background:var(--brand);border-color:var(--brand);color:#fff}
 .reqmodal .mfoot .send{flex:1;justify-content:center;border-radius:10px}
 </style>
 </head>
@@ -92,12 +107,19 @@
       <button type="button" class="iconbtn" style="margin-left:auto" onclick="closeReq()">✕</button>
     </div>
     <div class="mbody">
-      <div class="grid2">
-        <div class="field" style="margin:0"><label>Data evento *</label><input type="date" id="rq_date" onchange="checkAvail()"></div>
+      <div class="field" style="margin:0 0 4px"><label>Data evento *</label></div>
+      <div class="rqcal-nav">
+        <button type="button" id="rqPrev" onclick="rqNav(-1)">‹</button>
+        <b id="rqCalTitle"></b>
+        <button type="button" onclick="rqNav(1)">›</button>
+      </div>
+      <div class="rqcal-head"><span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span></div>
+      <div class="rqcal-grid" id="rqCalGrid"></div>
+      <div class="avail" id="rq_avail" style="display:none"></div>
+      <div class="grid2" style="margin-top:14px">
         <div class="field" style="margin:0" id="rq_feeWrap"><label>Cachet proposto (€)</label><input type="number" id="rq_fee" min="0" placeholder="es. 500"></div>
       </div>
       <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
-      <div class="avail" id="rq_avail" style="display:none"></div>
     </div>
     <div class="mfoot">
       <button type="button" class="btn ghost" onclick="closeReq()">Annulla</button>
@@ -275,6 +297,8 @@ async function sharePage(){
 }
 
 /* ---- Modale richiesta (12a) ---- */
+const RQ_MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let rqY, rqM, selectedDate=null;
 function openReq(){
   const m=document.getElementById('reqModal');
   rm_ava.innerHTML = A.photo_url?`<img src="${esc(A.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(A.stage_name));
@@ -283,29 +307,47 @@ function openReq(){
   const v=A.cachet_min??A.cachet_max;
   rm_sub.textContent = [showLabel(A.formazione), (!A.locked&&v)?('da '+eur(A.has_promo&&A.cachet_promo!=null?A.cachet_promo:v)+' a serata'):''].filter(Boolean).join(' · ');
   document.getElementById('rq_feeWrap').style.display = A.cachet_trattabile==1||A.locked ? '' : 'none';
-  const d=document.getElementById('rq_date'); d.min=new Date().toISOString().slice(0,10);
+  const t=new Date(); rqY=t.getFullYear(); rqM=t.getMonth();
+  selectedDate=null; updateAvail();
+  drawReqCal();
   m.classList.add('open');
 }
 function closeReq(){ document.getElementById('reqModal').classList.remove('open'); }
-function checkAvail(){
+function rqNav(d){ rqM+=d; if(rqM<0){rqM=11;rqY--} if(rqM>11){rqM=0;rqY++} drawReqCal(); }
+function rqPick(iso){ selectedDate = selectedDate===iso?null:iso; drawReqCal(); updateAvail(); }
+function drawReqCal(){
+  const t=new Date(); t.setHours(0,0,0,0);
+  document.getElementById('rqPrev').disabled = (new Date(rqY,rqM,1) <= new Date(t.getFullYear(),t.getMonth(),1));
+  document.getElementById('rqCalTitle').textContent = RQ_MESI[rqM]+' '+rqY;
+  const startDow=(new Date(rqY,rqM,1).getDay()+6)%7;
+  const days=new Date(rqY,rqM+1,0).getDate();
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+='<div class="rqd blank"></div>';
+  for(let d=1;d<=days;d++){
+    const date=new Date(rqY,rqM,d);
+    const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+    const busy=A.has_calendar && busySet.has(iso);
+    if(date<t)      cells+=`<div class="rqd past">${d}</div>`;
+    else if(busy)   cells+=`<div class="rqd busy" title="Occupato">${d}</div>`;
+    else            cells+=`<div class="rqd free${selectedDate===iso?' sel':''}" onclick="rqPick('${iso}')">${d}</div>`;
+  }
+  document.getElementById('rqCalGrid').innerHTML=cells;
+}
+function updateAvail(){
   const el=document.getElementById('rq_avail');
-  const val=document.getElementById('rq_date').value;
-  if(!val || !A.has_calendar){ el.style.display='none'; return; }
-  const busy=busySet.has(val);
-  const dd=new Date(val+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});
-  el.className='avail '+(busy?'busy':'free');
-  el.innerHTML = busy
-    ? icon('x',15,2)+` Il ${dd} l'artista risulta <b style="margin:0 3px">occupato</b> sul calendario`
-    : icon('check',15,2)+` Il ${dd} l'artista risulta <b style="margin:0 3px">libero</b> sul calendario`;
+  if(!selectedDate){ el.style.display='none'; return; }
+  const dd=new Date(selectedDate+'T00:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  el.className='avail free';
+  el.innerHTML = icon('check',15,2)+` Data scelta: <b style="margin:0 3px">${dd}</b>`+(A.has_calendar?" · l'artista risulta libero":'');
   el.style.display='';
 }
 async function sendReq(){
   const me=await getMe();
   if(!me.user){ location.href='/accedi.html'; return; }
   if(!['promoter','management'].includes(me.user.role)){ toast('Solo promoter e agenzie possono inviare richieste',true); return; }
-  const date=document.getElementById('rq_date').value;
+  const date=selectedDate;
   const msg=(document.getElementById('rq_msg').value||'').trim();
-  if(!date){ toast('Seleziona la data dell\'evento',true); return; }
+  if(!date){ toast('Seleziona una data dal calendario',true); return; }
   if(!msg){ toast('Scrivi un messaggio',true); return; }
   const feeEl=document.getElementById('rq_fee');
   const fee=(document.getElementById('rq_feeWrap').style.display!=='none' && feeEl.value)?feeEl.value:null;
