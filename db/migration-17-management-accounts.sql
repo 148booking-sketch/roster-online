@@ -1,5 +1,5 @@
 -- ============================================================
--- 148 ROSTER — migration 17: account "management / booking"
+-- BOOKING ROSTER — migration 17: account "management / booking"
 -- Terzo tipo di account: stessi privilegi del promoter (vede i cachet
 -- da "active", può inviare richieste di booking) MA può anche inserire
 -- e gestire nuovi artisti sotto il proprio profilo.

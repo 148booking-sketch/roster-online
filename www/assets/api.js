@@ -238,7 +238,7 @@ async function renderNav(center = '') {
       </div>`;
   }
   el.innerHTML = `<div class="container">
-    <a class="logo" href="/">148<span style="color:var(--txt)">·</span>Roster</a>
+    <a class="logo" href="/">Booking<span style="color:var(--txt)"> Roster</span></a>
     <div id="navCenter" style="flex:1;display:flex;justify-content:center">${center}</div>
     <span></span>${right}
   </div>`;
@@ -253,7 +253,7 @@ function renderFooter() {
   f.innerHTML = `<div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="logo">148·Roster</div>
+        <div class="logo">Booking Roster</div>
         <p>La piattaforma che collega artisti emergenti e promoter. Un progetto 148 Booking · Latina, Lazio.</p>
       </div>
       <div class="foot-col">

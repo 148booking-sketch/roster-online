@@ -1,6 +1,6 @@
 <?php
 /**
- * 148 ROSTER — worker statistiche social (progetto INDIPENDENTE, separato dal 148).
+ * BOOKING ROSTER — worker statistiche social (progetto INDIPENDENTE, separato dal 148).
  *
  * Metodo ispirato a quello del sito 148 ma reimplementato per roster: gira su un
  * runner cloud (GitHub Actions DI ROSTER) perché dagli IP cloud Spotify serve la

@@ -15,7 +15,7 @@ function send_mail(string $to, string $subject, string $htmlBody): bool {
     'Content-Type: text/html; charset=utf-8',
     'From: ' . mb_encode_mimeheader($fromName) . ' <' . $from . '>',
     'Reply-To: ' . $from,
-    'X-Mailer: 148Roster',
+    'X-Mailer: BookingRoster',
   ]);
   $subjectEnc = '=?UTF-8?B?' . base64_encode($subject) . '?=';
 
@@ -41,7 +41,7 @@ function mail_layout(string $title, string $bodyHtml, string $footerHtml = ''): 
   $c = config();
   $app = $c['app_name'] ?? 'Booking Roster';
   return '<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1a1c22">'
-    . '<div style="font-size:20px;font-weight:700;margin-bottom:16px">148·Roster</div>'
+    . '<div style="font-size:20px;font-weight:700;margin-bottom:16px">' . htmlspecialchars($app) . '</div>'
     . '<h2 style="font-size:18px;margin:0 0 12px">' . htmlspecialchars($title) . '</h2>'
     . '<div style="font-size:15px;line-height:1.55;color:#333">' . $bodyHtml . '</div>'
     . '<hr style="border:none;border-top:1px solid #eee;margin:22px 0">'
