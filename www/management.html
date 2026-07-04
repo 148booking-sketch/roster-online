@@ -43,6 +43,18 @@
 .tg{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px}
 .tg.on{background:#e6f6ec;color:#0a7d38}.tg.warn{background:#fdf3e0;color:#a5730a}
 .sec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+/* form artista in stile 3a: sezioni bianche, header con avatar/stato, barra salvataggio sticky */
+.fsec{border:1px solid var(--line2);border-radius:16px;padding:18px 20px;margin-bottom:14px;background:#fff}
+.fsec-h{font:700 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#9a9aa2;margin:0 0 14px}
+.fsec h3{margin:16px 0 8px;font-size:16px}
+.infogrid{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:start;margin-bottom:14px}
+.fsec.info,.fsec.music,.fsec.money,.fsec.tech{background:#fff;border-color:var(--line2)}
+.af-head{display:flex;align-items:center;gap:14px;margin:0 0 16px;flex-wrap:wrap}
+.af-ava{width:46px;height:46px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none}
+.af-ava img{width:100%;height:100%;object-fit:cover}
+.af-nm{font:700 20px var(--f-display);letter-spacing:-.4px;display:flex;align-items:center;gap:7px}
+.af-sub{font-size:12.5px;color:var(--muted)}
+.af-save{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line2);padding:14px 0;display:flex;align-items:center;gap:12px;box-shadow:0 -6px 20px rgba(0,0,0,.05);margin-top:8px;z-index:5}
 </style>
 </head>
 <body>
@@ -143,13 +155,26 @@
       <button type="button" class="btn ghost" onclick="startNew()">← Prova un altro link</button>
     </div>
 
-    <!-- STEP 2: form artista (condiviso con profilo/admin) -->
+    <!-- STEP 2: form artista (condiviso con profilo/admin) — chrome design 3a -->
     <form id="artForm" style="display:none" onsubmit="return saveArtist(event)">
-      <div id="af_banner" class="edit-banner" style="display:none"></div>
+      <div class="af-head">
+        <span class="af-ava" id="afAva"></span>
+        <div>
+          <div class="af-nm" id="afName">Nuovo artista</div>
+          <div class="af-sub" id="afSub">Compila il profilo: verrà pubblicato subito nel roster.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+          <span class="status ok" id="afStatus" style="display:none"><span class="dot"></span>Online</span>
+          <a class="btn ghost sm" id="afPreview" style="display:none" target="_blank" rel="noopener">Anteprima pubblica</a>
+        </div>
+      </div>
       <div id="mfMount"></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn primary" style="flex:1" id="af_submit">Aggiungi al roster</button>
-        <button type="button" class="btn ghost" onclick="backToList()">← Torna al roster</button>
+      <div class="af-save">
+        <button type="button" class="btn ghost sm" id="afDelete" style="display:none;color:#c0395e;border-color:#f2c9d5" onclick="delFromForm()">Elimina artista</button>
+        <div style="margin-left:auto;display:flex;gap:10px">
+          <button type="button" class="btn ghost" onclick="backToList()">Annulla</button>
+          <button class="btn primary" id="af_submit">Salva modifiche</button>
+        </div>
       </div>
     </form>
   </div>
@@ -288,7 +313,11 @@ async function checkElig(e){ e.preventDefault();
       const amEl = document.getElementById('m_s_am'); if (amEl) amEl.value = am_url.value;
       editId = null;
       af_submit.textContent = 'Aggiungi al roster';
-      af_banner.style.display = 'none';
+      afName.innerHTML = esc(r.artist_name || 'Nuovo artista');
+      afSub.textContent = 'Compila il profilo: verrà pubblicato subito nel roster.';
+      afAva.style.background = avatarColor(r.artist_name || 'A');
+      afAva.innerHTML = esc(avatarInitials(r.artist_name || 'A'));
+      afStatus.style.display='none'; afPreview.style.display='none'; afDelete.style.display='none';
       eligStep.style.display='none'; artForm.style.display='';
       window.scrollTo({top:0,behavior:'smooth'});
     } else {
@@ -309,7 +338,17 @@ async function editArtist(id){
     artistFormPopulate('m_', r.profile || {});
     setGenreVerified('m_', true);
     af_submit.textContent = 'Salva modifiche';
-    af_banner.style.display=''; af_banner.textContent = 'Modifica di '+(r.profile?.stage_name||'artista');
+    const p = r.profile || {};
+    const nm = p.stage_name || 'Artista';
+    afName.innerHTML = esc(nm)+(p.verified==1?'<span class="vchk" style="width:15px;height:15px;font-size:8px">✓</span>':'');
+    afSub.textContent = 'Artista #'+id;
+    afAva.style.background = avatarColor(nm);
+    afAva.innerHTML = p.photo_url ? `<img src="${esc(p.photo_url)}" referrerpolicy="no-referrer">` : esc(avatarInitials(nm));
+    if (p.published==1){ afStatus.className='status ok'; afStatus.innerHTML='<span class="dot"></span>Online'; }
+    else { afStatus.className='status warn'; afStatus.innerHTML='<span class="dot"></span>In revisione'; }
+    afStatus.style.display='inline-flex';
+    if (p.slug){ afPreview.href='/'+p.slug; afPreview.style.display=''; } else afPreview.style.display='none';
+    afDelete.style.display='';
     rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none';
     artForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
   } catch(err){ toast(errMsg(err), true); }
@@ -334,13 +373,19 @@ async function saveArtist(e){ e.preventDefault();
   return false;
 }
 
+/* ---- elimina dal form (sticky bar) ---- */
+function delFromForm(){
+  if(!editId) return;
+  const nm=document.getElementById('afName').textContent.replace('✓','').trim();
+  delArtist(editId, nm);
+}
 /* ---- elimina ---- */
 async function delArtist(id, name){
   if (!confirm(`Eliminare "${name||'questo artista'}" dal roster? L'operazione è definitiva.`)) return;
   try {
     await api('management-delete-artist.php',{method:'POST',body:{id}});
     toast('Artista eliminato');
-    loadRoster();
+    backToList();
   } catch(err){ toast(errMsg(err), true); }
 }
 </script>

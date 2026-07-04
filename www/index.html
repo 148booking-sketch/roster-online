@@ -135,13 +135,8 @@
 
 <!-- category bar generi -->
 <div class="catbar-wrap">
-  <div class="container" style="display:flex;align-items:center;gap:10px">
-    <div class="catbar" id="catbar" style="flex:1;min-width:0"></div>
-    <div class="cb-divider"></div>
-    <div class="cb-actions">
-      <button type="button" class="btn dark sm" onclick="resetAllFilters()">Tutti</button>
-      <button type="button" class="btn ghost sm" id="filtBtn" onclick="openFilters()"></button>
-    </div>
+  <div class="container">
+    <div class="catbar" id="catbar"></div>
   </div>
 </div>
 
@@ -165,6 +160,13 @@
         </div>
         <input type="range" id="fmBudget" min="0" step="50" style="width:100%;accent-color:var(--brand)" oninput="fmBudgetPaint()">
         <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:12px;color:#9a9aa2"><span>€0</span><span id="fmBudgetMax"></span></div>
+      </div>
+      <div class="section-label" style="margin-top:22px">Ordina per</div>
+      <div class="fm-chips" id="fmSort">
+        <span class="fm-chip dark" data-s="az">Nome A→Z</span>
+        <span class="fm-chip dark" data-s="za">Nome Z→A</span>
+        <span class="fm-chip dark" data-s="budget_desc">Budget alto→basso</span>
+        <span class="fm-chip dark" data-s="budget_asc">Budget basso→alto</span>
       </div>
       <div class="section-label" style="margin-top:22px">Dove</div>
       <div class="fm-where">
@@ -195,13 +197,24 @@
 <main class="container">
   <div class="browse">
 
+    <div class="browse-top">
+      <aside class="browse-map"><div id="map"></div></aside>
+      <aside class="browse-featured">
+        <div class="feat-head"><span class="vchk">✓</span> Artisti in evidenza</div>
+        <div id="featured" style="flex:1;overflow:auto"></div>
+      </aside>
+    </div>
+
     <section class="browse-list">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
         <div>
           <div id="count" class="sub" style="margin:0"></div>
           <div class="hint" style="margin-top:4px;color:#7a5b00">I prezzi degli artisti non verificati sono indicativi</div>
         </div>
-        <div class="sort-icons" id="sortIcons"></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <button type="button" class="btn dark sm" onclick="resetAllFilters()">Tutti</button>
+          <button type="button" class="btn ghost sm" id="filtBtn" onclick="openFilters()"></button>
+        </div>
       </div>
       <div id="results" class="grid-cards"></div>
       <div id="empty" class="empty" style="display:none">Nessun artista trovato con questi filtri.</div>
@@ -215,13 +228,6 @@
       <div class="evt-scroll" id="evtScroll"></div>
     </div>
 
-    <div class="browse-top">
-      <aside class="browse-map"><div id="map"></div></aside>
-      <aside class="browse-featured">
-        <div class="feat-head"><span class="vchk">✓</span> Artisti in evidenza</div>
-        <div id="featured" style="flex:1;overflow:auto"></div>
-      </aside>
-    </div>
 
     <div class="cta-grid">
       <section class="artist-cta cta-blue" id="artistCta">
@@ -295,15 +301,8 @@ async function init(){
   loadPlatformStats();
 }
 
-// Icone rapide: prezzo su/giù (solo promoter), vicino a me, cachet da concordare, promo
-function renderSortIcons(){
-  const el=document.getElementById('sortIcons'); if(!el) return;
-  el.innerHTML = `
-    ${CAN_SORT_PRICE?`<button type="button" class="sicon${state.sort==='cachet'?' on':''}" onclick="toggleSortPrice()" title="Ordina per prezzo"><span class="sic-ic">${icon('euro',15,1.9)}</span>Prezzo${state.sort==='cachet'?(priceDir==='desc'?' ▼':' ▲'):''}</button>`:''}
-    <button type="button" class="sicon${state.sort==='distance'?' on':''}" onclick="toggleSortGps()" title="Vicino a me"><span class="sic-ic">${icon('pin',15,1.9)}</span>Vicino</button>
-    <button type="button" class="sicon${state.noPrice?' on':''}" onclick="toggleNoPriceIcon()" title="Artisti con cachet da concordare"><span class="sic-ic">${icon('wave',15,1.9)}</span>Offerta</button>
-    <button type="button" class="sicon${state.promo?' on':''}" onclick="togglePromoIcon()" title="Artisti con promozione attiva"><span class="sic-ic">${icon('zap',15,1.9)}</span>Promo</button>`;
-}
+function renderSortIcons(){}
+
 function toggleSortPrice(){
   if(state.sort!=='cachet'){ state.sort='cachet'; priceDir='asc'; }
   else { priceDir = priceDir==='asc'?'desc':'asc'; }
@@ -518,6 +517,12 @@ async function openFilters(){
     document.getElementById('fmBudgetMax').textContent=eur(ROSTER_MAX)+'+';
     fmBudgetPaint();
   }
+  // ordinamento
+  const curSort = state.sort==='cachet' ? (priceDir==='desc'?'budget_desc':'budget_asc') : (state.sort==='za'?'za':'az');
+  document.querySelectorAll('#fmSort .fm-chip').forEach(x=>{
+    x.classList.toggle('on', x.dataset.s===curSort);
+    x.onclick=()=>{ document.querySelectorAll('#fmSort .fm-chip').forEach(y=>y.classList.remove('on')); x.classList.add('on'); };
+  });
   // dove + opzioni
   fmComune.value=state.comune||''; fmKm.value=state.kmZona||'250';
   fmGps.checked=!!state.gps; fmTratt.checked=state.tratt; fmPromo.checked=state.promo; fmNoPrice.checked=state.noPrice;
@@ -548,6 +553,10 @@ function applyFilters(){
   const showEl=document.querySelector('#fmShows .fm-chip.on');
   state.form=showEl?showEl.dataset.v:'';
   if(CAN_PRICES){ const s=document.getElementById('fmBudget'); state.cachetMax=(+s.value<+s.max)?+s.value:null; }
+  const sortSel=document.querySelector('#fmSort .fm-chip.on')?.dataset.s||'az';
+  if(sortSel==='budget_desc'){ state.sort='cachet'; priceDir='desc'; }
+  else if(sortSel==='budget_asc'){ state.sort='cachet'; priceDir='asc'; }
+  else { state.sort=sortSel; }
   state.comune=fmComune.value.trim(); state.kmZona=fmKm.value;
   state.tratt=fmTratt.checked; state.promo=fmPromo.checked; state.noPrice=fmNoPrice.checked;
   if(fmGps.checked && !state.gps){

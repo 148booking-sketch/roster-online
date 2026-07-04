@@ -90,6 +90,8 @@ $whereSql = 'WHERE ' . implode(' AND ', $where);
 // Ordinamento — in evidenza (top8) SEMPRE in cima, poi i verificati, poi il criterio scelto
 if ($sort === 'az') {
   $orderSql = 'ORDER BY ap.top8 DESC, ap.verified DESC, ap.stage_name ASC';
+} elseif ($sort === 'za') {
+  $orderSql = 'ORDER BY ap.top8 DESC, ap.verified DESC, ap.stage_name DESC';
 } elseif ($sort === 'cachet') {
   $dir = ($_GET['dir'] ?? '') === 'desc' ? 'DESC' : 'ASC';
   $orderSql = "ORDER BY ap.top8 DESC, ap.verified DESC, ap.cachet_min IS NULL, ap.cachet_min $dir";
