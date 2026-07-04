@@ -329,7 +329,7 @@ async function renderNav(center = '') {
 
   let links = '', right = '';
   if (!u) {
-    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa') + link('/calendario.html', 'Calendario', '/calendario');
+    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa');
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
     links = link('/profilo.html', 'Il mio profilo', '/profilo') + link('/richieste.html', 'Le mie richieste', '/richieste');
@@ -338,7 +338,7 @@ async function renderNav(center = '') {
     links = link('/', 'Cerca artisti', '/') + link('/admin', 'Admin', '/admin');
     right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/account.html', 'Account', 'user']]);
   } else { // promoter / management
-    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa') + link('/calendario.html', 'Calendario', '/calendario')
+    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa')
           + link('/preferiti.html', 'Preferiti', '/preferiti') + link('/richieste.html', 'Le mie richieste', '/richieste');
     const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
     right = navBell() + navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']]);
@@ -369,7 +369,6 @@ function renderFooter() {
         <ul>
           <li><a href="/">Cerca artisti</a></li>
           <li><a href="/mappa.html">Mappa artisti</a></li>
-          <li><a href="/calendario.html">Calendario artisti</a></li>
           <li><a href="/registrati-artista.html">Diventa artista</a></li>
           <li><a href="/accedi.html">Area promoter</a></li>
         </ul>
@@ -536,7 +535,6 @@ function mountPromoterShell(u, active) {
       <nav class="ps-nav">
         ${item('cerca', '/', 'search', 'Cerca artisti')}
         ${item('mappa', '/mappa.html', 'pin', 'Mappa')}
-        ${item('calendario', '/calendario.html', 'calendar', 'Calendario')}
         ${item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')}
         ${item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')}
         ${item('account', '/account.html', 'bell', 'Account & notifiche')}

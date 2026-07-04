@@ -118,7 +118,8 @@
       <div class="rqcal-grid" id="rqCalGrid"></div>
       <div class="avail" id="rq_avail" style="display:none"></div>
       <div class="grid2" style="margin-top:14px">
-        <div class="field" style="margin:0" id="rq_feeWrap"><label>Cachet proposto (€)</label><input type="number" id="rq_fee" min="0" placeholder="es. 500"></div>
+        <div class="field" style="margin:0"><label>Link evento</label><input type="url" id="rq_link" placeholder="https://… (pagina o locandina)"></div>
+        <div class="autocomplete field" style="margin:0"><label>Comune</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off"></div>
       </div>
       <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
     </div>
@@ -307,7 +308,7 @@ function openReq(){
   rm_title.innerHTML = 'Richiedi '+esc(A.stage_name)+(A.verified?'<span class="vchk">✓</span>':'');
   const v=A.cachet_min??A.cachet_max;
   rm_sub.textContent = [showLabel(A.formazione), (!A.locked&&v)?('da '+eur(A.has_promo&&A.cachet_promo!=null?A.cachet_promo:v)+' a serata'):''].filter(Boolean).join(' · ');
-  document.getElementById('rq_feeWrap').style.display = A.cachet_trattabile==1||A.locked ? '' : 'none';
+  if(!window._rqAc){ window._rqAc=1; comuniAutocomplete(document.getElementById('rq_comune'), ()=>{}); }
   const t=new Date(); rqY=t.getFullYear(); rqM=t.getMonth();
   selectedDate=null; updateAvail();
   drawReqCal();
@@ -350,13 +351,13 @@ async function sendReq(){
   const msg=(document.getElementById('rq_msg').value||'').trim();
   if(!date){ toast('Seleziona una data dal calendario',true); return; }
   if(!msg){ toast('Scrivi un messaggio',true); return; }
-  const feeEl=document.getElementById('rq_fee');
-  const fee=(document.getElementById('rq_feeWrap').style.display!=='none' && feeEl.value)?feeEl.value:null;
   try{
-    await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id, event_date:date, proposed_fee:fee, message:msg}});
+    await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id, event_date:date, message:msg,
+      event_link:(document.getElementById('rq_link').value||'').trim()||null,
+      comune:(document.getElementById('rq_comune').value||'').trim()||null}});
     toast('Richiesta inviata!');
     closeReq();
-    document.getElementById('rq_msg').value=''; feeEl.value='';
+    document.getElementById('rq_msg').value=''; document.getElementById('rq_link').value=''; document.getElementById('rq_comune').value='';
   }catch(err){ toast(errMsg(err),true); }
 }
 init();

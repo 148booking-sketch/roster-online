@@ -45,11 +45,29 @@
       <div style="display:flex;flex-direction:column;gap:18px">
         <form class="acc-card" onsubmit="return saveAccount(event)">
           <h3 data-ic="user" data-ic-size="16">Dati account</h3>
-          <p class="csub">Nome e indirizzo con cui accedi.</p>
+          <p class="csub">Chi sei e come accedi.</p>
           <div class="field"><label id="ac_nameLbl">Nome visualizzato</label><input id="ac_name" required></div>
           <div class="field"><label>Email</label><input id="ac_email" type="email" required>
             <div class="hint">Se la cambi dovrai verificare il nuovo indirizzo.</div></div>
-          <button class="btn primary sm">Salva dati account</button>
+          <div id="orgFields" style="display:none">
+            <div style="height:1px;background:var(--line2);margin:4px 0 16px"></div>
+            <div class="row">
+              <div class="field" style="max-width:200px"><label>Tipo</label>
+                <select id="pp_tipo">
+                  <option value="locale">Locale</option><option value="festival">Festival</option>
+                  <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+                  <option value="privato">Privato</option><option value="altro">Altro</option>
+                </select>
+              </div>
+              <div class="field"><label>Telefono</label><input id="pp_phone" placeholder="+39..."></div>
+            </div>
+            <div class="row">
+              <div class="autocomplete field"><label>Comune</label><input id="pp_comune" placeholder="Es. Roma"></div>
+              <div class="field" style="max-width:110px"><label>Prov.</label><input id="pp_prov" maxlength="2" placeholder="RM"></div>
+            </div>
+            <div class="field"><label>Sito web o altro link</label><input id="pp_web" placeholder="https://..."></div>
+          </div>
+          <button class="btn primary sm">Salva dati</button>
         </form>
 
         <form class="acc-card" onsubmit="return changePass(event)">
@@ -60,26 +78,6 @@
           <button class="btn primary sm">Cambia password</button>
         </form>
 
-        <form class="acc-card" id="promoterBox" style="display:none" onsubmit="return savePromoterProfile(event)">
-          <h3 data-ic="speaker" data-ic-size="16">Dati locale / organizzazione</h3>
-          <p class="csub">Chi sei quando contatti un artista.</p>
-          <div class="row">
-            <div class="field" style="max-width:200px"><label>Tipo</label>
-              <select id="pp_tipo">
-                <option value="locale">Locale</option><option value="festival">Festival</option>
-                <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
-                <option value="privato">Privato</option><option value="altro">Altro</option>
-              </select>
-            </div>
-            <div class="field"><label>Telefono</label><input id="pp_phone" placeholder="+39..."></div>
-          </div>
-          <div class="row">
-            <div class="autocomplete field"><label>Comune</label><input id="pp_comune" placeholder="Es. Roma"></div>
-            <div class="field" style="max-width:110px"><label>Prov.</label><input id="pp_prov" maxlength="2" placeholder="RM"></div>
-          </div>
-          <div class="field"><label>Sito web o altro link</label><input id="pp_web" placeholder="https://..."></div>
-          <button class="btn primary sm">Salva dati</button>
-        </form>
       </div>
 
       <!-- COLONNA DESTRA: notifiche + riepilogo email -->
@@ -164,22 +162,13 @@ function markAllRead(){
 
 /* ---- impostazioni ---- */
 function initPromoterProfile(p){
-  document.getElementById('promoterBox').style.display = '';
+  document.getElementById('orgFields').style.display = '';
   pp_tipo.value  = p.tipo || 'locale';
   pp_phone.value = p.phone || '';
   pp_comune.value = p.comune || '';
   pp_prov.value   = p.provincia || '';
   pp_web.value    = p.website || '';
   comuniAutocomplete(pp_comune, (n, pr) => pp_prov.value = pr);
-}
-async function savePromoterProfile(e){ e.preventDefault();
-  try {
-    await api('promoter-profile-save.php',{method:'POST',body:{
-      org_name: ac_name.value, tipo: pp_tipo.value, phone: pp_phone.value,
-      comune: pp_comune.value, provincia: pp_prov.value, website: pp_web.value }});
-    toast('Dati salvati ✓');
-  } catch(err){ toast(errMsg(err), true); }
-  return false;
 }
 function initEmailPrefs(p){
   document.getElementById('emailPrefsBox').style.display = '';
@@ -203,10 +192,16 @@ async function saveAccount(e){ e.preventDefault();
   try {
     const r = await api('account-save.php',{method:'POST',body:{
       display_name: ac_name.value, email: ac_email.value }});
+    // se i campi organizzazione sono visibili (promoter/agenzia), salva anche quelli
+    if (document.getElementById('orgFields').style.display !== 'none') {
+      await api('promoter-profile-save.php',{method:'POST',body:{
+        org_name: ac_name.value, tipo: pp_tipo.value, phone: pp_phone.value,
+        comune: pp_comune.value, provincia: pp_prov.value, website: pp_web.value }});
+    }
     _me = null;
     toast(r.email_changed
       ? 'Email aggiornata: controlla la nuova casella e verifica per poter riaccedere.'
-      : 'Dati account salvati ✓');
+      : 'Dati salvati ✓');
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }

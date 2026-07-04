@@ -81,10 +81,13 @@ function notify_new_booking_request(int $artistUserId, array $req): void {
     $a = $st->fetch(); if (!$a) return;
     $appUrl = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
     $when = !empty($req['event_date']) ? date('d/m/Y', strtotime($req['event_date'])) : 'da concordare';
-    $fee  = isset($req['proposed_fee']) && $req['proposed_fee'] !== null ? '€' . number_format((int)$req['proposed_fee'], 0, ',', '.') : 'da concordare';
+    $rows = 'Data: <b>' . htmlspecialchars($when) . '</b>';
+    if (!empty($req['comune']))     $rows .= '<br>Dove: <b>' . htmlspecialchars($req['comune']) . '</b>';
+    if (!empty($req['event_link'])) $rows .= '<br>Evento: <a href="' . htmlspecialchars($req['event_link']) . '" style="color:#b81e47">' . htmlspecialchars($req['event_link']) . '</a>';
+    if (isset($req['proposed_fee']) && $req['proposed_fee'] !== null) $rows .= '<br>Offerta: <b>€' . number_format((int)$req['proposed_fee'], 0, ',', '.') . '</b>';
     $body = mail_layout('Nuova richiesta di booking',
         '<p>' . htmlspecialchars($a['stage_name'] ?: 'Ciao') . ', <b>' . htmlspecialchars($req['promoter_name'] ?? 'un promoter') . '</b> vuole scritturarti!</p>'
-      . '<p style="font-size:14px;color:#444">Data: <b>' . htmlspecialchars($when) . '</b><br>Offerta: <b>' . htmlspecialchars($fee) . '</b></p>'
+      . '<p style="font-size:14px;color:#444">' . $rows . '</p>'
       . (!empty($req['message']) ? '<p style="font-size:14px;color:#555;background:#f7f7f7;border-radius:10px;padding:12px 14px">&ldquo;' . nl2br(htmlspecialchars(mb_substr($req['message'], 0, 500))) . '&rdquo;</p>' : '')
       . mail_cta($appUrl . '/richieste.html', 'Rispondi alla richiesta'));
     @send_mail($a['email'], 'Nuova richiesta di booking · Booking Roster', $body);

@@ -193,6 +193,8 @@ CREATE TABLE IF NOT EXISTS booking_requests (
   venue_id          INT UNSIGNED DEFAULT NULL,
   event_date        DATE DEFAULT NULL,
   message           TEXT,
+  event_link        VARCHAR(255) DEFAULT NULL,   -- link all'evento/locandina (migration-21)
+  comune            VARCHAR(120) DEFAULT NULL,   -- dove si svolge l'evento (migration-21)
   proposed_fee      INT UNSIGNED DEFAULT NULL,
   status            ENUM('inviata','vista','accettata','rifiutata','ritirata') NOT NULL DEFAULT 'inviata',
   created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

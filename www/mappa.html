@@ -17,14 +17,14 @@
 .ms-search{display:flex;align-items:center;background:#f2f2f2;border-radius:9px;padding:2px 12px;gap:8px;margin-top:12px}
 .ms-search input{flex:1;min-width:0;border:0;background:none;padding:8px 0;font-size:13px;outline:0;font-family:inherit}
 .ms-clear{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px}
-.ms-list{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.ms-item{display:flex;gap:12px;padding:10px;border:1px solid var(--line2);border-radius:12px;cursor:pointer;background:#fff;text-align:left;font-family:inherit}
+.ms-list{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:5px}
+.ms-item{display:flex;gap:10px;padding:7px 9px;border:1px solid var(--line2);border-radius:10px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;align-items:center}
 .ms-item:hover,.ms-item.on{border-color:var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.ms-pic{width:56px;height:56px;border-radius:10px;overflow:hidden;flex:none;color:#fff;display:flex;align-items:center;justify-content:center}
+.ms-pic{width:38px;height:38px;border-radius:9px;overflow:hidden;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
 .ms-pic img{width:100%;height:100%;object-fit:cover}
-.ms-nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px}
-.ms-mt{font-size:12px;color:var(--muted)}
-.ms-pr{font-size:13px;font-weight:600;margin-top:3px}
+.ms-nm{font-weight:600;font-size:13px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.ms-mt{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-pr{font-size:11.5px;font-weight:600;color:#0a7d38;white-space:nowrap}
 #map{flex:1;min-width:0;position:relative}
 @media(max-width:860px){
   .map-wrap{flex-direction:column;height:auto}
@@ -104,8 +104,7 @@ function renderList(){
       <span class="ms-pic" style="background:${avatarColor(a.stage_name||'A')}">${pic}</span>
       <span style="min-width:0;flex:1">
         <span class="ms-nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk">✓</span>':''}</span>
-        <span class="ms-mt" style="display:block">${esc(meta)}</span>
-        <span class="ms-pr" style="display:block">${cachet(a)}</span>
+        <span class="ms-mt" style="display:block">${esc(meta)}${cachet(a)?' · ':''}<span class="ms-pr">${cachet(a)}</span></span>
       </span>
     </button>`;
   }).join('') : '<div class="empty"><span class="et">Nessun artista qui</span>Prova con un altro luogo o torna a Tutti gli artisti.</div>';

@@ -20,7 +20,7 @@
 .avz-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:14px}
 .avz-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 .avz-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px 18px;overflow-x:auto}
-.avz-grid{display:grid;grid-template-columns:170px repeat(14,minmax(26px,1fr));gap:4px;align-items:center;min-width:700px}
+.avz-grid{display:grid;grid-template-columns:160px repeat(16,minmax(22px,1fr));gap:3px;align-items:center;min-width:700px}
 .avz-dow{text-align:center;font:700 9px var(--f-body);color:#9a9aa2;line-height:1.2}
 .avz-dow b{display:block;color:#222;font-size:12px}
 .avz-dow .mo{display:block;color:#9a9aa2;font-size:8.5px;letter-spacing:.04em}
@@ -91,7 +91,8 @@
     </div>
     <div class="mbody">
       <div class="avail" id="rq_when"></div>
-      <div class="field" style="margin:14px 0 0" id="rq_feeWrap"><label>Cachet proposto (€)</label><input type="number" id="rq_fee" min="0" placeholder="es. 500"></div>
+      <div class="field" style="margin:14px 0 0"><label>Link evento</label><input type="url" id="rq_link" placeholder="https://… (pagina o locandina)"></div>
+      <div class="autocomplete field" style="margin:14px 0 0"><label>Comune</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off"></div>
       <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
     </div>
     <div class="mfoot">
@@ -106,7 +107,7 @@
 const MESI=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
 const MESI_L=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 const GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-const NDAYS=14;
+const NDAYS=16;
 let FAV=[], OFFSET=0, LOCKED=false, REQ={artist:null, date:null};
 
 function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -202,19 +203,18 @@ function openReq(ai, iso){
   rm_sub.textContent = [showLabel(a.formazione), priceOf(a)?priceOf(a)+' a serata':''].filter(Boolean).join(' · ');
   const d=new Date(iso+'T00:00:00');
   rq_when.innerHTML = icon('check',15,2)+` ${d.toLocaleDateString('it-IT',{weekday:'long'})} <b style="margin:0 4px">${d.getDate()} ${MESI_L[d.getMonth()]} ${d.getFullYear()}</b> · risulta libero`;
-  document.getElementById('rq_feeWrap').style.display = (a.cachet_trattabile==1||LOCKED)?'':'none';
-  rq_fee.value=''; rq_msg.value='';
+  if(!window._rqAc){ window._rqAc=1; comuniAutocomplete(document.getElementById('rq_comune'), ()=>{}); }
+  rq_link.value=''; rq_comune.value=''; rq_msg.value='';
   document.getElementById('reqModal').classList.add('open');
 }
 function closeReq(){ document.getElementById('reqModal').classList.remove('open'); }
 async function sendReq(){
   const msg=(rq_msg.value||'').trim();
   if(!msg){ toast('Scrivi un messaggio',true); return; }
-  const feeShown=document.getElementById('rq_feeWrap').style.display!=='none';
   try{
     await api('booking-request.php',{method:'POST',body:{
       artist_user_id:REQ.artist.user_id, event_date:REQ.date,
-      proposed_fee:(feeShown&&rq_fee.value)?rq_fee.value:null, message:msg}});
+      event_link:(rq_link.value||'').trim()||null, comune:(rq_comune.value||'').trim()||null, message:msg}});
     toast('Richiesta inviata a '+(REQ.artist.stage_name||'artista')+'!');
     closeReq();
   }catch(err){ toast(errMsg(err),true); }
