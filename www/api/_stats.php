@@ -106,7 +106,7 @@ function tiktok_handle(string $v): ?string {
 /** Ultimi video TikTok (id) via tikwm.com — nessuna API key. Solo gli id vengono salvati:
  *  cover/play di tikwm sono URL firmati che scadono in 1-2 giorni, troppo poco per una
  *  cache settimanale (vedi tiktok-photo.php, che rifà il fetch ad ogni visualizzazione). */
-function tiktok_latest_videos(string $url, int $count = 3): array {
+function tiktok_latest_videos(string $url, int $count = 4): array {
   $h = tiktok_handle($url);
   if (!$h) return [];
   $r = http_get('https://www.tikwm.com/api/user/posts?unique_id=' . rawurlencode($h) . '&count=' . $count . '&cursor=0', 10);
@@ -189,7 +189,7 @@ function apify_instagram_data(string $handle, string $token): array {
   foreach ($items as $it) {
     $f = $it['followersCount'] ?? $it['followers'] ?? null;
     if (is_numeric($f)) $out['followers'] = (int) $f;
-    foreach (array_slice($it['latestPosts'] ?? [], 0, 3) as $p) {
+    foreach (array_slice($it['latestPosts'] ?? [], 0, 4) as $p) {
       $img = $p['displayUrl'] ?? null;
       if ($img) $out['photos'][] = $img;
     }

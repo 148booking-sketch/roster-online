@@ -21,7 +21,7 @@ function tiktok_cover_cache_dir(): string {
 
 $uid = (int) ($_GET['u'] ?? 0);
 $idx = (int) ($_GET['i'] ?? -1);
-if ($uid <= 0 || $idx < 0 || $idx > 2) { http_response_code(400); exit; }
+if ($uid <= 0 || $idx < 0 || $idx > 3) { http_response_code(400); exit; }
 
 $st = db()->prepare('SELECT stats, socials FROM artist_profiles WHERE user_id = ?');
 $st->execute([$uid]);
