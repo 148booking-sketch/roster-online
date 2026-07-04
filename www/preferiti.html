@@ -6,137 +6,214 @@
 <title>Preferiti · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.pf-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;align-items:start;margin-top:18px}
-@media(max-width:520px){#list{grid-template-columns:1fr}}
-.pf-card{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
-.pf-top{display:flex;gap:14px;padding:16px 18px}
-.pf-photo{width:64px;height:64px;border-radius:14px;overflow:hidden;flex:none;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:26px}
-.pf-photo img{width:100%;height:100%;object-fit:cover}
-.pf-id{min-width:0;flex:1}
-.pf-name{font-weight:700;font-size:18px;font-family:var(--f-display);line-height:1.15}
-.pf-meta{font-size:13px;color:var(--muted);margin-top:3px}
-.pf-body{padding:0 18px 16px;display:flex;flex-direction:column;gap:10px}
-.pf-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;border-top:1px solid var(--line2);padding-top:10px;font-size:14px}
-.pf-row .l{color:var(--muted)}
-.pf-row .v{font-weight:700;text-align:right}
-.pf-price .v{font-size:16px}
-.promo-old{color:var(--muted);font-weight:400;text-decoration:line-through;margin-right:6px}
-.promo-new{color:#c0395e}
-.pf-badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;background:#c0395e18;color:#c0395e;margin-left:6px}
-.pf-free{color:#0a7d38}
-.pf-busy{color:#c0395e}
-.pf-actions{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line2);margin-top:auto}
-.pf-actions .btn{flex:1;text-align:center}
-.pf-next{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
-.pf-chip{font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:3px 8px}
+/* layout 5c: dentro la shell, lista preferiti (312px) + calendario full-page */
+.fav-wrap{display:flex;min-height:calc(100vh - 0px);background:#fff}
+.fav-list{width:312px;flex:none;border-right:1px solid var(--line2);display:flex;flex-direction:column;background:#fff}
+.fl-head{padding:20px 20px 14px}
+.fl-title{display:flex;align-items:center;gap:8px;font:700 19px var(--f-display);letter-spacing:-.4px}
+.fl-title .ic-svg{color:var(--brand);fill:var(--brand)}
+.fl-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.fl-search{display:flex;align-items:center;background:#f2f2f2;border-radius:9px;padding:2px 12px;gap:8px;margin-top:12px}
+.fl-search input{flex:1;border:0;background:none;padding:8px 0;font-size:13px;outline:0;font-family:inherit}
+.fl-scroll{flex:1;overflow:auto;padding:0 12px 14px;display:flex;flex-direction:column;gap:4px}
+.fl-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:11px;cursor:pointer;position:relative;border:0;background:none;text-align:left;font-family:inherit;width:100%}
+.fl-item:hover{background:var(--panel2)}
+.fl-item.on{background:#fbe9ee}
+.fl-item.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--brand)}
+.fl-ava{width:40px;height:40px;border-radius:50%;overflow:hidden;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.fl-ava img{width:100%;height:100%;object-fit:cover}
+.fl-nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px;min-width:0}
+.fl-mt{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-heart{color:var(--brand);flex:none;background:none;border:0;cursor:pointer;padding:2px}
+.fl-heart .ic-svg{fill:currentColor}
+.fav-cal{flex:1;min-width:0;padding:22px 26px;background:#fafafa}
+.fc-head{display:flex;align-items:center;gap:13px;margin-bottom:18px;flex-wrap:wrap}
+.fc-ava{width:44px;height:44px;border-radius:50%;overflow:hidden;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.fc-ava img{width:100%;height:100%;object-fit:cover}
+.fc-t{font:700 19px var(--f-display);letter-spacing:-.3px;display:flex;align-items:center;gap:6px}
+.fc-s{font-size:12.5px;color:var(--muted)}
+.fc-legend{margin-left:auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fc-legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.fc-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.calbox{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px}
+.calnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.calnav b{font:700 17px var(--f-display)}
+.calnav button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.calnav button:hover:not(:disabled){background:var(--panel2)}
+.calnav button:disabled{opacity:.35;cursor:default}
+.calgrid7{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.caldow{text-align:center;font:700 11px var(--f-body);color:#9a9aa2;text-transform:uppercase;margin-bottom:6px}
+.cday{min-height:62px;border:1px solid #f0f0f0;border-radius:9px;padding:6px 7px;display:flex;flex-direction:column;font-weight:600;font-size:13px}
+.cday.past{color:#c9c9c9}
+.cday.today{border:2px solid var(--brand)}
+.cday.today .today-tag{margin-top:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:#0a7d38;font-weight:700}
+.cday.today .today-tag i{width:6px;height:6px;border-radius:50%;background:#0a7d38}
+.cday.busy{border-color:#f3d3dd;background:#fbeaef;color:#c0395e}
+.cday.busy .tag{margin-top:auto;font-size:10px;color:#c0395e;font-weight:600}
+.cday .cnt{margin-top:auto;font-size:10.5px;font-weight:800;border-radius:8px;padding:1px 6px;align-self:flex-start}
+.cday .cnt.free{background:#eafaf0;color:#0a7d38}
+.cday .cnt.some{background:#fff5e6;color:#a86a00}
+.cday .cnt.none{background:#fbeaef;color:#c0395e}
+.fc-actions{display:flex;gap:10px;margin-top:14px}
+.empty-fav{text-align:center;color:var(--muted);padding:60px 20px}
+@media(max-width:1020px){
+  .fav-wrap{flex-direction:column}
+  .fav-list{width:100%;border-right:0;border-bottom:1px solid var(--line2);max-height:320px}
+}
 </style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container section">
-  <div class="pf-head">
-    <div>
-      <h1 class="title" style="margin-bottom:2px">Preferiti</h1>
-      <p class="sub" id="pageSub">Gli artisti che segui: disponibilità e prezzo sempre sott'occhio.</p>
-    </div>
-    <a class="btn ghost" href="/preferiti-calendario.html" data-ic="calendar" data-ic-size="15">Calendario preferiti</a>
+<div id="pageContent" style="display:none">
+  <div class="fav-wrap">
+    <!-- LISTA PREFERITI -->
+    <aside class="fav-list">
+      <div class="fl-head">
+        <div class="fl-title"><span data-ic="heart" data-ic-size="20" data-ic-stroke="1.6"></span>I tuoi preferiti</div>
+        <div class="fl-sub" id="flCount">—</div>
+        <div class="fl-search"><span data-ic="search" data-ic-size="15" data-ic-stroke="1.9" style="color:var(--muted)"></span><input id="flQ" placeholder="Cerca tra i preferiti…" oninput="renderList()"></div>
+      </div>
+      <div class="fl-scroll" id="flScroll"></div>
+    </aside>
+
+    <!-- CALENDARIO -->
+    <div class="fav-cal" id="favCal"></div>
   </div>
-  <div id="lockedNote" class="hint" style="display:none;margin-top:8px"></div>
-  <div id="list"></div>
-  <div id="empty" class="empty" style="display:none">
-    Non hai ancora preferiti.<br>
-    <a class="btn ghost sm" style="margin-top:14px" href="/">Sfoglia gli artisti</a> e tocca il cuore per salvarli qui.
-  </div>
-</main>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>
-const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-let LOCKED=false, PENDING=false;
+const MESI_FULL=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let FAV=[], SEL='all', calY, calM, LOCKED=false;
 
-function todayISO(){ const d=new Date(); d.setHours(0,0,0,0);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function fmtDay(iso){ const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return iso;
-  return d.getDate()+' '+MESI[d.getMonth()]; }
-/* prima data libera nei prossimi ~180 giorni non presente in busy */
-function nextFree(busy){
-  const set=new Set(busy||[]); const d=new Date(); d.setHours(0,0,0,0);
-  for(let i=0;i<180;i++){ const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    if(!set.has(iso)) return iso; d.setDate(d.getDate()+1); }
-  return null;
-}
+function isoOf(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 
 async function init(){
-  const me = await getMe(true);
+  const me=await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   if(!['promoter','management','admin'].includes(me.user.role)){ location.href='/'; return; }
-  await renderNav();
+  if(me.user.role==='admin'){ await renderNav(); document.getElementById('pageContent').style.display=''; }
+  else mountPromoterShell(me.user,'preferiti');
   injectIcons();
-  load();
+  const t=new Date(); calY=t.getFullYear(); calM=t.getMonth();
+  await load();
 }
 async function load(){
-  let r;
-  try{ r = await api('favorites-list.php'); }
-  catch(err){ toast(errMsg(err),true); return; }
-  LOCKED=!!r.locked; PENDING=!!r.pending_verification;
-  const note=document.getElementById('lockedNote');
-  if(LOCKED){ note.style.display='block';
-    note.innerHTML = PENDING
-      ? '🔒 Il tuo account è in attesa di verifica: i cachet saranno visibili a breve.'
-      : '🔒 I cachet sono visibili solo ai promoter verificati.'; }
-  else note.style.display='none';
-  const L=r.artists||[];
-  document.getElementById('empty').style.display=L.length?'none':'block';
-  document.getElementById('list').innerHTML=L.map(card).join('');
+  let r; try{ r=await api('favorites-list.php'); }catch(err){ toast(errMsg(err),true); return; }
+  FAV=r.artists||[]; LOCKED=!!r.locked;
+  FAV.forEach(a=>a._busy=new Set(a.busy||[]));
+  if(SEL!=='all' && !FAV.some(a=>a.user_id===SEL)) SEL='all';
+  renderList(); drawCal();
 }
-
-function priceRow(a){
-  if(LOCKED) return `<span class="v">🔒 ${PENDING?'In verifica':'Riservato'}</span>`;
-  const base=a.cachet_min ?? a.cachet_max;
-  if(base==null) return `<span class="v">Trattativa riservata</span>`;
-  if(base===0) return `<span class="v">Senza impegno</span>`;
-  if(a.has_promo && a.cachet_promo!=null)
-    return `<span class="v"><span class="promo-old">${eur(base)}</span><span class="promo-new">${eur(a.cachet_promo)}</span></span>`;
-  return `<span class="v">${eur(base)} <span style="font-weight:400;color:var(--muted)">a serata</span></span>`;
+function priceOf(a){
+  if(LOCKED) return '';
+  const v=a.cachet_min??a.cachet_max;
+  if(v==null||v===0) return '';
+  return 'da '+eur(a.has_promo&&a.cachet_promo!=null?a.cachet_promo:v);
 }
-function availRow(a){
-  if(!a.has_calendar) return `<span class="v" style="font-weight:400;color:var(--muted)">Calendario non impostato</span>`;
-  const nf=nextFree(a.busy);
-  const next=(a.busy||[]).slice(0,3);
-  const chips=next.length?`<div class="pf-next">${next.map(d=>`<span class="pf-chip pf-busy">${fmtDay(d)}</span>`).join('')}</div>`:'';
-  return `<span class="v pf-free">${nf?('Libero dal '+fmtDay(nf)):'Nessuna data libera'}</span>${chips}`;
+function renderList(){
+  const q=(document.getElementById('flQ').value||'').trim().toLowerCase();
+  const L=FAV.filter(a=>!q||String(a.stage_name||'').toLowerCase().includes(q));
+  document.getElementById('flCount').textContent = FAV.length===1?'1 artista salvato':FAV.length+' artisti salvati';
+  const allRow=`<button class="fl-item${SEL==='all'?' on':''}" onclick="pick('all')">
+      <span class="fl-ava" style="background:#1a1c22">${icon('grid',17,1.8)}</span>
+      <div style="min-width:0;flex:1"><div class="fl-nm">Tutti i preferiti</div><div class="fl-mt">Disponibilità aggregata</div></div>
+    </button>`;
+  const rows=L.map(a=>{
+    const meta=[showLabel(a.formazione),a.comune,priceOf(a)].filter(Boolean).join(' · ');
+    const av=a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(a.stage_name));
+    return `<button class="fl-item${SEL===a.user_id?' on':''}" onclick="pick(${a.user_id})">
+      <span class="fl-ava" style="background:${avatarColor(a.stage_name)}">${av}</span>
+      <div style="min-width:0;flex:1"><div class="fl-nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk">✓</span>':''}</div><div class="fl-mt">${esc(meta)}</div></div>
+      <span class="fl-heart" title="Rimuovi dai preferiti" onclick="event.stopPropagation();removeFav(${a.user_id})">${icon('heart',17,1.6)}</span>
+    </button>`;
+  }).join('');
+  document.getElementById('flScroll').innerHTML = FAV.length ? allRow+rows :
+    `<div class="empty-fav">Non hai ancora preferiti.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Sfoglia gli artisti</a><br><span class="hint">e tocca il cuore per salvarli</span></div>`;
 }
-function card(a){
-  const loc=[a.comune, a.provincia?('('+a.provincia+')'):''].filter(Boolean).join(' ');
-  const promoBadge=a.has_promo?'<span class="pf-badge">PROMO</span>':'';
-  return `<div class="pf-card" id="fav-${a.user_id}">
-    <div class="pf-top">
-      <div class="pf-photo">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'🎵'}</div>
-      <div class="pf-id">
-        <div class="pf-name">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" title="Verificato">✓</span>':''}${promoBadge}</div>
-        <div class="pf-meta">${esc(showLabel(a.formazione))}${loc?' · '+esc(loc):''}</div>
-      </div>
-    </div>
-    <div class="pf-body">
-      <div class="pf-row pf-price"><span class="l">${icon('euro',13)} Cachet</span>${priceRow(a)}</div>
-      <div class="pf-row"><span class="l">${icon('calendar',13)} Disponibilità</span><div style="text-align:right">${availRow(a)}</div></div>
-    </div>
-    <div class="pf-actions">
-      <a class="btn ghost sm" href="/${esc(a.slug||'')}">Vedi profilo</a>
-      <button class="btn outline sm" onclick="removeFav(${a.user_id})">Rimuovi</button>
-    </div>
-  </div>`;
-}
+function pick(id){ SEL=id; renderList(); drawCal(); }
 
 async function removeFav(id){
   try{
     await api('favorites-toggle.php',{method:'POST',body:{artist_user_id:id,on:false}});
-    const el=document.getElementById('fav-'+id); if(el) el.remove();
-    if(!document.querySelector('.pf-card')) document.getElementById('empty').style.display='block';
+    FAV=FAV.filter(a=>a.user_id!==id);
+    if(SEL===id) SEL='all';
+    renderList(); drawCal();
     toast('Rimosso dai preferiti');
   }catch(err){ toast(errMsg(err),true); }
+}
+
+/* stato aggregato di un giorno per "Tutti": {free, withCal} */
+function aggOn(iso){
+  let withCal=0, free=0;
+  FAV.forEach(a=>{ if(!a.has_calendar) return; withCal++; if(!a._busy.has(iso)) free++; });
+  return {withCal, free};
+}
+function calNav(d){ calM+=d; if(calM<0){calM=11;calY--} if(calM>11){calM=0;calY++} drawCal(); }
+
+function drawCal(){
+  const box=document.getElementById('favCal');
+  if(!FAV.length){ box.innerHTML='<div class="empty-fav" style="padding-top:120px">Salva qualche artista per vedere qui le sue disponibilità.</div>'; return; }
+  const a = SEL==='all' ? null : FAV.find(x=>x.user_id===SEL);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayIso=isoOf(today.getFullYear(),today.getMonth(),today.getDate());
+  const canPrev=(new Date(calY,calM,1) > new Date(today.getFullYear(),today.getMonth(),1));
+  const first=new Date(calY,calM,1); const startDow=(first.getDay()+6)%7;
+  const days=new Date(calY,calM+1,0).getDate();
+
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const iso=isoOf(calY,calM,d); const date=new Date(calY,calM,d);
+    const isToday=iso===todayIso, isPast=date<today;
+    if(a){ // vista singolo artista
+      const busy=a.has_calendar && a._busy.has(iso);
+      let cls='cday'+(isPast?' past':'')+(isToday?' today':'')+(busy&&!isPast?' busy':'');
+      cells+=`<div class="${cls}"><div>${d}</div>${isToday?'<div class="today-tag"><i></i>oggi</div>':(busy&&!isPast?'<div class="tag">occupato</div>':'')}</div>`;
+    } else { // vista aggregata
+      let inner='';
+      if(!isPast){
+        const {withCal,free}=aggOn(iso);
+        if(withCal>0){
+          const cls=free===withCal?'free':(free===0?'none':'some');
+          inner=`<span class="cnt ${cls}">${free}/${withCal} liberi</span>`;
+        }
+      }
+      cells+=`<div class="cday${isPast?' past':''}${isToday?' today':''}"><div>${d}</div>${isToday?'<div class="today-tag"><i></i>oggi</div>':inner}</div>`;
+    }
+  }
+
+  const headAva = a
+    ? `<span class="fc-ava" style="background:${avatarColor(a.stage_name)}">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(a.stage_name))}</span>`
+    : `<span class="fc-ava" style="background:#1a1c22">${icon('grid',18,1.8)}</span>`;
+  const title = a ? `Disponibilità di ${esc(a.stage_name)}`+(a.verified?'<span class="vchk">✓</span>':'') : 'Disponibilità di tutti i preferiti';
+  const sub = a
+    ? (a.has_calendar?'Aggiornata dal calendario collegato':'Questo artista non ha ancora collegato il calendario')
+    : 'Quanti dei tuoi preferiti sono liberi, giorno per giorno';
+  const legend = a
+    ? `<span><i style="background:#fff;border:1px solid #0a7d38"></i>Libero</span><span><i style="background:#fbeaef;border:1px solid #e6a2b6"></i>Occupato</span>`
+    : `<span><i style="background:#eafaf0"></i>Tutti liberi</span><span><i style="background:#fff5e6"></i>Alcuni</span><span><i style="background:#fbeaef"></i>Nessuno</span>`;
+  const actions = a ? `<div class="fc-actions">
+      <a class="btn ghost sm" href="/${esc(a.slug||'')}">Vedi profilo →</a>
+    </div>` : '';
+
+  box.innerHTML=`
+    <div class="fc-head">
+      ${headAva}
+      <div><div class="fc-t">${title}</div><div class="fc-s">${sub}</div></div>
+      <div class="fc-legend">${legend}</div>
+    </div>
+    <div class="calbox">
+      <div class="calnav">
+        <button ${canPrev?'':'disabled'} onclick="calNav(-1)">${icon('chevronLeft',16,2)}</button>
+        <b>${MESI_FULL[calM]} ${calY}</b>
+        <button onclick="calNav(1)">${icon('chevronRight',16,2)}</button>
+      </div>
+      <div class="calgrid7">${['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(g=>`<div class="caldow">${g}</div>`).join('')}</div>
+      <div class="calgrid7">${cells}</div>
+    </div>
+    ${actions}`;
 }
 init();
 </script>

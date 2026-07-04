@@ -27,11 +27,10 @@ if ($u) {
   $name = trim($u['display_name'] ?? '') ?: 'ciao';
 
   $body = mail_layout('Reimposta la tua password',
-      '<p>' . htmlspecialchars($name) . ', hai richiesto di reimpostare la password del tuo account Booking Roster.</p>'
-    . '<p style="margin:20px 0"><a href="' . htmlspecialchars($link) . '" '
-    . 'style="background:#1a1c22;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">Reimposta password</a></p>'
-    . '<p style="font-size:13px;color:#777">Il link scade tra 2 ore. Se non sei stato tu, ignora questa email.</p>'
-    . '<p style="font-size:12px;color:#999;word-break:break-all">' . htmlspecialchars($link) . '</p>');
+      '<p style="margin:0">Ciao ' . htmlspecialchars($name) . ',<br>hai richiesto di reimpostare la password del tuo account Booking Roster.</p>'
+    . mail_cta($link, 'Reimposta password')
+    . '<p style="font-size:13px;line-height:1.6;color:#9a9aa2;margin:0">Il link scade tra 2 ore. Se non sei stato tu, ignora questa email.</p>'
+    . '<p style="font-size:12px;color:#c9c9c9;word-break:break-all;margin:10px 0 0">' . htmlspecialchars($link) . '</p>');
 
   @send_mail($email, 'Reimposta la password · Booking Roster', $body);
 }

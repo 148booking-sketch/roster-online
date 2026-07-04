@@ -6,42 +6,47 @@
 <title>Registrati · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:22px}
 @media(max-width:720px){.role-grid{grid-template-columns:1fr}}
-.role-card{border:1px solid var(--line);border-radius:16px;padding:26px 22px;text-align:center;text-decoration:none;color:inherit;transition:.15s;display:block}
-.role-card:hover{border-color:var(--txt);box-shadow:var(--shadow)}
-.role-card .ic{margin-bottom:12px;display:flex;justify-content:center;color:var(--brand)}
-.role-card h2{font-family:var(--f-display);font-size:20px;margin:0 0 6px}
-.role-card p{color:var(--muted);font-size:14px;margin:0}
+.role-card{border:1px solid var(--line);background:#fff;border-radius:13px;padding:22px 14px;text-align:center;text-decoration:none;color:inherit;transition:.15s;display:block}
+.role-card:hover{border-color:var(--brand);background:#fdf5f8;box-shadow:0 6px 20px rgba(0,0,0,.05)}
+.role-card .ic{display:flex;justify-content:center;color:var(--muted);margin-bottom:8px;transition:.15s}
+.role-card:hover .ic{color:var(--brand)}
+.role-card h2{font-family:var(--f-display);font-size:15.5px;font-weight:700;margin:0}
+.role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
 </style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container" style="max-width:860px;padding-top:40px;text-align:center">
-  <h1 class="title">Registrati su Booking Roster</h1>
-  <p class="sub">Scegli come vuoi iscriverti.</p>
+<div class="auth-bg">
+  <div class="auth-card" style="max-width:560px">
+    <h1 class="auth-title">Crea il tuo account</h1>
+    <div class="auth-sub" style="margin-bottom:0">Scegli come vuoi usare Booking Roster</div>
 
-  <div class="role-grid">
-    <a class="role-card" href="/registrati-artista.html">
-      <div class="ic" data-ic="mic" data-ic-size="34" data-ic-stroke="1.5"></div>
-      <h2>Sono un artista</h2>
-      <p>Pubblica il tuo profilo con cachet, disponibilità e generi e fatti trovare dai promoter.</p>
-    </a>
-    <a class="role-card" href="/registrati-promoter.html">
-      <div class="ic" data-ic="speaker" data-ic-size="34" data-ic-stroke="1.5"></div>
-      <h2>Sono un promoter</h2>
-      <p>Locale, festival, associazione o agenzia: cerca l'artista giusto per il tuo evento.</p>
-    </a>
-    <a class="role-card" href="/registrati-management.html">
-      <div class="ic" data-ic="agency" data-ic-size="34" data-ic-stroke="1.5"></div>
-      <h2>Agenzia</h2>
-      <p>Sei un Booking o un Management e vuoi gestire tutto il tuo roster in modo automatizzato?</p>
-    </a>
+    <div class="role-grid">
+      <a class="role-card" href="/registrati-artista.html">
+        <div class="ic" data-ic="mic" data-ic-size="24" data-ic-stroke="1.7"></div>
+        <h2>Artista</h2>
+        <p>Voglio essere scritturato</p>
+      </a>
+      <a class="role-card" href="/registrati-promoter.html">
+        <div class="ic" data-ic="speaker" data-ic-size="24" data-ic-stroke="1.7"></div>
+        <h2>Promoter</h2>
+        <p>Cerco artisti per eventi</p>
+      </a>
+      <a class="role-card" href="/registrati-management.html">
+        <div class="ic" data-ic="agency" data-ic-size="24" data-ic-stroke="1.7"></div>
+        <h2>Agenzia</h2>
+        <p>Gestisco un roster</p>
+      </a>
+    </div>
+    <p class="hint" style="margin:14px 0 0;text-align:center">Sei un Booking o un Management e vuoi gestire tutto il tuo roster in modo automatizzato? Scegli <b>Agenzia</b>.</p>
+
+    <div class="auth-sep">oppure</div>
+    <div class="auth-foot">Hai già un account? <a href="/accedi.html">Accedi</a></div>
   </div>
-
-  <div class="hint" style="margin-top:20px">Hai già un account? <a href="/accedi.html">Accedi</a></div>
-</main>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>renderNav().then(()=>injectIcons());</script>

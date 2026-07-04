@@ -6,8 +6,9 @@
 <title>Richieste · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;align-items:start}
-@media(max-width:520px){#list{grid-template-columns:1fr}}
+/* vista card (artista, design 6a) */
+#cardList{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;align-items:start}
+@media(max-width:520px){#cardList{grid-template-columns:1fr}}
 .rq-card{border:1px solid var(--line);border-radius:16px;padding:18px 20px;background:#fff;box-shadow:var(--shadow);border-left:5px solid var(--line)}
 .rq-card.accettata{border-left-color:#0a7d38}
 .rq-card.rifiutata{border-left-color:#c0395e}
@@ -28,7 +29,7 @@
 .rq-msg::before{content:'“';font-size:26px;color:var(--muted);line-height:0;position:relative;top:6px;margin-right:2px}
 .rq-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 @media(max-width:520px){.rq-grid{grid-template-columns:1fr}}
-/* thread messaggi */
+/* thread messaggi (condiviso card + tabella) */
 .rq-thread{margin-top:14px;border-top:1px solid var(--line2);padding-top:12px}
 .th-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px}
 .th-msg{max-width:82%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-line;word-break:break-word}
@@ -40,24 +41,46 @@
 .th-form input{flex:1;min-width:0}
 .th-form .btn{padding:11px 14px}
 .th-empty{color:var(--muted);font-size:13px;text-align:center;padding:8px 0}
+/* toolbar tabella promoter */
+.rq-toolbar{display:flex;align-items:center;gap:12px}
+.rq-toolbar .cta{margin-left:auto}
 </style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container section">
-  <h1 class="title" id="pageTitle">Richieste</h1>
-  <p class="sub" id="pageSub"></p>
-  <div id="list"></div>
-  <div id="empty" class="empty" style="display:none">Nessuna richiesta per ora.</div>
-</main>
+<div id="pageContent" style="display:none">
+  <div class="pmain-pad" id="pagePad">
+    <div class="rq-toolbar">
+      <div>
+        <h1 class="ptitle" id="pageTitle">Richieste</h1>
+        <p class="psub" id="pageSub"></p>
+      </div>
+      <a class="btn primary sm cta" id="ctaSearch" href="/" style="display:none">Cerca artisti</a>
+    </div>
+
+    <!-- filtri stato (vista tabella) -->
+    <div class="fpills" id="fpills" style="display:none"></div>
+
+    <!-- vista tabella (promoter/agenzia, design 6b) -->
+    <div class="rq-table" id="tableWrap" style="display:none">
+      <div class="rqt-head"><div>Artista</div><div>Data evento</div><div>Compenso</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+      <div id="tableRows"></div>
+    </div>
+
+    <!-- vista card (artista, design 6a) -->
+    <div id="cardList"></div>
+
+    <div id="empty" class="empty" style="display:none">Nessuna richiesta per ora.</div>
+  </div>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>
-let role;
+let role, REQS=[], FILTER='all';
 const RQST = {
-  inviata:['Inviata','#2563eb'], vista:['Vista','#2563eb'],
-  accettata:['Accettata','#0a7d38'], rifiutata:['Rifiutata','#c0395e'], ritirata:['Ritirata','#92700f']
+  inviata:['Inviata','#2563eb','#eaf1fb'], vista:['Vista','#2563eb','#eaf1fb'],
+  accettata:['Accettata','#0a7d38','#eafaf0'], rifiutata:['Rifiutata','#717171','#f2f2f2'], ritirata:['Ritirata','#92700f','#fff7e6']
 };
 const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 const GG=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
@@ -73,61 +96,120 @@ async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   role = me.user.role;
-  await renderNav();
-  pageTitle.textContent = role==='artist' ? 'Richieste ricevute' : 'Richieste inviate';
-  pageSub.textContent   = role==='artist' ? 'I promoter che ti hanno contattato.' : 'Gli artisti che hai contattato.';
+  if(role==='promoter'||role==='management'){ mountPromoterShell(me.user,'richieste'); }
+  else { await renderNav(); document.getElementById('pageContent').style.display=''; document.getElementById('pagePad').classList.remove('pmain-pad'); document.getElementById('pagePad').classList.add('container','section'); }
+  pageTitle.textContent = role==='artist' ? 'Richieste ricevute' : 'Le mie richieste';
   load();
 }
 async function load(){
   const box = role==='artist' ? 'received' : 'sent';
   const r = await api('booking-request.php?box='+box);
-  const L = r.requests;
-  document.getElementById('empty').style.display = L.length?'none':'block';
-  document.getElementById('list').innerHTML = L.map(rq => card(rq)).join('');
+  REQS = r.requests||[];
+  if(role==='artist'){
+    pageSub.textContent = 'I promoter che ti hanno contattato.';
+    renderCards();
+  } else {
+    const pending=REQS.filter(x=>['inviata','vista'].includes(x.status)).length;
+    pageSub.textContent = `${REQS.length} inviat${REQS.length===1?'a':'e'} · ${pending} in attesa di risposta`;
+    document.getElementById('ctaSearch').style.display='';
+    renderPills(); renderTable();
+  }
+  document.getElementById('empty').style.display = REQS.length?'none':'block';
 }
-function card(rq){
-  const who = role==='artist' ? (rq.org_name||rq.promoter_name||'Promoter') : (rq.stage_name||'Artista');
-  const st = RQST[rq.status] || [rq.status,'#666'];
-  let actions='';
-  if(role==='artist' && ['inviata','vista'].includes(rq.status)){
-    actions = `
-      <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">${icon('check',15,2.2)} Accetta</button>
-      <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button>`;
-  }
-  if((role==='promoter'||role==='management') && ['inviata','vista'].includes(rq.status)){
-    actions = `<button class="btn ghost sm" onclick="respond(${rq.id},'ritira')">Ritira richiesta</button>`;
-  }
-  return `<div class="rq-card ${esc(rq.status)}">
-    <div class="rq-top">
-      <div class="rq-who">
-        <span class="rq-ava" style="background:${avatarColor(who)}">${esc(avatarInitials(who))}</span>
-        <div>
-          <div class="rq-name">${esc(who)}</div>
-          <div class="rq-sent">Richiesta del ${fmtShort(rq.created_at)}${rq.responded_at?` · risposta ${fmtShort(rq.responded_at)}`:''}</div>
-        </div>
+
+/* ---- vista TABELLA (promoter/agenzia, 6b) ---- */
+function renderPills(){
+  const el=document.getElementById('fpills'); el.style.display='flex';
+  const n=s=>REQS.filter(x=>s.includes(x.status)).length;
+  const pills=[
+    ['all','Tutte '+REQS.length,''],
+    ['pending','In attesa '+n(['inviata','vista']),'warn'],
+    ['accettata','Accettate '+n(['accettata']),'ok'],
+    ['rifiutata','Rifiutate '+n(['rifiutata','ritirata']),''],
+  ];
+  el.innerHTML=pills.map(([k,l,extra])=>`<button class="fpill ${FILTER===k?'on':extra}" onclick="setFilter('${k}')">${l}</button>`).join('');
+}
+function setFilter(k){ FILTER=k; renderPills(); renderTable(); }
+function filtered(){
+  if(FILTER==='pending')   return REQS.filter(x=>['inviata','vista'].includes(x.status));
+  if(FILTER==='accettata') return REQS.filter(x=>x.status==='accettata');
+  if(FILTER==='rifiutata') return REQS.filter(x=>['rifiutata','ritirata'].includes(x.status));
+  return REQS;
+}
+function renderTable(){
+  document.getElementById('tableWrap').style.display='';
+  const L=filtered();
+  document.getElementById('tableRows').innerHTML = L.map(rq=>{
+    const who=rq.stage_name||'Artista';
+    const st=RQST[rq.status]||[rq.status,'#666','#f2f2f2'];
+    const pending=['inviata','vista'].includes(rq.status);
+    return `<div class="rqt-row" id="row-${rq.id}">
+      <div class="rqt-who">
+        <span class="avatar" style="background:${avatarColor(who)}">${esc(avatarInitials(who))}</span>
+        <div style="min-width:0"><div class="nm">${esc(who)}</div><div class="mt">${rq.status==='vista'?'vista':'inviata'} ${fmtShort(rq.created_at)}</div></div>
       </div>
-      <span class="rq-badge" style="background:${st[1]}18;color:${st[1]}">${st[0]}</span>
-    </div>
-    <div class="rq-grid">
-      <div class="rq-box"><div class="rq-box-l">${icon('calendar',13)} Data evento</div>
-        <div class="rq-box-v">${rq.event_date?fmtLong(rq.event_date):'Da concordare'}</div></div>
-      <div class="rq-box"><div class="rq-box-l">${icon('euro',13)} Offerta economica</div>
-        <div class="rq-box-v money">${rq.proposed_fee!=null?eur(rq.proposed_fee):'Da concordare'}</div></div>
-    </div>
-    ${rq.message?`<div class="rq-msg">${esc(rq.message)}</div>`:''}
-    <div class="rq-actions">
-      ${actions}
-      <button class="btn ghost sm" id="thBtn-${rq.id}" onclick="toggleThread(${rq.id})">${icon('message',15)} Messaggi</button>
-    </div>
-    <div class="rq-thread" id="th-${rq.id}" style="display:none">
-      <div class="th-list" id="thList-${rq.id}"><div class="th-empty">Carico…</div></div>
-      <form class="th-form" onsubmit="return sendMsg(event,${rq.id})">
-        <input id="thInput-${rq.id}" placeholder="Scrivi un messaggio…" maxlength="2000" autocomplete="off">
-        <button class="btn primary sm" title="Invia">${icon('send',16,2)}</button>
-      </form>
-    </div>
-  </div>`;
+      <div style="font-size:13px;color:#444">${rq.event_date?fmtShort(rq.event_date):'Da concordare'}</div>
+      <div style="font-size:13px;font-weight:600">${rq.proposed_fee!=null?eur(rq.proposed_fee):'—'}</div>
+      <div><span class="rqt-st" style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>
+      <div class="rqt-actions">
+        ${pending?`<button class="abtn danger" onclick="respond(${rq.id},'ritira')">Ritira</button>`:''}
+        <button class="abtn" onclick="toggleThread(${rq.id})">${icon('message',13,1.9)} Messaggi</button>
+      </div>
+      <div class="rqt-thread rq-thread" id="th-${rq.id}" style="display:none">
+        <div class="th-list" id="thList-${rq.id}"><div class="th-empty">Carico…</div></div>
+        <form class="th-form" onsubmit="return sendMsg(event,${rq.id})">
+          <input id="thInput-${rq.id}" placeholder="Scrivi un messaggio…" maxlength="2000" autocomplete="off">
+          <button class="btn primary sm" title="Invia">${icon('send',16,2)}</button>
+        </form>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty" style="border:0">Nessuna richiesta con questo filtro.</div>';
 }
+
+/* ---- vista CARD (artista, 6a) ---- */
+function renderCards(){
+  document.getElementById('cardList').innerHTML = REQS.map(rq=>{
+    const who = rq.org_name||rq.promoter_name||'Promoter';
+    const st = RQST[rq.status] || [rq.status,'#666','#f2f2f2'];
+    let actions='';
+    if(['inviata','vista'].includes(rq.status)){
+      actions = `
+        <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">${icon('check',15,2.2)} Accetta</button>
+        <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button>`;
+    }
+    return `<div class="rq-card ${esc(rq.status)}">
+      <div class="rq-top">
+        <div class="rq-who">
+          <span class="rq-ava" style="background:${avatarColor(who)}">${esc(avatarInitials(who))}</span>
+          <div>
+            <div class="rq-name">${esc(who)}</div>
+            <div class="rq-sent">Richiesta del ${fmtShort(rq.created_at)}${rq.responded_at?` · risposta ${fmtShort(rq.responded_at)}`:''}</div>
+          </div>
+        </div>
+        <span class="rq-badge" style="background:${st[2]};color:${st[1]}">${st[0]}</span>
+      </div>
+      <div class="rq-grid">
+        <div class="rq-box"><div class="rq-box-l">${icon('calendar',13)} Data evento</div>
+          <div class="rq-box-v">${rq.event_date?fmtLong(rq.event_date):'Da concordare'}</div></div>
+        <div class="rq-box"><div class="rq-box-l">${icon('euro',13)} Offerta economica</div>
+          <div class="rq-box-v money">${rq.proposed_fee!=null?eur(rq.proposed_fee):'Da concordare'}</div></div>
+      </div>
+      ${rq.message?`<div class="rq-msg">${esc(rq.message)}</div>`:''}
+      <div class="rq-actions">
+        ${actions}
+        <button class="btn ghost sm" onclick="toggleThread(${rq.id})">${icon('message',15)} Messaggi</button>
+      </div>
+      <div class="rq-thread" id="th-${rq.id}" style="display:none">
+        <div class="th-list" id="thList-${rq.id}"><div class="th-empty">Carico…</div></div>
+        <form class="th-form" onsubmit="return sendMsg(event,${rq.id})">
+          <input id="thInput-${rq.id}" placeholder="Scrivi un messaggio…" maxlength="2000" autocomplete="off">
+          <button class="btn primary sm" title="Invia">${icon('send',16,2)}</button>
+        </form>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function respond(id, action){
   try{ await api('booking-respond.php',{method:'POST',body:{request_id:id,action}}); toast('Fatto ✓'); load(); }
   catch(err){ toast(errMsg(err),true); }

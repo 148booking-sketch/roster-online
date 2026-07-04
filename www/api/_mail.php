@@ -22,32 +22,43 @@ function send_mail(string $to, string $subject, string $htmlBody): bool {
   return @mail($to, $subjectEnc, $htmlBody, $headers);
 }
 
-/** Invia l'email di verifica con il link che attiva l'account. */
+/** Invia l'email di verifica con il link che attiva l'account (design 13a). */
 function send_verification_email(string $email, string $name, string $token): bool {
   $c = config();
   $link = rtrim($c['app_url'] ?? 'https://bookingroster.it', '/') . '/api/verify-email.php?token=' . $token;
-  $name = trim($name) ?: 'ciao';
-  $body = mail_layout('Verifica la tua email',
-      '<p>' . htmlspecialchars($name) . ', benvenuto in Booking Roster! Conferma la tua email per attivare l\'account.</p>'
-    . '<p style="margin:20px 0"><a href="' . htmlspecialchars($link) . '" '
-    . 'style="background:#1a1c22;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">Verifica email</a></p>'
-    . '<p style="font-size:13px;color:#777">Se non hai creato tu questo account, ignora questa email.</p>'
-    . '<p style="font-size:12px;color:#999;word-break:break-all">' . htmlspecialchars($link) . '</p>');
-  return @send_mail($email, 'Verifica la tua email · Booking Roster', $body);
+  $name = trim($name) ?: 'Ciao';
+  $body = mail_layout('Conferma il tuo indirizzo email',
+      '<p style="margin:0">Ciao ' . htmlspecialchars($name) . ',<br>grazie per esserti registrato su Booking Roster. Conferma la tua email per attivare l\'account.</p>'
+    . mail_cta($link, 'Conferma email')
+    . '<p style="font-size:13px;line-height:1.6;color:#9a9aa2;margin:0">Se non hai creato tu questo account, ignora questa email.</p>'
+    . '<p style="font-size:12px;color:#c9c9c9;word-break:break-all;margin:10px 0 0">' . htmlspecialchars($link) . '</p>');
+  return @send_mail($email, 'Conferma il tuo indirizzo email · Booking Roster', $body);
 }
 
-/** Layout email di base per Booking Roster. $footerHtml opzionale (es. link disiscrizione). */
+/**
+ * Layout email ufficiale (design system "Email di sistema"): barra brand 4px in alto,
+ * logo centrato, titolo display, contenuto, footer grigio con dati societari e link.
+ * $footerHtml opzionale si aggiunge nel footer (es. link disiscrizione digest).
+ */
 function mail_layout(string $title, string $bodyHtml, string $footerHtml = ''): string {
-  $c = config();
-  $app = $c['app_name'] ?? 'Booking Roster';
-  return '<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1a1c22">'
-    . '<div style="font-size:20px;font-weight:700;margin-bottom:16px">' . htmlspecialchars($app) . '</div>'
-    . '<h2 style="font-size:18px;margin:0 0 12px">' . htmlspecialchars($title) . '</h2>'
-    . '<div style="font-size:15px;line-height:1.55;color:#333">' . $bodyHtml . '</div>'
-    . '<hr style="border:none;border-top:1px solid #eee;margin:22px 0">'
-    . '<div style="font-size:12px;color:#999">' . htmlspecialchars($app) . ' · bookingroster.it</div>'
-    . ($footerHtml !== '' ? '<div style="font-size:12px;color:#999;margin-top:6px">' . $footerHtml . '</div>' : '')
-    . '</div>';
+  $appUrl = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
+  $fDisplay = "'Space Grotesk',Arial,sans-serif";
+  $fBody    = "'Inter',Arial,sans-serif";
+  return '<div style="background:#f2f2f2;padding:24px 12px">'
+    . '<div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #ebebeb">'
+    .   '<div style="height:4px;background:#d52454"></div>'
+    .   '<div style="padding:34px 44px 0;text-align:center"><div style="font:700 22px ' . $fDisplay . ';color:#d52454;letter-spacing:-.5px">Booking<span style="color:#222222"> Roster</span></div></div>'
+    .   '<div style="padding:28px 44px 36px">'
+    .     '<div style="font:700 22px ' . $fDisplay . ';letter-spacing:-.4px;color:#1a1c22">' . htmlspecialchars($title) . '</div>'
+    .     '<div style="font-family:' . $fBody . ';font-size:15px;line-height:1.6;color:#444444;margin-top:14px">' . $bodyHtml . '</div>'
+    .   '</div>'
+    .   '<div style="padding:20px 44px;border-top:1px solid #ebebeb;background:#fafafa;font-family:' . $fBody . ';font-size:12px;color:#9a9aa2;line-height:1.6">'
+    .     'Booking Roster · SHADE-OFF S.R.L.S. · Latina, Lazio<br>'
+    .     '<a href="' . $appUrl . '/contatti.html" style="color:#b81e47;text-decoration:none">Centro assistenza</a> · '
+    .     '<a href="' . $appUrl . '/account.html" style="color:#b81e47;text-decoration:none">Preferenze email</a>'
+    .     ($footerHtml !== '' ? '<br>' . $footerHtml : '')
+    .   '</div>'
+    . '</div></div>';
 }
 
 /* ============================================================
@@ -55,11 +66,11 @@ function mail_layout(string $title, string $bodyHtml, string $footerHtml = ''): 
    Tutte best-effort: mai bloccare la risposta HTTP se l'invio fallisce.
    ============================================================ */
 
-/** Bottone CTA standard per le email. */
+/** Bottone CTA standard per le email (rosa brand, centrato — design 13). */
 function mail_cta(string $href, string $label): string {
-  return '<p style="margin:20px 0"><a href="' . htmlspecialchars($href) . '" '
-    . 'style="background:#1a1c22;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">'
-    . htmlspecialchars($label) . '</a></p>';
+  return '<div style="text-align:center;margin:26px 0"><a href="' . htmlspecialchars($href) . '" '
+    . 'style="display:inline-block;font:600 15px \'Inter\',Arial,sans-serif;color:#ffffff;background:#d52454;border-radius:11px;padding:14px 34px;text-decoration:none">'
+    . htmlspecialchars($label) . '</a></div>';
 }
 
 /** Nuova richiesta di booking → email all'artista. */
@@ -281,24 +292,95 @@ function build_promoter_digest_html(array $data, string $freqLabel, string $name
 }
 
 /**
+ * Layout speciale del DIGEST (design 13e): header scuro con logo bianco + periodo,
+ * KPI a 3 colonne, lista "Da non perdere", CTA rosa, footer con preferenze/disiscrizione.
+ */
+function digest_layout(string $periodLabel, array $kpi, string $itemsHtml, string $ctaHtml, string $footerHtml): string {
+  $fDisplay = "'Space Grotesk',Arial,sans-serif";
+  $fBody    = "'Inter',Arial,sans-serif";
+  $kpiHtml = '';
+  foreach ($kpi as [$n, $label, $color]) {
+    $kpiHtml .= '<td style="padding:0 6px;width:33%"><div style="background:#fafafa;border-radius:12px;padding:14px;text-align:center">'
+      . '<div style="font:700 24px ' . $fDisplay . ';color:' . $color . '">' . $n . '</div>'
+      . '<div style="font-family:' . $fBody . ';font-size:11.5px;color:#717171">' . htmlspecialchars($label) . '</div></div></td>';
+  }
+  return '<div style="background:#f2f2f2;padding:24px 12px">'
+    . '<div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #ebebeb">'
+    .   '<div style="background:#17171b;padding:26px 44px">'
+    .     '<div style="font:700 20px ' . $fDisplay . ';color:#ffffff;letter-spacing:-.5px">Booking<span style="color:#d52454"> Roster</span></div>'
+    .     '<div style="font-family:' . $fBody . ';font-size:13px;color:#9a9aa2;margin-top:4px">Il tuo riepilogo · ' . htmlspecialchars($periodLabel) . '</div>'
+    .   '</div>'
+    .   '<div style="padding:26px 44px 32px;font-family:' . $fBody . '">'
+    .     ($kpiHtml ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px"><tr>' . $kpiHtml . '</tr></table>' : '')
+    .     ($itemsHtml ? '<div style="font:700 12px ' . $fBody . ';text-transform:uppercase;letter-spacing:.05em;color:#9a9aa2;margin-bottom:10px">Da non perdere</div>' . $itemsHtml : '')
+    .     $ctaHtml
+    .   '</div>'
+    .   '<div style="padding:20px 44px;border-top:1px solid #ebebeb;background:#fafafa;font-family:' . $fBody . ';font-size:12px;color:#9a9aa2;line-height:1.6">' . $footerHtml . '</div>'
+    . '</div></div>';
+}
+
+/** Riga elemento del digest (avatar quadrato colorato + testo + valore a destra). */
+function digest_item(string $mainHtml, string $rightHtml, string $grad = '#7c3aed,#d52454', bool $last = false): string {
+  return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;' . ($last ? '' : 'border-bottom:1px solid #f2f2f2') . '">'
+    . '<div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,' . $grad . ');flex:none"></div>'
+    . '<div style="flex:1;font-size:13.5px">' . $mainHtml . '</div>'
+    . ($rightHtml !== '' ? '<span style="font-size:12.5px">' . $rightHtml . '</span>' : '')
+    . '</div>';
+}
+
+/**
  * Invia il digest e ritorna true/false. $unsubToken → link di disiscrizione one-click
  * (se vuoto, il link viene omesso: caso email di test non legata a un account promoter).
  * $force = true → invia comunque anche se non c'è contenuto reale (per test manuali).
  */
 function send_promoter_digest_email(string $email, string $name, array $data, string $freqLabel, string $unsubToken, bool $force = false): bool {
-  $body = build_promoter_digest_html($data, $freqLabel, $name, $force);
-  if ($body === null) return false;
+  $hasContent = !empty($data['new_artists']) || !empty($data['promo_artists']) || !empty($data['responded_requests']);
+  if (!$hasContent && !$force) return false;
 
   $appUrl = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
-  $prefsLink = $appUrl . '/account.html';
+  $grads = ['#7c3aed,#d52454', '#059669,#0d9488', '#f43f5e,#f59e0b', '#0ea5e9,#6366f1', '#8b5cf6,#ec4899'];
+  $g = 0; $items = []; $esc = fn($s) => htmlspecialchars((string)$s);
 
-  $footer = 'Ricevi questa email perché hai attivato gli alert ' . htmlspecialchars($freqLabel) . ' su Booking Roster. '
-    . '<a href="' . htmlspecialchars($prefsLink) . '" style="color:#999">Gestisci preferenze</a>';
+  // Risposte alle richieste per primi (gli eventi più importanti)
+  foreach (array_slice($data['responded_requests'] ?? [], 0, 4) as $r) {
+    $okR = $r['status'] === 'accettata';
+    $items[] = digest_item(
+      '<b>' . $esc($r['stage_name']) . '</b> ha ' . ($okR ? 'accettato' : 'rifiutato') . ' la tua richiesta'
+        . ($r['event_date'] ? ' per il ' . date('d/m/Y', strtotime($r['event_date'])) : ''),
+      $okR ? '<span style="color:#0a7d38;font-weight:700">✓</span>' : '',
+      $grads[$g++ % 5]);
+  }
+  foreach (array_slice($data['new_artists'] ?? [], 0, 5) as $a) {
+    $loc = trim(($a['comune'] ?? '') . (!empty($a['provincia']) ? ' (' . $a['provincia'] . ')' : ''));
+    $items[] = digest_item(
+      '<a href="' . $esc($appUrl . '/' . rawurlencode($a['slug'])) . '" style="color:#1a1c22;text-decoration:none"><b>' . $esc($a['stage_name']) . '</b></a> è nuovo nel roster'
+        . (!empty($a['genre']) ? ' · ' . $esc($a['genre']) : ''),
+      $loc !== '' ? '<span style="color:#717171">' . $esc($loc) . '</span>' : '',
+      $grads[$g++ % 5]);
+  }
+  foreach (array_slice($data['promo_artists'] ?? [], 0, 4) as $a) {
+    $until = !empty($a['promo_until']) ? ' fino al ' . date('d/m/Y', strtotime($a['promo_until'])) : '';
+    $items[] = digest_item(
+      '<a href="' . $esc($appUrl . '/' . rawurlencode($a['slug'])) . '" style="color:#1a1c22;text-decoration:none"><b>' . $esc($a['stage_name']) . '</b></a> è in promo' . $until,
+      '<span style="color:#c0395e;font-weight:700">€' . number_format((int)$a['cachet_promo'], 0, ',', '.') . '</span>',
+      $grads[$g++ % 5]);
+  }
+  if (!$items && $force) $items[] = '<p style="color:#9a9aa2;font-size:13px">(Nessuna novità reale in questo momento — email di test.)</p>';
+  if ($items) { $last = array_pop($items); $items[] = str_replace('border-bottom:1px solid #f2f2f2', '', $last); }
+
+  $kpi = [
+    [count($data['responded_requests'] ?? []), 'Nuove risposte', '#1a1c22'],
+    [count($data['new_artists'] ?? []), 'Nuovi artisti', '#0a7d38'],
+    [count($data['promo_artists'] ?? []), 'Artisti in promo', '#d52454'],
+  ];
+  $cta = '<div style="text-align:center;margin:24px 0 0"><a href="' . $appUrl . '/" style="display:inline-block;font:600 15px \'Inter\',Arial,sans-serif;color:#ffffff;background:#d52454;border-radius:11px;padding:13px 30px;text-decoration:none">Cerca artisti</a></div>';
+
+  $footer = 'Ricevi questo riepilogo <b>' . htmlspecialchars($freqLabel) . '</b> perché hai attivato gli alert su Booking Roster.<br>'
+    . '<a href="' . $esc($appUrl . '/account.html') . '" style="color:#b81e47;text-decoration:none">Preferenze email</a>';
   if ($unsubToken !== '') {
-    $unsubLink = $appUrl . '/api/promoter-unsubscribe.php?token=' . urlencode($unsubToken);
-    $footer .= ' · <a href="' . htmlspecialchars($unsubLink) . '" style="color:#999">Disiscriviti</a>';
+    $footer .= ' · <a href="' . $esc($appUrl . '/api/promoter-unsubscribe.php?token=' . urlencode($unsubToken)) . '" style="color:#b81e47;text-decoration:none">Disiscriviti</a>';
   }
 
-  $html = mail_layout('Novità per te su Booking Roster', $body, $footer);
-  return send_mail($email, 'Novità su Booking Roster · nuovi artisti e promo', $html);
+  $html = digest_layout('riepilogo ' . $freqLabel, $kpi, implode('', $items), $cta, $footer);
+  return send_mail($email, 'Novità su Booking Roster · il tuo riepilogo ' . $freqLabel, $html);
 }

@@ -520,6 +520,51 @@ function navBell() {
   </div>`;
 }
 
+/* ---- Shell area promoter/agenzia (design 5c/6b/7a): sidebar bianca al posto dell'header.
+   Le pagine con id="pageContent" chiamano mountPromoterShell(u,'preferiti'|'richieste'|'account'):
+   la nav in alto sparisce, il contenuto viene spostato dentro la shell. ---- */
+function mountPromoterShell(u, active) {
+  const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none';
+  const isAg = u.role === 'management';
+  const item = (key, href, ic, label, badgeId) =>
+    `<a class="ps-item${active === key ? ' on' : ''}" href="${href}">${icon(ic, 17, 1.75)}${label}${badgeId ? `<span class="ps-badge" id="${badgeId}" style="display:none"></span>` : ''}</a>`;
+  const shell = document.createElement('div');
+  shell.className = 'pshell';
+  shell.innerHTML = `
+    <aside class="pside">
+      <div class="ps-brand"><a class="lg" href="/">Booking<span> Roster</span></a><div class="area">${isAg ? 'Area agenzia' : 'Area promoter'}</div></div>
+      <nav class="ps-nav">
+        ${item('cerca', '/', 'search', 'Cerca artisti')}
+        ${item('mappa', '/mappa.html', 'pin', 'Mappa')}
+        ${item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')}
+        ${item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')}
+        ${item('account', '/account.html', 'bell', 'Account & notifiche')}
+        ${isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il tuo roster')}` : ''}
+      </nav>
+      <div class="ps-foot">
+        <button type="button" class="ps-item" onclick="logout()">${icon('logout', 17, 1.75)}Esci</button>
+        <div class="ps-user">
+          <span class="avatar" style="background:${avatarColor(u.display_name || u.email)}">${esc(avatarInitials(u.display_name || u.email))}</span>
+          <div style="min-width:0"><div class="n">${esc(shortName(u.display_name || u.email, 18))}</div><div class="m">${isAg ? 'Agenzia' : 'Promoter'}</div></div>
+        </div>
+      </div>
+    </aside>
+    <div class="pmain"></div>`;
+  const content = document.getElementById('pageContent');
+  document.body.insertBefore(shell, content);
+  shell.querySelector('.pmain').appendChild(content);
+  content.style.display = '';
+  // badge (best-effort, async)
+  api('favorites-list.php').then(r => {
+    const n = (r.artists || []).length, el = document.getElementById('psFav');
+    if (el && n > 0) { el.textContent = n; el.style.display = ''; }
+  }).catch(() => {});
+  api('booking-request.php?box=sent').then(r => {
+    const n = (r.requests || []).filter(x => ['inviata', 'vista'].includes(x.status)).length, el = document.getElementById('psReq');
+    if (el && n > 0) { el.textContent = n; el.style.display = ''; }
+  }).catch(() => {});
+}
+
 /* ---- Popup "Cerca" (header, utenti non loggati): stessi filtri che vedrebbero su "/" ---- */
 const SP_BUDGET_MAX_DEFAULT = 3000;   // fallback se il roster non ha ancora nessun cachet impostato
 let _searchGenres;

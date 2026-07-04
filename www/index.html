@@ -142,17 +142,6 @@
 
 <main class="container">
   <div class="browse">
-    <div class="evtbox">
-      <div class="feat-head"><span>Prossimi eventi</span><a class="evt-link" href="/calendario.html">📅 Calendario completo</a></div>
-      <div class="evt-scroll" id="evtScroll"></div>
-    </div>
-    <div class="browse-top">
-      <aside class="browse-map"><div id="map"></div></aside>
-      <aside class="browse-featured">
-        <div class="feat-head"><span class="vchk">✓</span> Artisti in evidenza</div>
-        <div id="featured" style="flex:1;overflow:auto"></div>
-      </aside>
-    </div>
 
     <section class="browse-list">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
@@ -168,6 +157,19 @@
         <button class="btn ghost" onclick="loadMore()">Carica altri risultati</button>
       </div>
     </section>
+
+    <div class="evtbox">
+      <div class="feat-head"><span>Prossimi eventi</span><a class="evt-link" href="/calendario.html">Calendario completo →</a></div>
+      <div class="evt-scroll" id="evtScroll"></div>
+    </div>
+
+    <div class="browse-top">
+      <aside class="browse-map"><div id="map"></div></aside>
+      <aside class="browse-featured">
+        <div class="feat-head"><span class="vchk">✓</span> Artisti in evidenza</div>
+        <div id="featured" style="flex:1;overflow:auto"></div>
+      </aside>
+    </div>
 
     <div class="cta-grid">
       <section class="artist-cta cta-blue" id="artistCta">
@@ -396,7 +398,7 @@ async function loadPlatformStats(){
 }
 
 function cachetLabel(a){
-  if(LOCKED) return PENDING_VERIFICATION?'🔒 Verifica in corso':'🔒 <a href="/accedi.html" onclick="event.stopPropagation()">Accedi</a> per il prezzo';
+  if(LOCKED) return PENDING_VERIFICATION?icon('lock',13)+' Verifica in corso':icon('lock',13)+' <a href="/accedi.html" onclick="event.stopPropagation()">Accedi</a> per il prezzo';
   const tratt = a.cachet_trattabile==1?' (trattabile)':'';
   if(a.cachet_min==null && a.cachet_max==null) return 'Trattativa riservata';
   const v=a.cachet_min ?? a.cachet_max;
@@ -406,24 +408,23 @@ function cachetLabel(a){
   return `<b>${eur(v)}</b> a serata${tratt}`;
 }
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+/* card artista — design 5a: badge "Verificato" pill in alto a sx, cuore in alto a dx,
+   sotto: nome · tipo show + città · prezzo. Nessun overlay informativo sull'immagine. */
 function cardHtml(a,i){
+  const meta=[showLabel(a.formazione), a.comune].filter(Boolean).join(' · ');
   return `
     <div class="card" onclick="goArtist('${esc(a.slug||'')}')">
       <div class="imgwrap">
-        ${a.photo_url?`<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer" loading="lazy">`:'<div class="ph-empty">🎵</div>'}
+        ${a.photo_url?`<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer" loading="lazy">`:`<div class="ph-empty">${icon('music',34,1.4)}</div>`}
+        ${a.verified?`<span class="verif card-verif"><span class="tick">✓</span>Verificato</span>`:''}
         ${CAN_FAV?favBtnHtml(a.user_id,a.is_favorite,'card-fav'):''}
-        ${topSocialStats(a.stats).length?`<div class="imgtop">${topSocialStats(a.stats).map(([plat,v])=>miniSocialIcon(plat,v)).join('')}</div>`:''}
-        <div class="imgfoot">
-          <span class="if-left">${esc(showLabel(a.formazione))}</span>
-          <span class="if-right">${a.comune?esc(a.comune):''}</span>
-        </div>
       </div>
       <div class="info">
         <div class="row1">
-          <span class="name"${a.has_promo?' style="color:#c0395e"':''}>${(a.genres||[]).some(g=>g.slug==='hard')?'🔞 ':''}${esc(a.stage_name||'Senza nome')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</span>
+          <span class="name"${a.has_promo?' style="color:#c0395e"':''}>${esc(a.stage_name||'Senza nome')}</span>
           ${a.distance_km!=null?`<span class="dist">${a.distance_km} km</span>`:''}
         </div>
-        ${(a.genres&&a.genres.length)?`<div class="sub">${esc(a.genres.map(g=>g.name).join(' · '))}</div>`:''}
+        ${meta?`<div class="sub">${esc(meta)}</div>`:''}
         <div class="price">${cachetLabel(a)}</div>
       </div>
     </div>`;

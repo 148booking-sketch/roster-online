@@ -3,121 +3,166 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Opzioni account · Booking Roster</title>
+<title>Account & notifiche · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
+<style>
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:1080px}
+@media(max-width:960px){.acc-grid{grid-template-columns:1fr}}
+.acc-card{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:20px}
+.acc-card h3{font:600 15px var(--f-display);margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.acc-card .csub{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+/* feed notifiche (7a) */
+.nf-box{background:#fff;border:1px solid var(--line2);border-radius:16px;overflow:hidden}
+.nf-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line2)}
+.nf-head b{font:600 15px var(--f-display)}
+.nf-new{font:600 11px var(--f-body);color:#fff;background:var(--brand);border-radius:20px;padding:2px 8px}
+.nf-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid #f2f2f2}
+.nf-item:last-child{border-bottom:0}
+.nf-item.unread{background:#fdf5f8}
+.nf-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.nf-tx{flex:1;min-width:0;font-size:13.5px}
+.nf-when{font-size:11.5px;color:#9a9aa2;margin-top:2px}
+.nf-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none;margin-top:6px}
+.nf-empty{padding:26px 18px;text-align:center;color:var(--muted);font-size:13.5px}
+/* segmented control riepilogo (7a) */
+.seg{display:inline-flex;background:#f2f2f2;border-radius:11px;padding:4px;gap:2px;flex-wrap:wrap}
+.seg button{font:600 13.5px var(--f-body);color:#717171;padding:9px 20px;border-radius:8px;border:0;background:none;cursor:pointer;font-family:inherit}
+.seg button.on{color:#222;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.consent-row{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:12px}
+.savebar{display:flex;justify-content:flex-end;margin-top:18px}
+</style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container narrow section">
-  <h1 class="title">Opzioni account</h1>
-  <p class="sub">Gestisci i dati di accesso e le impostazioni del tuo account.</p>
+<div id="pageContent" style="display:none">
+  <div class="pmain-pad" id="pagePad">
+    <h1 class="ptitle">Account & notifiche</h1>
+    <p class="psub">I tuoi dati, cosa è successo e come vuoi essere avvisato.</p>
 
-  <div class="grid cols-2" style="align-items:start">
-  <!-- DATI ACCOUNT -->
-  <form class="panel" onsubmit="return saveAccount(event)">
-    <h3 style="margin:0 0 12px" data-ic="user">Dati account</h3>
-    <div class="field"><label id="ac_nameLbl">Nome visualizzato</label><input id="ac_name" required></div>
-    <div class="field"><label>Email</label><input id="ac_email" type="email" required>
-      <div class="hint" id="emailHint">È l'indirizzo con cui accedi.</div></div>
-    <button class="btn primary">Salva dati account</button>
-  </form>
+    <div class="acc-grid">
+      <!-- COLONNA SINISTRA: impostazioni -->
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <form class="acc-card" onsubmit="return saveAccount(event)">
+          <h3 data-ic="user" data-ic-size="16">Dati account</h3>
+          <p class="csub">Nome e indirizzo con cui accedi.</p>
+          <div class="field"><label id="ac_nameLbl">Nome visualizzato</label><input id="ac_name" required></div>
+          <div class="field"><label>Email</label><input id="ac_email" type="email" required>
+            <div class="hint">Se la cambi dovrai verificare il nuovo indirizzo.</div></div>
+          <button class="btn primary sm">Salva dati account</button>
+        </form>
 
-  <!-- PASSWORD -->
-  <form class="panel" onsubmit="return changePass(event)">
-    <h3 style="margin:0 0 12px" data-ic="lock">Password</h3>
-    <div class="field"><label>Nuova password (min 8)</label><input id="pw_new" type="password" minlength="8" required></div>
-    <div class="field"><label>Ripeti nuova password</label><input id="pw_new2" type="password" minlength="8" required></div>
-    <button class="btn primary">Cambia password</button>
-    <div class="hint" style="margin-top:10px">Password dimenticata? Esci e usa <a href="/accedi.html#recupera">Recupera password</a>.</div>
-  </form>
-  </div>
+        <form class="acc-card" onsubmit="return changePass(event)">
+          <h3 data-ic="lock" data-ic-size="16">Password</h3>
+          <p class="csub">Minimo 8 caratteri.</p>
+          <div class="field"><label>Nuova password</label><input id="pw_new" type="password" minlength="8" required></div>
+          <div class="field"><label>Ripeti nuova password</label><input id="pw_new2" type="password" minlength="8" required></div>
+          <button class="btn primary sm">Cambia password</button>
+        </form>
 
-  <!-- PREFERITI (promoter/management) -->
-  <div class="panel" id="favBox" style="display:none;margin-top:18px">
-    <h3 style="margin:0 0 6px" data-ic="heart">Preferiti</h3>
-    <p class="hint" style="margin-top:0">Gli artisti che segui, con disponibilità e prezzo scontato sempre sott'occhio.</p>
-    <div class="row" style="gap:10px;margin-top:6px">
-      <a class="btn ghost" href="/preferiti.html" data-ic="heart" data-ic-size="15">I miei preferiti</a>
-      <a class="btn ghost" href="/preferiti-calendario.html" data-ic="calendar" data-ic-size="15">Calendario preferiti</a>
-    </div>
-  </div>
-
-  <!-- DATI PROMOTER -->
-  <form class="panel" id="promoterBox" style="display:none;margin-top:18px" onsubmit="return savePromoterProfile(event)">
-    <h3 style="margin:0 0 12px" data-ic="speaker">Dati locale / organizzazione</h3>
-    <div class="row">
-      <div class="field" style="max-width:220px"><label>Tipo</label>
-        <select id="pp_tipo">
-          <option value="locale">Locale</option><option value="festival">Festival</option>
-          <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
-          <option value="privato">Privato</option><option value="altro">Altro</option>
-        </select>
+        <form class="acc-card" id="promoterBox" style="display:none" onsubmit="return savePromoterProfile(event)">
+          <h3 data-ic="speaker" data-ic-size="16">Dati locale / organizzazione</h3>
+          <p class="csub">Chi sei quando contatti un artista.</p>
+          <div class="row">
+            <div class="field" style="max-width:200px"><label>Tipo</label>
+              <select id="pp_tipo">
+                <option value="locale">Locale</option><option value="festival">Festival</option>
+                <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+                <option value="privato">Privato</option><option value="altro">Altro</option>
+              </select>
+            </div>
+            <div class="field"><label>Telefono</label><input id="pp_phone" placeholder="+39..."></div>
+          </div>
+          <div class="row">
+            <div class="autocomplete field"><label>Comune</label><input id="pp_comune" placeholder="Es. Roma"></div>
+            <div class="field" style="max-width:110px"><label>Prov.</label><input id="pp_prov" maxlength="2" placeholder="RM"></div>
+          </div>
+          <div class="field"><label>Sito web o altro link</label><input id="pp_web" placeholder="https://..."></div>
+          <button class="btn primary sm">Salva dati</button>
+        </form>
       </div>
-      <div class="field"><label>Telefono</label><input id="pp_phone" placeholder="+39..."></div>
-    </div>
-    <div class="row">
-      <div class="autocomplete field"><label>Comune</label><input id="pp_comune" placeholder="Es. Roma"></div>
-      <div class="field" style="max-width:120px"><label>Prov.</label><input id="pp_prov" maxlength="2" placeholder="RM"></div>
-    </div>
-    <div class="field"><label>Sito web o altro link</label><input id="pp_web" placeholder="https://..."></div>
-    <button class="btn primary">Salva dati promoter</button>
-  </form>
 
-  <!-- ALERT EMAIL (solo promoter) -->
-  <form class="panel" id="emailPrefsBox" style="display:none;margin-top:18px" onsubmit="return saveEmailPrefs(event)">
-    <h3 style="margin:0 0 4px" data-ic="mail">Alert email</h3>
-    <p class="hint" style="margin-top:0">Ricevi via email i nuovi artisti pubblicati, gli artisti in promo e le risposte alle tue richieste.</p>
-    <div class="row" style="align-items:center">
-      <div class="field" style="max-width:220px;margin-bottom:0"><label>Frequenza</label>
-        <select id="ep_freq" onchange="if (ep_freq.value !== 'off') ep_consent.checked = true">
-          <option value="off">Nessuna email</option>
-          <option value="daily">Giornaliera</option>
-          <option value="weekly">Settimanale</option>
-          <option value="monthly">Mensile</option>
-        </select>
+      <!-- COLONNA DESTRA: notifiche + riepilogo email -->
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="nf-box">
+          <div class="nf-head"><b>Recenti</b><span class="nf-new" id="nfNew" style="display:none"></span>
+            <a style="margin-left:auto;font-size:12.5px;color:var(--brand2);font-weight:600;cursor:pointer" onclick="markAllRead()">Segna tutte come lette</a></div>
+          <div id="nfList"><div class="nf-empty">Carico…</div></div>
+        </div>
+
+        <form class="acc-card" id="emailPrefsBox" style="display:none" onsubmit="return saveEmailPrefs(event)">
+          <h3 data-ic="mail" data-ic-size="16">Riepilogo email</h3>
+          <p class="csub">Un solo riepilogo con tutte le novità (nuovi artisti, promo, risposte), alla frequenza che preferisci.</p>
+          <div class="seg" id="freqSeg">
+            <button type="button" data-f="off">Nessuno</button>
+            <button type="button" data-f="daily">Giornaliero</button>
+            <button type="button" data-f="weekly">Settimanale</button>
+            <button type="button" data-f="monthly">Mensile</button>
+          </div>
+          <label class="consent-row"><input type="checkbox" id="ep_consent" style="width:auto"> Acconsento a ricevere queste email da Booking Roster.</label>
+          <div class="hint" id="ep_consentAt" style="margin-top:6px"></div>
+          <div class="savebar"><button class="btn primary sm">Salva preferenze</button></div>
+        </form>
       </div>
-      <label class="hint" id="ep_consentRow" style="display:flex;gap:8px;align-items:center;flex:2">
-        <input type="checkbox" id="ep_consent">
-        <span>Acconsento a ricevere queste email da Booking Roster.</span>
-      </label>
     </div>
-    <button class="btn primary" style="margin-top:14px">Salva preferenze</button>
-    <div class="hint" id="ep_consentAt" style="margin-top:10px"></div>
-  </form>
-
-  <!-- ALTRE IMPOSTAZIONI -->
-  <div class="panel" style="margin-top:18px">
-    <h3 style="margin:0 0 6px" data-ic="sliders">Altre impostazioni</h3>
-    <div class="hint">Privacy, eliminazione account e altre opzioni arriveranno qui.</div>
   </div>
-</main>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>
-let ME = null;
+let ME = null, FREQ='off';
 (async function init(){
   const me = await getMe(true);
   if (!me.user){ location.href = '/accedi.html'; return; }
   if (me.user.role === 'artist'){ location.href = '/profilo.html'; return; }
-  await renderNav();
-  injectIcons();
   ME = me.user;
+  if (['promoter','management'].includes(me.user.role)) mountPromoterShell(me.user,'account');
+  else { await renderNav(); document.getElementById('pageContent').style.display=''; document.getElementById('pagePad').classList.remove('pmain-pad'); document.getElementById('pagePad').classList.add('container','section'); }
+  injectIcons();
   ac_name.value  = me.user.display_name || '';
   ac_email.value = me.user.email || '';
-  if (me.user.role === 'promoter' || me.user.role === 'management') {
-    document.getElementById('favBox').style.display = '';
-  }
-  if (me.user.role === 'promoter') {
-    document.getElementById('ac_nameLbl').textContent = 'Nome locale / festival / promoter';
+  if (['promoter','management'].includes(me.user.role)) {
+    document.getElementById('ac_nameLbl').textContent = me.user.role==='management' ? 'Nome agenzia' : 'Nome locale / festival / promoter';
     initPromoterProfile(me.profile || {});
     initEmailPrefs(me.profile || {});
   }
+  loadFeed();
   const params = new URLSearchParams(location.search);
   if (params.get('unsub') === 'ok')   toast('Disiscrizione dagli alert email effettuata ✓');
   if (params.get('unsub') === 'fail') toast('Link di disiscrizione non valido', true);
 })();
 
+/* ---- feed notifiche (7a) ---- */
+const NF_STYLE={check:['#eafaf0','#0a7d38'], x:['#f2f2f2','#717171'], inbox:['#eaf1fb','#2563eb'],
+  message:['#fbe9ee','#b81e47'], clock:['#fff7e6','#a5730a'], heart:['#fbe9ee','#d52454'], bell:['#fff7e6','#a5730a']};
+async function loadFeed(){
+  const list = await loadNotifs(true);
+  const seen = +(localStorage.getItem(NOTIF_SEEN_KEY)||0);
+  const el=document.getElementById('nfList');
+  if(!list.length){ el.innerHTML='<div class="nf-empty">Nessuna notifica per ora.</div>'; return; }
+  let unread=0;
+  el.innerHTML=list.map(n=>{
+    const isNew=new Date((n.ts||'').replace(' ','T')).getTime()>seen;
+    if(isNew) unread++;
+    const st=NF_STYLE[n.icon]||['#f2f2f2','#717171'];
+    return `<div class="nf-item${isNew?' unread':''}">
+      <span class="nf-ic" style="background:${st[0]};color:${st[1]}">${icon(n.icon||'inbox',17,1.9)}</span>
+      <div class="nf-tx"><div><b>${esc(n.title)}</b>${n.meta?' · '+esc(n.meta):''}</div><div class="nf-when">${notifTimeAgo(n.ts)}</div></div>
+      ${isNew?'<span class="nf-dot"></span>':''}
+    </div>`;
+  }).join('');
+  const badge=document.getElementById('nfNew');
+  if(unread>0){ badge.textContent=unread+' nuove'; badge.style.display=''; }
+}
+function markAllRead(){
+  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
+  document.getElementById('nfNew').style.display='none';
+  document.querySelectorAll('.nf-item.unread').forEach(x=>x.classList.remove('unread'));
+  document.querySelectorAll('.nf-dot').forEach(x=>x.remove());
+  const dot=document.getElementById('notifDot'); if(dot) dot.style.display='none';
+}
+
+/* ---- impostazioni ---- */
 function initPromoterProfile(p){
   document.getElementById('promoterBox').style.display = '';
   pp_tipo.value  = p.tipo || 'locale';
@@ -127,34 +172,33 @@ function initPromoterProfile(p){
   pp_web.value    = p.website || '';
   comuniAutocomplete(pp_comune, (n, pr) => pp_prov.value = pr);
 }
-
 async function savePromoterProfile(e){ e.preventDefault();
   try {
     await api('promoter-profile-save.php',{method:'POST',body:{
       org_name: ac_name.value, tipo: pp_tipo.value, phone: pp_phone.value,
       comune: pp_comune.value, provincia: pp_prov.value, website: pp_web.value }});
-    toast('Dati promoter salvati ✓');
+    toast('Dati salvati ✓');
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
-
 function initEmailPrefs(p){
   document.getElementById('emailPrefsBox').style.display = '';
-  ep_freq.value = p.email_freq || 'off';
-  ep_consent.checked = ep_freq.value !== 'off';
+  FREQ = p.email_freq || 'off';
+  paintSeg();
+  ep_consent.checked = FREQ !== 'off';
   document.getElementById('ep_consentAt').textContent = p.email_consent_at
     ? 'Consenso registrato il ' + new Date(p.email_consent_at.replace(' ','T')).toLocaleDateString('it-IT') : '';
+  document.querySelectorAll('#freqSeg button').forEach(b=>b.onclick=()=>{ FREQ=b.dataset.f; if(FREQ!=='off') ep_consent.checked=true; paintSeg(); });
 }
-
+function paintSeg(){ document.querySelectorAll('#freqSeg button').forEach(b=>b.classList.toggle('on',b.dataset.f===FREQ)); }
 async function saveEmailPrefs(e){ e.preventDefault();
-  if (ep_freq.value !== 'off' && !ep_consent.checked){ toast('Serve il consenso per attivare gli alert', true); return false; }
+  if (FREQ !== 'off' && !ep_consent.checked){ toast('Serve il consenso per attivare il riepilogo', true); return false; }
   try {
-    await api('promoter-email-prefs-save.php',{method:'POST',body:{ freq: ep_freq.value, consent: ep_consent.checked }});
-    toast('Preferenze email salvate ✓');
+    await api('promoter-email-prefs-save.php',{method:'POST',body:{ freq: FREQ, consent: ep_consent.checked }});
+    toast('Preferenze salvate ✓');
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
-
 async function saveAccount(e){ e.preventDefault();
   try {
     const r = await api('account-save.php',{method:'POST',body:{
@@ -163,11 +207,9 @@ async function saveAccount(e){ e.preventDefault();
     toast(r.email_changed
       ? 'Email aggiornata: controlla la nuova casella e verifica per poter riaccedere.'
       : 'Dati account salvati ✓');
-    renderNav();
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }
-
 async function changePass(e){ e.preventDefault();
   if (pw_new.value !== pw_new2.value){ toast('Le due password non coincidono', true); return false; }
   try {

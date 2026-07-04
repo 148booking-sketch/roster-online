@@ -7,348 +7,309 @@
 <meta name="description" content="Profilo artista su Booking Roster">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.listing{max-width:var(--maxw);margin:0 auto;padding:28px 24px}
-.hero2{display:grid;grid-template-columns:352px 1fr;gap:16px;margin-bottom:26px;align-items:stretch}
-.hero2.solo{grid-template-columns:352px}
-@media(max-width:760px){.hero2,.hero2.solo{grid-template-columns:1fr}}
-.hero2 .photo{width:352px;max-width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);position:relative}
-.promo-pin{position:absolute;top:12px;left:12px;background:#c0395e;color:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:2}
-@media(max-width:760px){.hero2 .photo{width:100%}}
-.hero2 .photo img{width:100%;height:100%;object-fit:cover}
-.hero2 .spotifybox{border-radius:16px;overflow:hidden;min-height:352px;background:var(--panel2);position:relative}
-.hero2 .spotifybox iframe{display:block;width:100%;height:100%;min-height:352px;border:0}
-@media(max-width:760px){.hero2 .spotifybox,.hero2 .spotifybox iframe{min-height:352px}}
-.layout2{display:grid;grid-template-columns:352px 1fr;gap:16px;align-items:start;margin-top:20px}
-@media(max-width:760px){.layout2{grid-template-columns:1fr}}
-/* mobile: il box bio (panel) va per primo, prima della foto */
-@media(max-width:760px){
-  #main.listing{display:flex;flex-direction:column;gap:18px}
-  #main.listing .layout2{display:contents}
-  #main.listing .rightcol{display:contents}
-  .hero2{order:2;margin-bottom:0}
-  #main.listing .layout2 > aside{order:3}
-  .panel{order:1}
-  .media{order:4}
-}
-.bookcard{border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
-.bookcard .irow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line2);font-size:14px}
-.bookcard .irow:first-of-type{border-top:0}
-.bookcard .irow span{color:var(--muted)}
-.divide{border:0;border-top:1px solid var(--line2);margin:22px 0}
-.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(min-width:761px){.statgrid{grid-template-columns:1fr 1fr 1fr}}
-.statbox{border:1px solid var(--line);border-radius:14px;padding:16px}
-.statbox .n{font-size:24px;font-weight:700;font-family:var(--f-display)}
-.igbox{margin-top:16px}
-.igphotos{display:flex;gap:10px}
-.igphotos a{flex:1;aspect-ratio:1;border-radius:12px;overflow:hidden;display:block;background:var(--line2)}
-.igphotos img{width:100%;height:100%;object-fit:cover;display:block}
-.tkvideos{display:flex;gap:10px}
-.tkvideos a{flex:1;aspect-ratio:3/4;border-radius:12px;overflow:hidden;display:block;background:var(--line2);position:relative}
-.tkvideos img{width:100%;height:100%;object-fit:cover;display:block}
-.tkvideos .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;text-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none}
-.sociallinks{display:flex;flex-wrap:wrap;gap:10px}
-.h1{font-family:var(--f-display);font-size:28px;font-weight:700;letter-spacing:-.5px;margin:0 0 4px}
-/* box identità: titolo in cima, social sotto il nome, genere a destra */
-.idgrid{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:20px;row-gap:8px;align-items:center}
-.idgrid .id-title{grid-column:1/-1;grid-row:1;min-width:0}
-.idgrid .id-social{grid-column:1;grid-row:2;justify-self:start;display:flex;gap:14px;align-items:center;flex:none}
-.idgrid .id-genre{grid-column:2;grid-row:2;justify-self:end;margin:0}
-@media(max-width:520px){
-  .idgrid{grid-template-columns:1fr;grid-template-rows:auto auto auto}
-  .idgrid .id-title{grid-column:1;grid-row:1}
-  .idgrid .id-social{grid-column:1;grid-row:2;justify-self:start}
-  .idgrid .id-genre{grid-column:1;grid-row:3;justify-self:start}
-}
-.callabel{font-weight:700;font-size:14px;margin:16px 0 2px}
-.bookcard .irow.gearrow{flex-direction:column;align-items:flex-start;gap:6px}
-.calnav{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}
-.calnav b{font-size:14px;text-transform:capitalize}
-.calnav button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
-.calnav button:hover:not(:disabled){background:var(--panel2)}
-.calnav button:disabled{opacity:.35;cursor:default}
-.calhead{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
-.calhead span{text-align:center;font-size:10px;font-weight:700;color:var(--muted)}
-.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal{aspect-ratio:1/1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid var(--line2)}
-.cal.blank{border:0;background:transparent}
-.cal.free{background:#eafaf0;border-color:#bfe9cf;color:#0a7d38;cursor:pointer}
-.cal.free:hover{background:#d3f0df}
-.cal.sel{background:var(--brand);border-color:var(--brand);color:#fff}
-.cal.busy{background:#fbeaef;border-color:#f3b9c8;color:#d98aa0;text-decoration:line-through}
-.cal.past{background:#f7f7f7;color:#cfcfcf}
-.callegend{display:flex;align-items:center;gap:14px;margin-top:9px;font-size:12px;color:var(--muted)}
-.callegend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
-.dot.free{background:#7ed6a2}.dot.busy{background:#f3b9c8}
+.listing{max-width:var(--maxw);margin:0 auto;padding:24px 26px 60px}
+.crumb{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.crumb a{color:var(--muted)}
+.crumb .sep{margin:0 6px}
+.crumb b{color:var(--txt);font-weight:600}
+.hero{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.photo{aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--panel2);position:relative}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo .ph-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9c9c9}
+.photo .verif{position:absolute;top:14px;left:14px;border:0;box-shadow:0 1px 4px rgba(0,0,0,.18);font-size:12px;padding:5px 12px}
+.promo-pin{position:absolute;top:14px;right:14px;background:#c0395e;color:#fff;font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.h1{font-family:var(--f-display);font-size:30px;font-weight:700;letter-spacing:-.6px;margin:0;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.h1 .vchk{width:18px;height:18px;font-size:9px}
+.subline{font-size:14.5px;color:var(--muted);margin-top:4px}
+.gchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.gchip{font:600 12.5px var(--f-body);color:#444;background:#f2f2f2;border-radius:20px;padding:6px 12px;text-decoration:none}
+.gchip:hover{background:#eaeaea}
+.statrow{display:flex;gap:22px;margin-top:20px;padding:16px 0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.statrow .n{font:700 19px var(--f-display)}
+.statrow .l{font-size:11.5px;color:var(--muted)}
+.bookbox{margin-top:20px;border:1px solid var(--line2);border-radius:16px;padding:20px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.bb-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.bb-price .amount{font:700 24px var(--f-display)}
+.bb-price .meta{font-size:13.5px;color:var(--muted)}
+.bb-cta{width:100%;margin-top:14px;font-size:15px;border-radius:11px;padding:14px;justify-content:center}
+.bb-row2{display:flex;gap:10px;margin-top:10px}
+.bb-row2 .btn{flex:1;justify-content:center;border-radius:10px;padding:11px;font-size:13.5px}
+.bb-note{font-size:12.5px;color:var(--muted);text-align:center;margin-top:10px}
+.secT{font:700 17px var(--f-display);margin:0 0 8px}
+.bio-sec{margin-top:28px;max-width:560px}
+.bio-sec p{font-size:14.5px;line-height:1.6;color:#444;margin:0;white-space:pre-line}
+.mediagrid{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.mediagrid{grid-template-columns:1fr}}
+.mediabox{border:1px solid var(--line2);border-radius:14px;overflow:hidden;min-height:170px}
+.mediabox iframe{display:block;width:100%;height:100%;min-height:352px;border:0}
+.detgrid{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;max-width:820px}
+.det{border:1px solid var(--line2);border-radius:12px;padding:13px 15px}
+.det .l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9a9aa2}
+.det .v{font-size:14.5px;font-weight:600;margin-top:3px}
+.det .tags{margin-top:6px}
+.gal-head{display:flex;align-items:center;gap:9px;margin:28px 0 12px}
+.gal-ic{width:26px;height:26px;border-radius:8px;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.gal-h{font:700 16px var(--f-display)}
+.gal-sub{font-size:12.5px;color:var(--muted)}
+.ig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:640px){.ig-grid{grid-template-columns:repeat(2,1fr)}}
+.ig-grid a{aspect-ratio:1/1;border-radius:12px;overflow:hidden;display:block;background:var(--panel2)}
+.ig-grid img{width:100%;height:100%;object-fit:cover;display:block}
+.tk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:640px){.tk-grid{grid-template-columns:repeat(2,1fr)}}
+.tk-grid a{aspect-ratio:9/16;border-radius:12px;overflow:hidden;display:block;background:var(--panel2);position:relative}
+.tk-grid img{width:100%;height:100%;object-fit:cover;display:block}
+.tk-grid .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;filter:drop-shadow(0 1px 4px rgba(0,0,0,.4))}
+/* modale richiesta (12a) */
+.reqmodal .mhead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line2)}
+.reqmodal .rm-ava{width:40px;height:40px;border-radius:50%;overflow:hidden;flex:none;background:var(--panel2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.reqmodal .rm-ava img{width:100%;height:100%;object-fit:cover}
+.reqmodal .rm-t{font:700 16px var(--f-display);display:flex;align-items:center;gap:6px}
+.reqmodal .rm-s{font-size:12px;color:var(--muted)}
+.reqmodal .mbody{padding:20px}
+.reqmodal .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+@media(max-width:560px){.reqmodal .grid2{grid-template-columns:1fr}}
+.avail{display:flex;align-items:center;gap:8px;margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px}
+.avail.free{background:#f1fbf5;border:1px solid #cbead6;color:#0a7d38}
+.avail.busy{background:#fbeaef;border:1px solid #f3d3dd;color:#c0395e}
+.reqmodal .mfoot{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line2)}
+.reqmodal .mfoot .send{flex:1;justify-content:center;border-radius:10px}
 </style>
 </head>
 <body>
 <nav class="nav" id="nav"></nav>
 <main class="listing" id="main"><div class="empty">Caricamento…</div></main>
 
+<!-- MODALE RICHIESTA (design 12a) -->
+<div class="overlay" id="reqModal">
+  <div class="modal reqmodal" style="max-width:520px;padding:0">
+    <div class="mhead">
+      <span class="rm-ava" id="rm_ava"></span>
+      <div><div class="rm-t" id="rm_title"></div><div class="rm-s" id="rm_sub"></div></div>
+      <button type="button" class="iconbtn" style="margin-left:auto" onclick="closeReq()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="grid2">
+        <div class="field" style="margin:0"><label>Data evento *</label><input type="date" id="rq_date" onchange="checkAvail()"></div>
+        <div class="field" style="margin:0" id="rq_feeWrap"><label>Cachet proposto (€)</label><input type="number" id="rq_fee" min="0" placeholder="es. 500"></div>
+      </div>
+      <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
+      <div class="avail" id="rq_avail" style="display:none"></div>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="btn ghost" onclick="closeReq()">Annulla</button>
+      <button type="button" class="btn primary send" onclick="sendReq()">Invia richiesta</button>
+    </div>
+  </div>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>
-let A=null;
+let A=null, ME=null, busySet=new Set();
 const slug=(new URLSearchParams(location.search)).get('slug')||location.pathname.replace(/^\/|\/$/g,'');
-const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
-function cachetLabel(a){ const v=a.cachet_min ?? a.cachet_max; if(v==null) return 'Trattativa riservata';
-  if(v===0) return 'Disponibile, senza impegno';
-  if(a.has_promo && a.cachet_promo!=null) return `<s style="color:var(--muted);font-weight:400;font-size:17px">${eur(v)}</s> <span style="color:#c0395e">${eur(a.cachet_promo)}</span>`;
-  return eur(v); }
-function promoDate(s){ if(!s) return ''; const d=new Date((''+s).replace(' ','T')); return isNaN(d)?'':d.toLocaleDateString('it-IT'); }
-function trattabileLabel(a){ const v=a.cachet_min ?? a.cachet_max; if(v==null||a.cachet_trattabile==null) return '';
-  return a.cachet_trattabile==1 ? ' · trattabile' : ' · non trattabile'; }
-function rimborsoLabel(a){ switch(a.rimborso_tipo){
-  case'incluso':return'Incluso nel cachet';
-  case'forfait':return a.rimborso_forfait!=null?('Forfait '+eur(a.rimborso_forfait)):'Forfait'; default:return'Da concordare'; } }
+
 function socialIcon(k,href,color){
   const p=SOCIAL_SVG[k]; if(!p) return '';
   return `<a href="${esc(href)}" target="_blank" rel="noopener" title="${SM[k]?SM[k][0]:esc(k)}" style="display:inline-flex;color:${color||'#555'}">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="display:block">${p}</svg></a>`;
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:block">${p}</svg></a>`;
 }
-
 function spotifyId(a){ const m=((a.socials||{}).spotify||'').match(/\/artist\/([A-Za-z0-9]+)/); return m?m[1]:''; }
-function youtubeEmbed(a){
-  const id=(a.stats||{}).youtube_video; if(!id) return '';
-  return gatedEmbed(`<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;margin-top:22px">
-      <iframe style="position:absolute;inset:0;width:100%;height:100%" src="https://www.youtube.com/embed/${esc(id)}"
-        frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
-    </div>`,'YouTube');
+
+/* prezzo grande nel booking box */
+function priceBig(a){
+  if(a.locked) return {amount:icon('lock',20,1.9)+' Riservato', meta:a.pending_verification?'account in attesa di verifica':'visibile ai promoter registrati'};
+  const v=a.cachet_min ?? a.cachet_max;
+  if(v==null) return {amount:'Trattativa riservata', meta:''};
+  if(v===0)  return {amount:'Senza impegno', meta:'disponibile anche a rimborso spese'};
+  const tratt=a.cachet_trattabile==1?' · trattabile':'';
+  if(a.has_promo && a.cachet_promo!=null)
+    return {amount:`<s style="color:var(--muted);font-weight:400;font-size:17px">${eur(v)}</s> <span style="color:#c0395e">${eur(a.cachet_promo)}</span>`,
+            meta:'a serata'+tratt+(a.promo_until?` · PROMO fino al ${new Date(a.promo_until.replace(' ','T')).toLocaleDateString('it-IT')}`:' · PROMO')};
+  return {amount:'da '+eur(v), meta:'a serata'+tratt};
 }
-function twitchEmbed(a){
-  const id=(a.stats||{}).twitch_video; if(!id) return '';
-  return gatedEmbed(`<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;margin-top:22px">
-      <iframe style="position:absolute;inset:0;width:100%;height:100%"
-        src="https://player.twitch.tv/?video=${esc(id)}&parent=${location.hostname}&autoplay=false"
-        frameborder="0" allowfullscreen></iframe>
-    </div>`,'Twitch');
-}
-/* Ultimi video TikTok — miniature (copertina) in riga, stesso stile delle foto Instagram
-   sopra (3 colonne uguali), ogni miniatura apre il video vero e proprio su TikTok in una
-   nuova scheda. La copertina è servita via proxy (/api/tiktok-photo.php): tikwm dà solo
-   URL firmati che scadono in 1-2 giorni, quindi vanno rifatti al volo invece che salvati
-   in stats. */
-function tiktokVideosWidget(a){
-  const ids=((a.stats||{}).tiktok_videos||[]).slice(0,3);
-  if(!ids.length || !(a.socials||{}).tiktok) return '';
-  const handle=(a.socials.tiktok.match(/tiktok\.com\/@?([\w.]+)/)||[,a.socials.tiktok.replace(/^@/,'')])[1];
-  const v=encodeURIComponent(a.stats_updated_at||'');
-  return `<div class="igbox tkvideos">${ids.map((id,i)=>`
-      <a href="https://www.tiktok.com/@${esc(handle)}/video/${esc(id)}" target="_blank" rel="noopener" title="Guarda su TikTok">
-        <img src="/api/tiktok-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'">
-        <span class="play">▶</span>
-      </a>`).join('')}</div>`;
-}
-/* Ultime foto Instagram — solo hotlink (nessun download), ogni miniatura porta al profilo IG.
-   Le URL delle foto sono link CDN firmati da Instagram e scadono dopo pochi giorni: onerror
-   nasconde la singola miniatura invece di mostrarla rotta. */
-function igPhotosWidget(a){
-  const photos=(a.stats||{}).instagram_photos||[];
-  if(!photos.length || !(a.socials||{}).instagram) return '';
-  const href=esc(socialHref('instagram',a.socials.instagram));
-  // le foto vengono servite via proxy (/api/ig-photo.php): il CDN di Instagram manda
-  // Cross-Origin-Resource-Policy:same-origin, quindi l'hotlink diretto da un altro
-  // dominio viene bloccato dal browser (ERR_BLOCKED_BY_RESPONSE.NotSameOrigin).
-  const v=encodeURIComponent(a.stats_updated_at||'');
-  return `<div class="igbox igphotos">${photos.slice(0,3).map((u,i)=>`
-      <a href="${href}" target="_blank" rel="noopener" title="Apri il profilo Instagram">
-        <img src="/api/ig-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'">
-      </a>`).join('')}</div>`;
-}
-// ---- Calendario mensile navigabile (dentro il box prenotazione) ----
-const MESI_FULL=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-let calY, calM, selectedDate=null, busySet=new Set();
-function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function initCal(a){ busySet=new Set(a.calendar_busy||[]); const t=new Date(); calY=t.getFullYear(); calM=t.getMonth(); }
-function calNav(delta){ calM+=delta; if(calM<0){calM=11;calY--} if(calM>11){calM=0;calY++} drawCal(); }
-function pickDate(iso){ selectedDate=(selectedDate===iso?null:iso); drawCal(); updateSelDate(); }
-function updateSelDate(){
-  const el=document.getElementById('selDateLabel'); if(!el) return;
-  if(!selectedDate){ el.textContent=''; return; }
-  const d=new Date(selectedDate+'T00:00:00');
-  el.innerHTML='📅 Data scelta: <b>'+d.getDate()+' '+MESI_FULL[d.getMonth()].toLowerCase()+' '+d.getFullYear()+'</b>';
-}
-function drawCal(){
-  const box=document.getElementById('calBox'); if(!box) return;
-  const GG=['L','M','M','G','V','S','D'];
-  const today=new Date(); today.setHours(0,0,0,0);
-  const first=new Date(calY,calM,1); const startDow=(first.getDay()+6)%7;
-  const daysInMonth=new Date(calY,calM+1,0).getDate();
-  const canPrev=(new Date(calY,calM,1) > new Date(today.getFullYear(),today.getMonth(),1));
-  let cells='';
-  for(let i=0;i<startDow;i++) cells+=`<div class="cal blank"></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const date=new Date(calY,calM,d); const iso=isoOf(date);
-    let cls,click='';
-    if(date<today) cls='past';
-    else if(busySet.has(iso)) cls='busy';
-    else { cls='free'+(selectedDate===iso?' sel':''); click=`onclick="pickDate('${iso}')"`; }
-    cells+=`<div class="cal ${cls}" ${click} title="${iso}">${d}</div>`;
-  }
-  box.innerHTML=`
-    <div class="calnav">
-      <button ${canPrev?'':'disabled'} onclick="calNav(-1)" aria-label="Mese precedente">‹</button>
-      <b>${MESI_FULL[calM]} ${calY}</b>
-      <button onclick="calNav(1)" aria-label="Mese successivo">›</button>
-    </div>
-    <div class="calhead">${GG.map(g=>`<span>${g}</span>`).join('')}</div>
-    <div class="calgrid">${cells}</div>
-    <div class="callegend"><span><i class="dot free"></i>Libero</span><span><i class="dot busy"></i>Occupato</span></div>`;
-}
-function backlineBox(a){
-  const bring=(a.gear_bring||[]), need=(a.gear_need||[]);
-  const tech = a.tech_sheet_url ? `<a class="btn ghost sm" target="_blank" rel="noopener" href="${esc(a.tech_sheet_url)}">📄 Scheda tecnica</a>` : '';
-  if(!bring.length && !need.length && !tech && !a.locked) return '';
-  const chips=arr=> arr.length? `<div class="tags" style="margin-top:6px">${arr.map(g=>`<span class="chip" style="cursor:default">${esc(g)}</span>`).join('')}</div>` : '<div class="hint" style="margin-top:4px">—</div>';
-  const techRow = a.locked
-    ? `<div class="hint" style="margin-top:12px">🔒 <a href="/accedi.html">Accedi</a> per la scheda tecnica</div>`
-    : (tech?`<div style="margin-top:12px">${tech}</div>`:'');
-  return `<hr class="divide"><h3>🎛️ Backline & scheda tecnica</h3>
-    <div style="margin-top:10px"><b style="font-size:14px">Cosa porta l'artista</b>${chips(bring)}</div>
-    <div style="margin-top:12px"><b style="font-size:14px">Cosa serve sul posto</b>${chips(need)}</div>
-    ${techRow}`;
-}
-/* backline con lo stile delle righe del box "Contatta l'artista" (.irow) */
-function backlineRows(a){
-  const hasTech=!!a.tech_sheet_url;
-  if(a.locked)  return `<div class="irow"><span>Scheda tecnica</span><b>🔒 ${a.pending_verification?'In attesa di verifica':ME?'<a href="/registrati-promoter.html">Solo promoter</a>':'<a href="/accedi.html">Accedi</a>'}</b></div>`;
-  if(hasTech)   return `<div class="irow"><span>Scheda tecnica</span><b><a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener">📄 Apri</a></b></div>`;
-  return '';
-}
-/* Cosa porta / Cosa serve — righe info (come le altre .irow), una per riga, senza icone */
-function gearRows(a){
-  const bring=(a.gear_bring||[]), need=(a.gear_need||[]);
-  if(!bring.length && !need.length) return '';
-  const row=(title,arr)=> arr.length
-    ? `<div class="irow gearrow"><span>${title}</span><div class="tags">${arr.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div></div>`
-    : '';
-  return row("Cosa porta l'artista",bring) + row("Cosa serve sul posto",need);
-}
-function statsBox(a){
+function rimborsoLabel(a){ switch(a.rimborso_tipo){
+  case'incluso':return'Inclusi nel cachet';
+  case'forfait':return a.rimborso_forfait!=null?('Forfait '+eur(a.rimborso_forfait)):'Forfait';
+  case null: case undefined: return ''; default:return'Da concordare'; } }
+
+/* statistiche principali in riga (design 5b) */
+function statRow(a){
   const s=a.stats||{};
-  const items=[['spotify_followers','Spotify','follower'],['spotify_listeners','Spotify','ascoltatori/mese'],
-    ['youtube_subs','YouTube','iscritti'],['tiktok_followers','TikTok','follower'],['twitch_followers','Twitch','follower'],
-    ['instagram_followers','Instagram','follower'],['facebook_followers','Facebook','follower']]
-    .filter(([k])=>s[k]!=null);
+  const items=[['spotify_listeners','Spotify · ascoltatori'],['spotify_followers','Spotify'],['instagram_followers','Instagram'],
+    ['youtube_subs','YouTube'],['tiktok_followers','TikTok'],['facebook_followers','Facebook'],['twitch_followers','Twitch']]
+    .filter(([k])=>s[k]!=null && s[k]>0).slice(0,4);
   if(!items.length) return '';
-  const when=a.stats_updated_at?new Date(a.stats_updated_at.replace(' ','T')).toLocaleDateString('it-IT'):'';
-  return `<div class="statgrid" style="margin-top:22px">${items.map(([k,l,sub])=>`<div class="statbox"><div class="n">${fmt(s[k])}</div><div class="hint" style="margin-top:2px">${l} · ${sub}</div></div>`).join('')}</div>
-    ${when?`<div class="hint" style="margin-top:8px">Aggiornate ${when} · ogni settimana</div>`:''}`;
+  return `<div class="statrow">${items.map(([k,l])=>`<div><div class="n">${fmt(s[k])}</div><div class="l">${l}</div></div>`).join('')}</div>`;
 }
 
-let ME=null;
 async function init(){
   await renderNav();
   ME=(await getMe()).user;
   try{ A=(await api('artist-get.php?slug='+encodeURIComponent(slug))).artist; }
   catch(e){ document.getElementById('main').innerHTML=`<div class="empty">Artista non trovato.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Torna alla ricerca</a></div>`; return; }
   document.title=(A.stage_name||'Artista')+' · Booking Roster';
+  busySet=new Set(A.calendar_busy||[]);
   render();
 }
 
 function render(){
   const a=A;
   const socials=Object.entries(a.socials||{}).filter(([k,v])=>v&&SM[k]);
-  const genres=(a.genres||[]).map(g=>`<a class="chip" href="/genere/${esc(g.slug)}" title="Cerca altri artisti ${esc(g.name)}">${esc(g.name)}</a>`).join('');
+  const genres=(a.genres||[]).map(g=>`<a class="gchip" href="/genere/${esc(g.slug)}">${esc(g.name)}</a>`).join('');
   const spId=spotifyId(a);
   const ytId=(a.stats||{}).youtube_video||'';
-  const heroYt=!spId && !!ytId;   // niente Spotify ma c'è un video YouTube: lo mostriamo in alto al posto suo
-  const hasPhoto=!!a.photo_url;
-  const hasMedia=!!(spId||heroYt);
-  const promoPin=a.has_promo?'<div class="promo-pin">PROMO</div>':'';
-  const photoBox=hasPhoto?`<div class="photo"><img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">${promoPin}</div>`:'';
-  const mediaBox=spId?`<div class="spotifybox">${promoPin}${gatedEmbed(`<iframe src="https://open.spotify.com/embed/artist/${spId}?utm_source=generator"
-        allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`,'Spotify')}</div>`
-      :heroYt?`<div class="spotifybox">${promoPin}${gatedEmbed(`<iframe src="https://www.youtube.com/embed/${esc(ytId)}"
-        frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>`,'YouTube')}</div>`:'';
-  // Niente box foto generico: se manca la foto (IG/Spotify) mostriamo solo l'eventuale player, senza segnaposto.
+  const p=priceBig(a);
+  const photo=a.photo_url
+    ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`
+    : `<div class="ph-fallback">${icon('music',54,1.2)}</div>`;
+
+  // CTA del booking box in base a chi guarda
+  let cta='';
+  if(a.can_contact && ME && ME.role!=='artist' && ME.role!=='admin'){
+    cta=`<button class="btn primary bb-cta" onclick="openReq()">${icon('inbox',17,1.9)} Richiedi questo artista</button>`;
+  } else if(!ME){
+    cta=`<a class="btn primary bb-cta" href="/accedi.html">Accedi per contattare</a>`;
+  } else if(ME.role==='artist' && ME.id!==a.user_id){
+    cta=`<a class="btn ghost bb-cta" href="/registrati-promoter.html">Registrati come promoter per contattare</a>`;
+  }
+  const favBtn = a.can_favorite
+    ? `<button class="btn ghost favsave${a.is_favorite?' on':''}" id="bb_fav" onclick="toggleFavPage()">${icon('heart',15,1.8)} ${a.is_favorite?'Salvato':'Salva'}</button>`
+    : '';
+  const row2 = (favBtn||true) ? `<div class="bb-row2">${favBtn}<button class="btn ghost" onclick="sharePage()">${icon('arrowRight',15,1.8)} Condividi</button></div>` : '';
+
+  // dettagli booking (viaggi, durata, on stage, raggio, label, agenzia, backline, scheda tecnica)
+  const det=[];
+  if(!a.locked && rimborsoLabel(a)) det.push(['Spese di viaggio', esc(rimborsoLabel(a))]);
+  if(a.durata_set_min) det.push(['Durata set', a.durata_set_min+' min']);
+  if(a.componenti)     det.push(['On stage', a.componenti+(a.componenti>1?' componenti':' componente')]);
+  det.push(['Disponibilità', a.travel_max_km ? ('entro '+a.travel_max_km+' km') : 'In tutta Italia']);
+  if(a.label)      det.push(['Label', esc(a.label)]);
+  if(a.management) det.push(['Agenzia', esc(a.management)]);
+  if(!a.locked && a.tech_sheet_url) det.push(['Scheda tecnica', `<a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener" style="color:var(--brand2);font-weight:600">Apri documento →</a>`]);
+  if(a.locked) det.push(['Scheda tecnica', icon('lock',13)+' riservata ai promoter']);
+  if((a.gear_bring||[]).length) det.push(["Cosa porta l'artista", `<div class="tags">${a.gear_bring.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`]);
+  if((a.gear_need||[]).length)  det.push(['Cosa serve sul posto', `<div class="tags">${a.gear_need.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`]);
+
+  // gallerie
+  const igPhotos=((a.stats||{}).instagram_photos||[]).slice(0,4);
+  const igHandle=((a.socials||{}).instagram||'').replace(/^.*instagram\.com\//,'').replace(/\/.*$/,'').replace(/^@/,'');
+  const v=encodeURIComponent(a.stats_updated_at||'');
+  const igSec = igPhotos.length && (a.socials||{}).instagram ? `
+    <div class="gal-head"><span class="gal-ic" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)">${icon('grid',14,1.9)}</span>
+      <div class="gal-h">Foto da Instagram</div><span class="gal-sub">${igHandle?'@'+esc(igHandle):''}</span></div>
+    <div class="ig-grid">${igPhotos.map((u,i)=>`<a href="${esc(socialHref('instagram',a.socials.instagram))}" target="_blank" rel="noopener">
+      <img src="/api/ig-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'"></a>`).join('')}</div>`:'';
+
+  const tkIds=((a.stats||{}).tiktok_videos||[]).slice(0,4);
+  const tkHandle=(((a.socials||{}).tiktok||'').match(/tiktok\.com\/@?([\w.]+)/)||[,((a.socials||{}).tiktok||'').replace(/^@/,'')])[1]||'';
+  const tkSec = tkIds.length && (a.socials||{}).tiktok ? `
+    <div class="gal-head"><span class="gal-ic" style="background:#111"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">${SOCIAL_SVG.tiktok}</svg></span>
+      <div class="gal-h">Video da TikTok</div><span class="gal-sub">@${esc(tkHandle)}</span></div>
+    <div class="tk-grid">${tkIds.map((id,i)=>`<a href="https://www.tiktok.com/@${esc(tkHandle)}/video/${esc(id)}" target="_blank" rel="noopener">
+      <img src="/api/tiktok-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'">
+      <span class="play">${icon('play',30,1)}</span></a>`).join('')}</div>`:'';
+
+  const spEmbed = spId ? gatedEmbed(`<iframe src="https://open.spotify.com/embed/artist/${spId}?utm_source=generator"
+      allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`,'Spotify') : '';
+  const ytEmbed = ytId ? gatedEmbed(`<iframe src="https://www.youtube.com/embed/${esc(ytId)}"
+      frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>`,'YouTube') : '';
+  const twId=(a.stats||{}).twitch_video||'';
+  const twEmbed = twId ? gatedEmbed(`<iframe src="https://player.twitch.tv/?video=${esc(twId)}&parent=${location.hostname}&autoplay=false"
+      frameborder="0" allowfullscreen loading="lazy"></iframe>`,'Twitch') : '';
+  const media=[spEmbed,ytEmbed,twEmbed].filter(Boolean);
+
   document.getElementById('main').innerHTML=`
-    ${(hasPhoto||hasMedia)?`<div class="hero2 ${(hasPhoto&&hasMedia)?'':'solo'}">${photoBox}${mediaBox}</div>`:''}
-
-    <div class="layout2" style="margin-top:22px">
-      <!-- SOTTO LA FOTO: prenotazione + tutte le info + calendario -->
-      <aside>
-        <div class="bookcard">
-          ${a.locked ? `
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <span style="font-size:20px;font-weight:700;font-family:var(--f-display)">🔒 Prezzo riservato</span>
-              ${a.verified?'<span class="badge">✓ Verificato</span>':''}
-            </div>
-            <div class="hint" style="margin:2px 0 14px">${a.pending_verification?'Il tuo account promoter è in attesa di verifica: potrai vedere il cachet a breve':ME?'Il cachet è visibile solo ai promoter':'Accedi per vedere cachet e contattare'}</div>
-          ` : `
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-              <span style="font-size:22px;font-weight:700;font-family:var(--f-display)">${cachetLabel(a)}</span>
-              ${a.verified?'<span class="badge">✓ Verificato</span>':''}
-            </div>
-            <div class="hint" style="margin:2px 0 14px">Cachet · a serata${trattabileLabel(a)}${a.has_promo&&a.promo_until?` · <b style="color:#c0395e">PROMO fino al ${promoDate(a.promo_until)}</b>`:''}</div>
-            <div class="irow"><span>Viaggi</span><b>${rimborsoLabel(a)}</b></div>
-          `}
-          <div class="irow"><span>Tipo di show</span><b>${esc(showLabel(a.formazione))}</b></div>
-          ${a.comune?`<div class="irow"><span>Base</span><b>${esc(a.comune)}${a.provincia?' ('+esc(a.provincia)+')':''}</b></div>`:''}
-          ${a.durata_set_min?`<div class="irow"><span>Durata set</span><b>${a.durata_set_min} min</b></div>`:''}
-          ${a.componenti?`<div class="irow"><span>On Stage</span><b>${a.componenti}</b></div>`:''}
-          <div class="irow"><span>Disponibilità</span><b>${a.travel_max_km?a.travel_max_km+' km':'In tutta Italia'}</b></div>
-          ${a.label?`<div class="irow"><span>Label</span><b>${esc(a.label)}</b></div>`:''}
-          ${a.management?`<div class="irow"><span>Agenzia</span><b>${esc(a.management)}</b></div>`:''}
-          ${backlineRows(a)}
-          ${gearRows(a)}
-          ${!a.can_contact ? `
-            <hr class="divide" style="margin:16px 0 12px">
-            ${ME
-              ? `<a class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box" href="/registrati-promoter.html">Registrati come promoter</a>`
-              : `<a class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box" href="/accedi.html">Accedi per contattare</a>`}
-          ` : `
-            <div class="callabel">Scegli la data</div><div id="calBox"></div>
-            <div id="selDateLabel" class="hint" style="margin-top:6px"></div>
-            ${a.cachet_trattabile==1?`<div class="field" style="margin-top:12px"><label>Offerta economica (€)</label><input type="number" id="m_fee" min="0" placeholder="${(()=>{const base=(a.has_promo&&a.cachet_promo!=null)?a.cachet_promo:(a.cachet_min??a.cachet_max);return base!=null?Math.round(base*0.9):'es. 500';})()}"></div>`:''}
-            <div class="field" style="margin-top:12px"><label>Note</label><textarea id="m_msg" placeholder="Racconta l'evento, il locale, gli orari..."></textarea></div>
-            <button class="btn primary" style="width:100%;margin-top:4px" onclick="sendReq()">Invia richiesta</button>
-          `}
-          <div class="hint" style="text-align:center;margin-top:10px">${a.verified?'Questo artista è gestito direttamente da noi':'Nessun costo di intermediazione'}</div>
-        </div>
-      </aside>
-
-      <!-- BOX ACCANTO: nome · location · tipologia → social → bio -->
-      <div class="rightcol">
-        <div class="panel">
-          <div class="idgrid">
-            <h1 class="h1 id-title">${esc(a.stage_name||'Senza nome')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</h1>
-            <div class="id-social">
-              ${socials.map(([k,v])=>socialIcon(k,socialHref(k,v),SM[k]&&SM[k][1])).join('')}
-              ${a.website?socialIcon('website',a.website,'#555'):''}
-              ${a.can_favorite?favBtnHtml(a.user_id,a.is_favorite):''}
-            </div>
-            <div class="id-genre tags">${genres}</div>
-          </div>
-          <hr class="divide" style="margin:16px 0">
-          <p style="color:#333;white-space:pre-line;margin:0">${a.bio?esc(a.bio):'<span style="color:var(--muted)">Nessuna bio inserita.</span>'}</p>
-        </div>
-        ${igPhotosWidget(a)}
-        ${tiktokVideosWidget(a)}
-        <div class="media">${heroYt?'':youtubeEmbed(a)}${twitchEmbed(a)}${statsBox(a)}</div>
+    <div class="crumb"><a href="/">Cerca artisti</a><span class="sep">›</span><b>${esc(a.stage_name||'Artista')}</b></div>
+    <div class="hero">
+      <div class="photo">
+        ${photo}
+        ${a.verified?`<span class="verif"><span class="tick">✓</span>Artista verificato</span>`:''}
+        ${a.has_promo?'<span class="promo-pin">PROMO</span>':''}
       </div>
-    </div>`;
-  // il calendario/booking inline si mostra a chi può contattare (non "locked")
-  if(a.can_contact){ initCal(a); drawCal(); }
+      <div>
+        <h1 class="h1">${esc(a.stage_name||'Senza nome')}${a.verified?'<span class="vchk">✓</span>':''}</h1>
+        <div class="subline">${[showLabel(a.formazione), a.comune?(esc(a.comune)+(a.provincia?' ('+esc(a.provincia)+')':'')):''].filter(Boolean).join(' · ')}</div>
+        ${genres?`<div class="gchips">${genres}</div>`:''}
+        <div style="display:flex;gap:14px;margin-top:14px;align-items:center">
+          ${socials.map(([k,v])=>socialIcon(k,socialHref(k,v),SM[k]&&SM[k][1])).join('')}
+          ${a.website?socialIcon('website',a.website,'#555'):''}
+        </div>
+        ${statRow(a)}
+        <div class="bookbox">
+          <div class="bb-price"><div class="amount">${p.amount}</div>${p.meta?`<div class="meta">${p.meta}</div>`:''}</div>
+          ${cta}
+          ${row2}
+          <div class="bb-note">${a.verified?'Artista gestito direttamente da noi':'Nessun costo di intermediazione'}</div>
+        </div>
+      </div>
+    </div>
+
+    ${a.bio?`<div class="bio-sec"><div class="secT">Chi è ${esc(a.stage_name||'')}</div><p>${esc(a.bio)}</p></div>`:''}
+    ${media.length?`<div class="mediagrid">${media.map(m=>`<div class="mediabox">${m}</div>`).join('')}</div>`:''}
+    ${det.length?`<div class="secT" style="margin-top:28px">Dettagli per il booking</div>
+      <div class="detgrid">${det.map(([l,v])=>`<div class="det"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}</div>`:''}
+    ${igSec}
+    ${tkSec}`;
 }
 
-// invio richiesta INLINE (niente popup): data dal calendario + offerta + note
+/* ---- Salva nei preferiti (bottone nel booking box) ---- */
+async function toggleFavPage(){
+  const btn=document.getElementById('bb_fav');
+  const on=!btn.classList.contains('on');
+  try{
+    const r=await api('favorites-toggle.php',{method:'POST',body:{artist_user_id:A.user_id,on}});
+    btn.classList.toggle('on',r.favorite);
+    btn.innerHTML=icon('heart',15,1.8)+' '+(r.favorite?'Salvato':'Salva');
+    toast(r.favorite?'Aggiunto ai preferiti ♥':'Rimosso dai preferiti');
+  }catch(err){ toast(errMsg(err),true); }
+}
+async function sharePage(){
+  const url=location.href;
+  if(navigator.share){ try{ await navigator.share({title:document.title,url}); }catch(e){} return; }
+  try{ await navigator.clipboard.writeText(url); toast('Link copiato ✓'); }catch(e){ toast(url); }
+}
+
+/* ---- Modale richiesta (12a) ---- */
+function openReq(){
+  const m=document.getElementById('reqModal');
+  rm_ava.innerHTML = A.photo_url?`<img src="${esc(A.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(A.stage_name));
+  if(!A.photo_url) rm_ava.style.background=avatarColor(A.stage_name);
+  rm_title.innerHTML = 'Richiedi '+esc(A.stage_name)+(A.verified?'<span class="vchk">✓</span>':'');
+  const v=A.cachet_min??A.cachet_max;
+  rm_sub.textContent = [showLabel(A.formazione), (!A.locked&&v)?('da '+eur(A.has_promo&&A.cachet_promo!=null?A.cachet_promo:v)+' a serata'):''].filter(Boolean).join(' · ');
+  document.getElementById('rq_feeWrap').style.display = A.cachet_trattabile==1||A.locked ? '' : 'none';
+  const d=document.getElementById('rq_date'); d.min=new Date().toISOString().slice(0,10);
+  m.classList.add('open');
+}
+function closeReq(){ document.getElementById('reqModal').classList.remove('open'); }
+function checkAvail(){
+  const el=document.getElementById('rq_avail');
+  const val=document.getElementById('rq_date').value;
+  if(!val || !A.has_calendar){ el.style.display='none'; return; }
+  const busy=busySet.has(val);
+  const dd=new Date(val+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});
+  el.className='avail '+(busy?'busy':'free');
+  el.innerHTML = busy
+    ? icon('x',15,2)+` Il ${dd} l'artista risulta <b style="margin:0 3px">occupato</b> sul calendario`
+    : icon('check',15,2)+` Il ${dd} l'artista risulta <b style="margin:0 3px">libero</b> sul calendario`;
+  el.style.display='';
+}
 async function sendReq(){
   const me=await getMe();
-  if(!me.user){ toast('Accedi per contattare l\'artista',true); setTimeout(()=>location.href='/accedi.html',900); return; }
+  if(!me.user){ location.href='/accedi.html'; return; }
   if(!['promoter','management'].includes(me.user.role)){ toast('Solo promoter e agenzie possono inviare richieste',true); return; }
-  if(!selectedDate){ toast('Seleziona una data dal calendario',true); return; }
-  const msg=(document.getElementById('m_msg').value||'').trim();
-  if(!msg){ toast('Scrivi una nota',true); return; }
-  const feeEl=document.getElementById('m_fee');   // presente solo se cachet trattabile
-  const fee=feeEl?(feeEl.value||null):null;
+  const date=document.getElementById('rq_date').value;
+  const msg=(document.getElementById('rq_msg').value||'').trim();
+  if(!date){ toast('Seleziona la data dell\'evento',true); return; }
+  if(!msg){ toast('Scrivi un messaggio',true); return; }
+  const feeEl=document.getElementById('rq_fee');
+  const fee=(document.getElementById('rq_feeWrap').style.display!=='none' && feeEl.value)?feeEl.value:null;
   try{
-    await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id,
-      event_date:selectedDate, proposed_fee:fee, message:msg}});
-    toast('Richiesta inviata! ✉️');
-    document.getElementById('m_msg').value=''; if(feeEl) feeEl.value='';
-    selectedDate=null; drawCal(); updateSelDate();
+    await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id, event_date:date, proposed_fee:fee, message:msg}});
+    toast('Richiesta inviata!');
+    closeReq();
+    document.getElementById('rq_msg').value=''; feeEl.value='';
   }catch(err){ toast(errMsg(err),true); }
 }
 init();

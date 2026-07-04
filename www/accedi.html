@@ -9,60 +9,60 @@
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container" style="max-width:460px;padding-top:40px">
-  <h1 class="title" style="text-align:center">Accedi</h1>
-
-  <!-- LOGIN -->
-  <form class="panel" id="formLogin" onsubmit="return doLogin(event)">
-    <div class="field"><label>Email</label><input type="email" id="li_email" required></div>
-    <div class="field"><label>Password</label><input type="password" id="li_pass" required></div>
-    <button class="btn primary" style="width:100%">Accedi</button>
-    <div class="hint" style="margin-top:10px;text-align:center">
-      <a href="#recupera" onclick="tab('recupera');return false">Password dimenticata?</a>
+<div class="auth-bg">
+  <!-- LOGIN (design 10a) -->
+  <form class="auth-card" id="formLogin" onsubmit="return doLogin(event)">
+    <h1 class="auth-title">Bentornato</h1>
+    <div class="auth-sub">Un unico accesso per artisti, promoter e agenzie</div>
+    <div class="field"><label>Email</label><input type="email" id="li_email" placeholder="nome@email.it" required></div>
+    <div class="field">
+      <div class="lbl-row"><label>Password</label><a href="#recupera" onclick="tab('recupera');return false">Password dimenticata?</a></div>
+      <input type="password" id="li_pass" required>
     </div>
+    <button class="btn primary cta">Accedi</button>
+    <div class="auth-sep">oppure</div>
+    <div class="auth-foot">Non hai un account? <a href="/registrati.html">Registrati</a></div>
   </form>
 
   <!-- RECUPERO PASSWORD -->
-  <form class="panel" id="formRecupera" style="display:none" onsubmit="return doForgot(event)">
-    <p class="sub" style="margin-top:0">Inserisci la tua email: ti invieremo un link per reimpostare la password.</p>
-    <div class="field"><label>Email</label><input type="email" id="fp_email" required></div>
-    <button class="btn primary" style="width:100%">Invia link di recupero</button>
-    <div class="hint" style="margin-top:10px;text-align:center">
-      <a href="#login" onclick="tab('login');return false">← Torna al login</a>
-    </div>
+  <form class="auth-card" id="formRecupera" style="display:none" onsubmit="return doForgot(event)">
+    <div class="auth-icobox" data-ic="key" data-ic-size="24" data-ic-stroke="1.7"></div>
+    <h1 class="auth-title">Recupera password</h1>
+    <div class="auth-sub">Inserisci la tua email: ti invieremo un link per reimpostarla</div>
+    <div class="field"><label>Email</label><input type="email" id="fp_email" placeholder="nome@email.it" required></div>
+    <button class="btn primary cta">Invia link di recupero</button>
+    <div class="auth-sep">oppure</div>
+    <div class="auth-foot"><a href="#login" onclick="tab('login');return false">← Torna al login</a></div>
   </form>
 
   <!-- VERIFICA EMAIL (post registrazione / login non verificato) -->
-  <div class="panel" id="formVerify" style="display:none;text-align:center">
-    <div style="font-size:44px;line-height:1">📧</div>
-    <h3 style="margin:10px 0 4px">Verifica la tua email</h3>
-    <p class="sub" style="margin-top:0">Ti abbiamo inviato un link a <b id="vf_email"></b>.<br>Cliccalo per attivare l'account.<br><span style="color:var(--muted);font-size:13px">Controlla anche lo spam.</span></p>
-    <button class="btn ghost" style="width:100%" onclick="doResend()">Reinvia email di verifica</button>
-    <div class="hint" style="margin-top:10px;text-align:center"><a href="#login" onclick="tab('login');return false">← Torna al login</a></div>
+  <div class="auth-card" id="formVerify" style="display:none">
+    <div class="auth-icobox" data-ic="mail" data-ic-size="24" data-ic-stroke="1.7"></div>
+    <h1 class="auth-title">Controlla la tua email</h1>
+    <div class="auth-sub">Ti abbiamo inviato un link a <b id="vf_email"></b>: cliccalo per attivare l'account. Controlla anche lo spam.</div>
+    <button class="btn ghost" style="width:100%;border-radius:11px" onclick="doResend()">Reinvia email di verifica</button>
+    <div class="auth-sep">oppure</div>
+    <div class="auth-foot"><a href="#login" onclick="tab('login');return false">← Torna al login</a></div>
   </div>
-
-  <div class="hint" style="margin-top:14px;text-align:center" id="regHint">Non hai un account? <a href="/registrati.html">Registrati</a></div>
-</main>
+</div>
 
 <script src="/assets/api.js"></script>
 <script>
-renderNav();
+renderNav().then(()=>injectIcons());
 let pendingEmail = '';
 function tab(t){
   document.getElementById('formLogin').style.display    = t==='login'?'':'none';
   document.getElementById('formRecupera').style.display = t==='recupera'?'':'none';
   document.getElementById('formVerify').style.display   = 'none';
-  document.getElementById('regHint').style.display = t==='login'||t==='recupera' ? '' : 'none';
 }
 function showVerify(email){
   pendingEmail = email;
   document.getElementById('vf_email').textContent = email;
   ['formLogin','formRecupera'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById('regHint').style.display = 'none';
   document.getElementById('formVerify').style.display = '';
 }
 async function doResend(){
-  try { await api('resend-verification.php',{method:'POST',body:{email:pendingEmail}}); toast('Email di verifica reinviata ✉️'); }
+  try { await api('resend-verification.php',{method:'POST',body:{email:pendingEmail}}); toast('Email di verifica reinviata'); }
   catch(err){ toast(errMsg(err), true); }
 }
 if (location.hash === '#recupera') tab('recupera');
