@@ -1,0 +1,33 @@
+Options -Indexes
+DirectoryIndex index.html
+
+# HTML/JS/CSS: rivalida sempre (304 se invariato) → gli aggiornamenti si vedono subito
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Servi direttamente file e cartelle esistenti (index.html, cerca.html, api/, assets/, ...)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Non riscrivere le aree tecniche
+  RewriteRule ^(api|assets)/ - [L]
+
+  # Pagine "pulite" note → il rispettivo .html
+  RewriteRule ^(cerca|accedi|profilo|richieste|index|artista|mappa|calendario|admin|account|reset-password|privacy|cookie|termini|faq|contatti|registrati|registrati-artista|registrati-promoter|registrati-management|management)/?$ $1.html [L]
+
+  # /l/nome-artista → mini scheda "link in bio" (multi link)
+  RewriteRule ^l/([a-z0-9][a-z0-9-]*)/?$ link.html?slug=$1 [L,QSA]
+
+  # /genere/nome-genere → home già filtrata per genere musicale (link diretto condivisibile)
+  RewriteRule ^genere/([a-z0-9][a-z0-9-]*)/?$ index.html?genre=$1 [L,QSA]
+
+  # /nome-artista → pagina artista dedicata
+  RewriteRule ^([a-z0-9][a-z0-9-]*)/?$ artista.html?slug=$1 [L,QSA]
+</IfModule>

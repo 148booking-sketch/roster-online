@@ -1,0 +1,42 @@
+name: "Roster — Statistiche social (settimanale)"
+
+# Progetto INDIPENDENTE (roster), separato dal 148. Calcola le statistiche social
+# degli artisti di roster da IP cloud (così Spotify serve la pagina completa) e le
+# rimanda al sito via stats-ingest.
+#
+# Secret da creare in QUESTO repo (roster), non condivisi col 148:
+#   ROSTER_STATS_TOKEN  = valore di 'stats_token' in www/api/config.php
+#   YOUTUBE_API_KEY     (opz.) — iscritti YouTube
+#   APIFY_TOKEN         (opz.) — follower Instagram + Facebook
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'          # ogni lunedì 05:00 UTC (~07:00 Roma)
+  workflow_dispatch:              # avvio manuale dal tab Actions
+
+permissions:
+  contents: read
+
+concurrency:
+  group: roster-social-stats
+  cancel-in-progress: false
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring
+
+      - name: Aggiorna statistiche su roster
+        env:
+          ROSTER_URL: 'https://artisti.148booking.it'
+          ROSTER_STATS_TOKEN: ${{ secrets.ROSTER_STATS_TOKEN }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: php worker/social-stats.php

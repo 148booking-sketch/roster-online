@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registrati come artista · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container" style="max-width:480px;padding-top:40px">
+  <h1 class="title">Registrati come artista</h1>
+  <p class="sub" id="introSub">Passo 1 di 2 · verifichiamo il tuo profilo Apple Music/iTunes.</p>
+
+  <!-- STEP 1: idoneità -->
+  <form class="panel" id="step1" onsubmit="return checkEligibility(event)">
+    <div class="field"><label>Link al tuo profilo artista Apple Music</label>
+      <input type="url" id="am_url" placeholder="https://music.apple.com/it/artist/..." required>
+      <div class="hint">Cerca il tuo nome su Apple Music (app o <a href="https://music.apple.com" target="_blank" rel="noopener">music.apple.com</a>) e incolla qui il link del tuo profilo artista. Per iscriverti al roster serve avere almeno <b>4 brani pubblicati negli ultimi 2 anni</b> (anche in feat./collaborazione).</div>
+    </div>
+    <button class="btn primary" style="width:100%" id="checkBtn">Verifica idoneità</button>
+  </form>
+
+  <!-- NON IDONEO -->
+  <div class="panel" id="notEligible" style="display:none;text-align:center">
+    <div style="font-size:44px;line-height:1">🎧</div>
+    <h3 style="margin:10px 0 4px">Grazie per l'interesse!</h3>
+    <p class="sub" style="margin-top:0">Al momento il profilo non raggiunge ancora i requisiti minimi (4 brani pubblicati negli ultimi 2 anni) per entrare nel roster 148. Continua a pubblicare la tua musica e ricandidati più avanti — in bocca al lupo! 🎶</p>
+    <a class="btn ghost" style="width:100%;display:block;box-sizing:border-box" href="/">Torna alla home</a>
+  </div>
+
+  <!-- STEP 2: dati anagrafici -->
+  <form class="panel" id="step2" style="display:none" onsubmit="return doReg(event)">
+    <div class="hint" style="margin-bottom:14px" id="eligMsg"></div>
+    <div class="row">
+      <div class="field"><label>Nome</label><input id="rg_nome" required></div>
+      <div class="field"><label>Cognome</label><input id="rg_cognome" required></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="rg_email" required>
+      <div class="hint">Usa la <b>stessa email che usi per la SIAE</b>.</div></div>
+    <div class="field"><label>Telefono</label><input id="rg_phone" placeholder="+39..." required></div>
+    <div class="field"><label>Password (min 8 caratteri)</label><input type="password" id="rg_pass" minlength="8" required></div>
+    <button class="btn primary" style="width:100%">Crea account</button>
+    <div class="hint" style="margin-top:10px">Dopo la registrazione riceverai un'email per <b>verificare l'account</b>.</div>
+  </form>
+
+  <!-- VERIFICA EMAIL -->
+  <div class="panel" id="formVerify" style="display:none;text-align:center">
+    <div style="font-size:44px;line-height:1">📧</div>
+    <h3 style="margin:10px 0 4px">Verifica la tua email</h3>
+    <p class="sub" style="margin-top:0">Ti abbiamo inviato un link a <b id="vf_email"></b>.<br>Cliccalo per attivare l'account.<br><span style="color:var(--muted);font-size:13px">Controlla anche lo spam.</span></p>
+    <button class="btn ghost" style="width:100%" onclick="doResend()">Reinvia email di verifica</button>
+  </div>
+
+  <div class="hint" style="margin-top:14px;text-align:center">Sei un locale o un promoter? <a href="/registrati-promoter.html">Registrati qui</a></div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+renderNav();
+let pendingEmail = '';
+
+async function checkEligibility(e){ e.preventDefault();
+  const btn = checkBtn, old = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Verifica in corso…';
+  try {
+    const r = await api('artist-eligibility-check.php',{method:'POST',body:{itunes: am_url.value}});
+    if (r.eligible){
+      eligMsg.textContent = r.artist_name ? `✓ Profilo idoneo (${r.artist_name}): completa la registrazione.` : '✓ Profilo idoneo: completa la registrazione.';
+      step1.style.display = 'none';
+      step2.style.display = '';
+      introSub.textContent = 'Passo 2 di 2 · i tuoi dati.';
+    } else {
+      step1.style.display = 'none';
+      notEligible.style.display = '';
+      introSub.style.display = 'none';
+    }
+  } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
+  return false;
+}
+
+function showVerify(email){
+  pendingEmail = email;
+  vf_email.textContent = email;
+  step2.style.display = 'none';
+  introSub.style.display = 'none';
+  formVerify.style.display = '';
+}
+async function doResend(){
+  try { await api('resend-verification.php',{method:'POST',body:{email:pendingEmail}}); toast('Email di verifica reinviata ✉️'); }
+  catch(err){ toast(errMsg(err), true); }
+}
+
+async function doReg(e){ e.preventDefault();
+  try {
+    const display_name = (rg_nome.value + ' ' + rg_cognome.value).trim();
+    const r = await api('register.php',{method:'POST',body:{
+      role:'artist', display_name, email:rg_email.value, password:rg_pass.value,
+      phone:rg_phone.value, applemusic:am_url.value }});
+    showVerify(r.email || rg_email.value);
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+</script>
+</body>
+</html>

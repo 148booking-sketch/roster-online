@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container narrow section">
+
+  <!-- GATE: mostrato se non sei admin -->
+  <div id="gate" style="display:none;max-width:460px;margin:0 auto">
+    <h1 class="title">Area amministratore</h1>
+    <p class="sub">Accesso riservato. Effettua il login con un account admin.</p>
+    <form class="panel" onsubmit="return doLogin(event)">
+      <div class="field"><label>Email</label><input type="email" id="li_email" required></div>
+      <div class="field"><label>Password</label><input type="password" id="li_pass" required></div>
+      <button class="btn primary" style="width:100%">Accedi</button>
+    </form>
+
+    <details id="setupBox" style="margin-top:14px">
+      <summary style="cursor:pointer;color:var(--muted)">Primo avvio: crea il primo admin</summary>
+      <form class="panel" style="margin-top:10px" onsubmit="return doBootstrap(event)">
+        <div class="hint">Usa il token <code>admin_setup_token</code> di <code>config.php</code>. Funziona una sola volta.</div>
+        <div class="field"><label>Token di setup</label><input id="bs_token" required></div>
+        <div class="field"><label>Email admin</label><input type="email" id="bs_email" required></div>
+        <div class="field"><label>Password (min 8)</label><input type="password" id="bs_pass" minlength="8" required></div>
+        <button class="btn dark" style="width:100%">Crea admin</button>
+      </form>
+    </details>
+  </div>
+
+  <!-- PANNELLO ADMIN -->
+  <div id="panel" style="display:none">
+    <h1 class="title">Admin · gestione utenti</h1>
+    <p class="sub">Crea e modifica artisti e promoter. La password non è modificabile da qui (l'utente la reimposta da solo).</p>
+
+    <div class="tabs">
+      <button id="tabD" class="on" onclick="tab('dash')">📊 Panoramica</button>
+      <button id="tabA" onclick="tab('artisti')">🎤 Artisti</button>
+      <button id="tabP" onclick="tab('promoter')">📣 Promoter</button>
+      <button id="tabS" onclick="tab('set')">⚙️ Impostazioni</button>
+    </div>
+
+    <!-- ═══ 📊 PANORAMICA ═══ -->
+    <div id="dashW">
+      <div id="dashCards" class="req-report"></div>
+      <section class="list-section" style="margin-top:18px">
+        <h3 class="ls-title">⏳ Artisti da approvare <span class="ls-count" id="cntPending"></span></h3>
+        <div id="pendingList" class="admin-list"></div>
+      </section>
+      <section class="list-section" style="margin-top:18px">
+        <h3 class="ls-title">📨 Richieste promoter → artista <span class="ls-count" id="cntReq"></span></h3>
+        <div class="list-filters"><input id="req_q" placeholder="Cerca per artista o promoter…" oninput="renderReqList()"></div>
+        <div id="reqList" class="admin-list"></div>
+      </section>
+    </div>
+
+    <!-- ═══ 🎤 ARTISTI ═══ -->
+    <div id="artistiW" style="display:none">
+      <div id="artistiList">
+        <div class="sec-toolbar">
+          <h3 class="ls-title" style="margin:0">🎤 Artisti <span class="ls-count" id="cntA"></span></h3>
+          <button type="button" class="btn primary sm" onclick="startNewArtist()">➕ Nuovo artista</button>
+        </div>
+        <div class="list-filters">
+          <input id="fa_q" placeholder="Cerca artista…" oninput="renderLists()">
+          <select id="fa_show" onchange="renderLists()"></select>
+          <select id="fa_state" onchange="renderLists()">
+            <option value="">Tutti gli stati</option>
+            <option value="online">🟢 Online</option>
+            <option value="review">⏳ In revisione</option>
+            <option value="unverified">📧 Email da verificare</option>
+            <option value="verified">✓ Verificati</option>
+          </select>
+          <select id="fa_sort" onchange="renderLists()">
+            <option value="name_asc">Nome A→Z</option>
+            <option value="name_desc">Nome Z→A</option>
+            <option value="updated_desc">Ultima modifica</option>
+            <option value="created_desc">Più recenti (creazione)</option>
+            <option value="created_asc">Più vecchi (creazione)</option>
+          </select>
+        </div>
+        <div id="listA" class="admin-list"></div>
+      </div>
+
+      <!-- FORM ARTISTA (crea/modifica) -->
+      <form id="formA" style="display:none" onsubmit="return saveArtist(event)">
+      <div id="a_banner" class="edit-banner" style="display:none"></div>
+      <div id="a_pubStatus" style="display:none;align-items:center;gap:10px;margin:-6px 0 4px;flex-wrap:wrap">
+        <span id="a_pubBadge"></span>
+        <button type="button" class="btn ghost sm" id="a_pubBtn" onclick="toggleArtistPublishForm()"></button>
+      </div>
+      <div id="a_pubMissing" class="hint" style="display:none;margin:0 0 14px;color:#7a5b00"></div>
+
+      <div class="row">
+        <div class="field" id="a_emailWrap"><label>Email *</label><input type="email" id="a_email" required>
+          <div class="hint">Stessa email che l'artista usa per la <b>SIAE</b>.</div></div>
+        <div class="field" id="a_passWrap"><label>Password * (min 8)
+          <button type="button" class="btn ghost sm" style="margin-left:6px" onclick="genPass('a_pass')">genera</button></label>
+          <input id="a_pass" minlength="8"></div>
+        <div class="field" id="a_statusWrap" style="display:none;max-width:160px"><label>Stato</label>
+          <select id="a_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <div style="display:flex;flex-wrap:nowrap;align-items:center;height:38px">
+            <label class="check" style="white-space:nowrap"><input type="checkbox" id="a_ver" onchange="onVerifiedToggle()"> Verificato ✓</label>
+            <label class="check" style="white-space:nowrap" title="Sempre tra gli 8 artisti in evidenza in home (gli altri posti restano random)"><input type="checkbox" id="a_top8"> Featured ⭐</label>
+          </div>
+        </div>
+      </div>
+      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da 148 Booking: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
+
+      <div class="field" id="a_managerWrap" style="max-width:360px;margin:0 0 16px">
+        <label>🎧 Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
+        <select id="a_manager"><option value="">— nessuna —</option></select>
+        <div class="hint">Associa l'artista a un'agenzia booking: la potrà gestire (modifica/elimina) dalla sua dashboard.</div>
+      </div>
+
+      <!-- ══ CAMPI CONDIVISI con profilo.html (assets/artist-form.js) ══ -->
+      <div id="artistFormMount"></div>
+
+      <!-- MULTI LINK (link in bio) — solo in modifica, serve uno slug già salvato -->
+      <div id="a_multilinkSec" style="display:none;border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px">
+        <h3 style="margin:0 0 6px">🔗 Multi link (link in bio)</h3>
+        <div class="hint" style="margin:0 0 12px">Un unico link con tutti i social e il box booking dell'artista.</div>
+        <div id="a_mlNoSlug" class="hint" style="display:none">Serve un nome d'arte salvato per generare il link.</div>
+        <div id="a_mlLinkRow" style="display:none;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="a_mlUrl" readonly style="flex:1;min-width:200px">
+          <button type="button" class="btn ghost sm" onclick="copyMlLinkAdmin()">📋 Copia</button>
+          <a id="a_mlOpen" class="btn ghost sm" target="_blank" rel="noopener">👁️ Apri</a>
+        </div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2)">
+          <h4 style="margin:0 0 4px;font-size:15px">Link personalizzati <span class="hint" style="display:inline">(max 3)</span></h4>
+          <div class="row">
+            <div class="field"><label>Titolo 1</label><input id="a_cl1_t" maxlength="60" placeholder="Es. Ascolta il nuovo singolo"></div>
+            <div class="field"><label>Link 1</label><input id="a_cl1_u" placeholder="https://..."></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Titolo 2</label><input id="a_cl2_t" maxlength="60" placeholder="Es. Merch ufficiale"></div>
+            <div class="field"><label>Link 2</label><input id="a_cl2_u" placeholder="https://..."></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Titolo 3</label><input id="a_cl3_t" maxlength="60" placeholder="Es. Sito ufficiale"></div>
+            <div class="field"><label>Link 3</label><input id="a_cl3_u" placeholder="https://..."></div>
+          </div>
+          <button type="button" class="btn primary sm" onclick="saveCustomLinksAdmin()">Salva link</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1" id="a_submit">Crea artista</button>
+        <button type="button" class="btn ghost" onclick="cancelArtist()">← Torna all'elenco</button>
+      </div>
+      </form>
+    </div><!-- /artistiW -->
+
+    <!-- ═══ 📣 PROMOTER ═══ -->
+    <div id="promoterW" style="display:none">
+      <div id="promoterList">
+        <div class="sec-toolbar">
+          <h3 class="ls-title" style="margin:0">📣 Promoter <span class="ls-count" id="cntP"></span></h3>
+          <button type="button" class="btn primary sm" onclick="startNewPromoter()">➕ Nuovo promoter</button>
+        </div>
+        <div class="list-filters">
+          <input id="fp_q" placeholder="Cerca promoter…" oninput="renderLists()">
+          <select id="fp_tipo" onchange="renderLists()">
+            <option value="">Tutti i tipi</option>
+            <option value="locale">Locale</option><option value="festival">Festival</option>
+            <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+            <option value="privato">Privato</option><option value="altro">Altro</option>
+          </select>
+          <select id="fp_state" onchange="renderLists()">
+            <option value="">Tutti gli stati</option>
+            <option value="verified">✓ Verificati (attivi)</option>
+            <option value="unverified">⏳ Da verificare</option>
+            <option value="blocked">⛔ Bloccati</option>
+          </select>
+          <select id="fp_sort" onchange="renderLists()">
+            <option value="name_asc">Nome A→Z</option>
+            <option value="name_desc">Nome Z→A</option>
+            <option value="updated_desc">Ultima modifica</option>
+            <option value="created_desc">Più recenti (creazione)</option>
+            <option value="created_asc">Più vecchi (creazione)</option>
+          </select>
+        </div>
+        <div id="listP" class="admin-list"></div>
+      </div>
+
+      <!-- FORM PROMOTER (crea/modifica) -->
+      <form class="panel" id="formP" style="display:none" onsubmit="return savePromoter(event)">
+      <div id="p_banner" class="edit-banner" style="display:none"></div>
+      <div class="row">
+        <div class="field"><label>Email *</label><input type="email" id="p_email" required></div>
+        <div class="field" id="p_passWrap"><label>Password * (min 8)
+          <button type="button" class="btn ghost sm" style="margin-left:6px" onclick="genPass('p_pass')">genera</button></label>
+          <input id="p_pass" minlength="8"></div>
+        <div class="field" id="p_statusWrap" style="max-width:160px"><label>Stato</label>
+          <select id="p_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
+          <div class="hint">"In attesa": accede e scrive richieste ma non vede i cachet. "Attivo": sblocca i prezzi.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Nome locale / festival / promoter *</label><input id="p_org" required></div>
+        <div class="field" style="max-width:200px"><label>Tipo</label>
+          <select id="p_tipo">
+            <option value="locale">Locale</option><option value="festival">Festival</option>
+            <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+            <option value="privato">Privato</option><option value="altro">Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="autocomplete field"><label>Comune</label><input id="p_comune" placeholder="Es. Roma"></div>
+        <div class="field" style="max-width:120px"><label>Prov.</label><input id="p_prov" maxlength="2" placeholder="RM"></div>
+        <div class="field"><label>Telefono</label><input id="p_phone" placeholder="+39..."></div>
+      </div>
+      <div class="field"><label>Sito web o altro link</label><input id="p_web" placeholder="https://..."></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1" id="p_submit">Crea promoter</button>
+        <button type="button" class="btn ghost" onclick="cancelPromoter()">← Torna all'elenco</button>
+      </div>
+      </form>
+    </div><!-- /promoterW -->
+
+    <!-- IMPOSTAZIONI STATISTICHE -->
+    <form id="settingsW" class="panel" style="display:none" onsubmit="return saveSettings(event)">
+      <h3 style="margin:0 0 6px">📊 Chiavi statistiche social</h3>
+      <p class="hint" style="margin:0 0 14px">Servono per calcolare i follower. Se una chiave è già in <code>config.php</code> risulta "attiva" e il campo qui può restare vuoto.</p>
+      <div class="field">
+        <label>Spotify Client ID <span id="st_spotify_client_id" class="stbadge"></span></label>
+        <input id="set_spotify_client_id" placeholder="da developer.spotify.com">
+      </div>
+      <div class="field">
+        <label>Spotify Client Secret <span id="st_spotify_client_secret" class="stbadge"></span></label>
+        <input id="set_spotify_client_secret" placeholder="da developer.spotify.com">
+        <div class="hint">Crea un'app gratuita su <b>developer.spotify.com/dashboard</b> → copia Client ID e Secret. Attiva i <b>follower Spotify</b>.</div>
+      </div>
+      <div class="field">
+        <label>YouTube API key <span id="st_youtube_api_key" class="stbadge"></span></label>
+        <input id="set_youtube_api_key" placeholder="Google Cloud · YouTube Data API v3">
+      </div>
+      <div class="field">
+        <label>Apify token <span id="st_apify_token" class="stbadge"></span></label>
+        <input id="set_apify_token" placeholder="Instagram + Facebook follower">
+      </div>
+      <button class="btn primary">Salva chiavi</button>
+    </form>
+  </div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/artist-form.js"></script>
+<script>
+renderNav();
+let editAId = null, editPId = null;
+
+(async function init(){
+  const me = await getMe(true);
+  if (me.user && me.user.role === 'admin') showPanel();
+  else document.getElementById('gate').style.display = '';
+})();
+
+async function showPanel(){
+  gate.style.display = 'none';
+  panel.style.display = '';
+  await loadGenres();
+  artistFormMount('artistFormMount', 'a_');
+  artistFormReset('a_');
+  comuniAutocomplete(document.getElementById('p_comune'), (n,pr)=> p_prov.value = pr);
+  initListFilters();
+  tab('dash');
+}
+
+let CUR = 'dash';
+const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], set:['settingsW',tabS]};
+function tab(t){
+  CUR = t;
+  for (const k in TABS){ const [w,btn]=TABS[k]; document.getElementById(w).style.display = (k===t)?'':'none'; btn.classList.toggle('on', k===t); }
+  if (t==='artisti'){ showArtistList(); loadList(); }
+  else if (t==='promoter'){ showPromoterList(); loadList(); }
+  else if (t==='dash') loadDash();
+  else if (t==='set') loadSettings();
+}
+/* viste elenco ↔ form dentro le sezioni Artisti/Promoter */
+function showArtistForm(){ artistiList.style.display='none'; formA.style.display=''; }
+function showArtistList(){ formA.style.display='none'; artistiList.style.display=''; }
+function showPromoterForm(){ promoterList.style.display='none'; formP.style.display=''; }
+function showPromoterList(){ formP.style.display='none'; promoterList.style.display=''; }
+function startNewArtist(){ newArtist(); showArtistForm(); window.scrollTo({top:0,behavior:'smooth'}); }
+function startNewPromoter(){ newPromoter(); showPromoterForm(); window.scrollTo({top:0,behavior:'smooth'}); }
+function cancelArtist(){ newArtist(); showArtistList(); }
+function cancelPromoter(){ newPromoter(); showPromoterList(); }
+/* ricarica la vista attiva dopo una modifica */
+function refreshCurrent(){ if (CUR==='dash') loadDash(); else loadList(); }
+
+/* ---- 📊 PANORAMICA ---- */
+async function loadDash(){
+  try {
+    const [lst, req] = await Promise.all([api('admin-list.php?limit=5000'), api('admin-requests.php')]);
+    _allA = lst.artists || []; _allP = lst.promoters || []; renderLists();
+    const online  = _allA.filter(a=>a.published==1).length;
+    const review  = _allA.filter(a=>a.published!=1);
+    const unver   = _allA.filter(a=>a.email_verified==0).length + _allP.filter(p=>p.email_verified==0).length;
+    const rp = req.report;
+    const card = (l,v,c,onclick) => `<div class="rc${onclick?' clk':''}" ${onclick?`onclick="${onclick}"`:''}><div class="rc-n" ${c?`style="color:${c}"`:''}>${v}</div><div class="rc-l">${l}</div></div>`;
+    dashCards.innerHTML = [
+      card('🎤 Artisti', _allA.length, '', "tab('artisti')"),
+      card('🟢 Online', online, '#0a7d38'),
+      card('⏳ Da approvare', review.length, '#a5730a'),
+      card('📧 Email da verificare', unver, '#2563eb'),
+      card('📣 Promoter', _allP.length, '', "tab('promoter')"),
+      card('📨 Richieste in attesa', rp.pending, '#2563eb'),
+      card('✅ Accettate', rp.by_status.accettata, '#0a7d38'),
+      card('💶 Valore accettato', eur(rp.accepted_value), '#0a7d38'),
+    ].join('');
+    cntPending.textContent = review.length;
+    pendingList.innerHTML = review.length ? review.map(artistRow).join('') : '<div class="empty">Nessun artista in attesa 🎉</div>';
+    _reqs = req.requests || [];
+    renderReqList();
+  } catch(err){ toast(errMsg(err), true); }
+}
+
+/* ---- Richieste promoter → artista (nella Panoramica) ---- */
+let _reqs = [];
+const REQ_STATUS = {inviata:['📨 Inviata','#6b7280'], vista:['👀 Vista','#2563eb'],
+  accettata:['✅ Accettata','#0a7d38'], rifiutata:['❌ Rifiutata','#c0395e'], ritirata:['↩︎ Ritirata','#92700f']};
+function fmtDate(s){ if(!s) return '—'; const d=new Date(s.replace(' ','T')); return d.toLocaleDateString('it-IT'); }
+function reqRow(x){
+  const s = REQ_STATUS[x.status] || [x.status,'#666'];
+  return `<div class="req-row">
+    <div class="req-main">
+      <a href="#" title="Contatti promoter" onclick="event.preventDefault();editUser(${x.promoter_id},'promoter')"><b>${esc(x.promoter_name||'—')}</b></a>
+      <span class="arrow">→</span>
+      <a href="/${esc(x.artist_slug||'')}" target="_blank" rel="noopener"><b>${esc(x.artist_name||'—')}</b></a>
+      ${x.venue_name?`<span class="muted">· ${esc(x.venue_name)}</span>`:''}
+    </div>
+    <div class="req-meta">
+      <span title="Data richiesta">🗓 ${fmtDate(x.created_at)}</span>
+      ${x.event_date?`<span title="Data evento">🎤 ${fmtDate(x.event_date)}</span>`:''}
+      <span title="Compenso proposto">💶 ${x.proposed_fee!=null?eur(x.proposed_fee):'—'}</span>
+      <span class="req-badge" style="background:${s[1]}22;color:${s[1]}">${s[0]}</span>
+      ${x.responded_at?`<span class="muted" title="Data risposta">risposta ${fmtDate(x.responded_at)}</span>`:''}
+    </div>
+    ${x.message?`<div class="req-msg">${esc(x.message)}</div>`:''}
+  </div>`;
+}
+function renderReqList(){
+  const q = req_q.value.trim().toLowerCase();
+  const L = _reqs.filter(x => !q || ((x.promoter_name||'')+' '+(x.artist_name||'')).toLowerCase().includes(q));
+  cntReq.textContent = q ? `${L.length} / ${_reqs.length}` : _reqs.length;
+  reqList.innerHTML = L.map(reqRow).join('') || '<div class="empty">Nessuna richiesta</div>';
+}
+
+const SETKEYS=['spotify_client_id','spotify_client_secret','youtube_api_key','apify_token'];
+async function loadSettings(){
+  try {
+    const r = await api('admin-settings.php');
+    SETKEYS.forEach(k=>{
+      const s = r.settings[k]||{};
+      document.getElementById('set_'+k).value = s.value||'';
+      const b = document.getElementById('st_'+k);
+      b.textContent = s.active ? (s.from_config?'attiva (config)':'attiva') : 'non attiva';
+      b.className = 'stbadge '+(s.active?'ok':'off');
+    });
+  } catch(err){ toast(errMsg(err), true); }
+}
+async function saveSettings(e){ e.preventDefault();
+  const body={}; SETKEYS.forEach(k=> body[k]=document.getElementById('set_'+k).value.trim());
+  try { await api('admin-settings.php',{method:'POST',body}); toast('Chiavi salvate ✓'); loadSettings(); }
+  catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+
+function genPass(id){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let s=''; const a=new Uint32Array(12); crypto.getRandomValues(a);
+  a.forEach(n=> s+=c[n%c.length]);
+  const el=document.getElementById(id); el.type='text'; el.value=s;
+}
+const val = id => document.getElementById(id).value;
+const setV = (id,v) => { const el=document.getElementById(id); if(el) el.value = (v==null?'':v); };
+
+/* ---- ARTISTA ---- */
+function newArtist(){
+  editAId = null; formA.reset();
+  a_passWrap.style.display=''; a_pass.required=true;
+  a_statusWrap.style.display='none'; a_banner.style.display='none';
+  a_submit.textContent='Crea artista';
+  artistFormReset('a_');
+  onVerifiedToggle();
+  setV('a_manager','');
+  a_multilinkSec.style.display='none';
+  a_pubStatus.style.display='none';
+  a_pubMissing.style.display='none';
+}
+
+/* ---- Indicatore + toggle "pubblicato" DENTRO la scheda di modifica (non solo nell'elenco):
+ * evita che sembri "già attivo" quando in realtà è ancora in revisione. ---- */
+function setPublishIndicator(pub, missing){
+  missing = missing || [];
+  a_pubBadge.innerHTML = pub ? '<span class="tg on">🟢 online</span>' : '<span class="tg warn">⏳ in revisione</span>';
+  a_pubBtn.textContent = pub ? '🚫 Nascondi dalla ricerca' : '✅ Approva (rendi visibile)';
+  a_pubBtn.dataset.pub = pub ? '1' : '0';
+  a_pubMissing.style.display = missing.length ? '' : 'none';
+  a_pubMissing.innerHTML = missing.length ? `⚠️ Per pubblicare mancano: <b>${missing.map(esc).join(', ')}</b>` : '';
+}
+async function toggleArtistPublishForm(){
+  const newPub = a_pubBtn.dataset.pub === '1' ? 0 : 1;
+  a_pubBtn.disabled = true;
+  try {
+    await api('admin-publish.php',{method:'POST',body:{id:editAId, published:newPub}});
+    toast(newPub ? 'Artista approvato ✓ ora è visibile' : 'Artista nascosto dalla ricerca');
+    setPublishIndicator(newPub);
+  } catch(err){ toast(errMsg(err), true); }
+  finally { a_pubBtn.disabled = false; }
+}
+
+/* ---- Multi link (link in bio) — pannello admin, per conto dell'artista ---- */
+function initMultilinkAdmin(p){
+  a_multilinkSec.style.display='';
+  a_mlNoSlug.style.display = p.slug ? 'none' : '';
+  a_mlLinkRow.style.display = p.slug ? 'flex' : 'none';
+  if (p.slug){
+    const url = location.origin + '/l/' + p.slug;
+    a_mlUrl.value = url; a_mlOpen.href = url;
+  }
+  const cl = p.custom_links ? (typeof p.custom_links === 'string' ? JSON.parse(p.custom_links) : p.custom_links) : [];
+  [0, 1, 2].forEach(i => {
+    document.getElementById('a_cl' + (i + 1) + '_t').value = cl[i]?.title || '';
+    document.getElementById('a_cl' + (i + 1) + '_u').value = cl[i]?.url || '';
+  });
+}
+async function copyMlLinkAdmin(){
+  try { await navigator.clipboard.writeText(a_mlUrl.value); }
+  catch (e) { a_mlUrl.select(); document.execCommand('copy'); }
+  toast('Link copiato ✓');
+}
+async function saveCustomLinksAdmin(){
+  const v = id => document.getElementById(id).value;
+  const custom_links = [1, 2, 3].map(i => ({ title: v('a_cl' + i + '_t'), url: v('a_cl' + i + '_u') })).filter(l => l.title || l.url);
+  try {
+    await api('admin-custom-links-save.php', {method:'POST', body:{ id: editAId, custom_links }});
+    toast('Link salvati ✓');
+  } catch (err) { toast(errMsg(err), true); }
+}
+
+/* Profilo "Verificato" = gestito direttamente da 148 Booking: niente email/password
+ * dell'artista (si genera tutto in automatico lato server, l'artista non deve accedere). */
+function onVerifiedToggle(){
+  const managed = a_ver.checked;
+  a_emailWrap.style.display = managed ? 'none' : '';
+  a_email.required = !managed;
+  if (managed) a_email.value = '';
+  const showPass = !managed && !editAId;
+  a_passWrap.style.display = showPass ? '' : 'none';
+  a_pass.required = showPass;
+  if (!showPass) a_pass.value = '';
+  document.getElementById('a_managedHint').style.display = managed ? '' : 'none';
+  setGenreVerified('a_', managed);
+}
+
+async function saveArtist(e){ e.preventDefault();
+  const bodyBase = {
+    email:val('a_email'),
+    ...artistFormCollect('a_'),
+    manager_user_id: val('a_manager') || 0,
+    verified:a_ver.checked?1:0, top8:a_top8.checked?1:0,
+  };
+  const oldLabel = a_submit.textContent;
+  a_submit.disabled = true; a_submit.textContent = '⏳ Salvataggio…';
+  try {
+    let r;
+    if (editAId){
+      r = await api('admin-update-artist.php',{method:'POST',body:{...bodyBase, id:editAId, status:val('a_status')}});
+      toast('Artista aggiornato ✓');
+    } else {
+      r = await api('admin-create-artist.php',{method:'POST',body:{...bodyBase, password:val('a_pass')}});
+      toast('Artista creato (#'+r.id+')');
+    }
+    newArtist(); showArtistList(); loadList();
+  } catch(err){ toast(errMsg(err), true); }
+  finally { a_submit.disabled = false; a_submit.textContent = oldLabel; }
+  return false;
+}
+
+/* ---- PROMOTER ---- */
+function newPromoter(){
+  editPId = null; formP.reset();
+  p_passWrap.style.display=''; p_pass.required=true;
+  p_status.value = 'pending'; p_banner.style.display='none';
+  p_submit.textContent='Crea promoter';
+}
+
+async function savePromoter(e){ e.preventDefault();
+  const bodyBase = {
+    email:val('p_email'), org_name:val('p_org'), tipo:val('p_tipo'),
+    comune:val('p_comune'), provincia:val('p_prov'), phone:val('p_phone'), website:val('p_web'),
+    status:val('p_status'),
+  };
+  try {
+    if (editPId){
+      await api('admin-update-promoter.php',{method:'POST',body:{...bodyBase, id:editPId}});
+      toast('Promoter aggiornato ✓');
+    } else {
+      const r = await api('admin-create-promoter.php',{method:'POST',body:{...bodyBase, password:val('p_pass')}});
+      toast('Promoter creato (#'+r.id+')');
+    }
+    newPromoter(); showPromoterList(); loadList();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+
+/* ---- MODIFICA (carica un utente nel form) ---- */
+async function editUser(id, role){
+  try {
+    const r = await api('admin-get-user.php?id='+id);
+    const u = r.user, p = r.profile || {};
+    if (role === 'artist'){
+      tab('artisti'); showArtistForm(); editAId = id;
+      a_passWrap.style.display='none'; a_pass.required=false; a_pass.value='';
+      a_statusWrap.style.display=''; setV('a_status', u.status);
+      a_banner.style.display=''; a_banner.textContent = 'Modifica artista #'+id+' — '+ (p.stage_name||u.display_name||'');
+      a_pubStatus.style.display='flex'; setPublishIndicator(p.published==1, artistMissingFields(p));
+      a_submit.textContent='Salva modifiche';
+      setV('a_email',u.email);
+      artistFormPopulate('a_', p);
+      fillManagerOptions(); setV('a_manager', p.manager_user_id || '');
+      a_ver.checked = p.verified==1; a_top8.checked = p.top8==1;
+      onVerifiedToggle();
+      initMultilinkAdmin(p);
+    } else {
+      tab('promoter'); showPromoterForm(); editPId = id;
+      p_passWrap.style.display='none'; p_pass.required=false; p_pass.value='';
+      setV('p_status', u.status);
+      p_banner.style.display=''; p_banner.textContent = 'Modifica promoter #'+id+' — '+ (p.org_name||u.display_name||'');
+      p_submit.textContent='Salva modifiche';
+      setV('p_email',u.email); setV('p_org',p.org_name); setV('p_tipo',p.tipo);
+      setV('p_comune',p.comune); setV('p_prov',p.provincia); setV('p_phone',p.phone); setV('p_web',p.website);
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+  } catch(err){ toast(errMsg(err), true); }
+}
+
+/* ---- ELENCO (fetch unico, filtri lato client, artisti e promoter separati) ---- */
+let _allA = [], _allP = [];
+function initListFilters(){
+  if (!fa_show.options.length) fa_show.innerHTML = '<option value="">Tutti i tipi di show</option>' + showOptions('');
+}
+async function loadList(){
+  initListFilters();
+  try {
+    const r = await api('admin-list.php?limit=5000');
+    _allA = r.artists || []; _allP = r.promoters || [];
+    renderLists();
+  } catch(err){ toast(errMsg(err), true); }
+}
+function artistRow(a){
+  return `<div class="admin-row" title="Clicca per modificare" onclick="editUser(${a.id},'artist')">
+    <div class="ar-left">
+      <b>${esc(a.stage_name||a.display_name)}${a.verified==1?'<span class="vchk" title="Artista verificato">✓</span>':''}</b>
+      <span class="muted">${esc(showLabel(a.formazione))}</span>
+      <span class="muted">${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</span>
+    </div>
+    <div class="ar-right">
+      <span class="ar-badges">${a.published==1?'<span class="tg on">🟢 online</span>':'<span class="tg warn">⏳ in revisione</span>'}${a.email_verified==0?'<span class="tg mail">📧 email da verificare</span>':''}${a.verified==1?'<span class="tg ok">✓ verificato</span>':''}${a.top8==1?'<span class="tg ok">⭐ FEATURED</span>':''}${a.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':''}</span>
+      ${a.published==1
+        ? `<button type="button" class="btn ghost sm" title="Nascondi dalla ricerca" onclick="event.stopPropagation();approveArtist(${a.id},0,this)">🚫 nascondi</button>`
+        : `<button type="button" class="btn primary sm" title="Rendi visibile nella ricerca" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">✅ Approva</button>`}
+      <button type="button" class="btn ghost sm" title="Aggiorna statistiche social e calendario disponibilità"
+        onclick="event.stopPropagation();refreshStats(${a.id},this)">🔄 aggiorna</button>
+      <button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.stage_name||a.display_name||'')}"
+        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">🗑 cancella</button>
+    </div></div>`;
+}
+function promoterRow(p){
+  return `<div class="admin-row" title="Clicca per modificare" onclick="editUser(${p.id},'promoter')">
+    <div class="ar-left">
+      <b>${esc(p.org_name||p.display_name)}</b>
+      <span class="muted">${esc([p.comune,p.provincia].filter(Boolean).join(' '))}</span>
+    </div>
+    <div class="ar-right">
+      <span class="ar-badges">${p.role==='management'?'<span class="tg mail">🎧 booking</span>':''}<span class="tg ok">${esc(p.tipo)}</span>${p.email_verified==0?'<span class="tg mail">📧 email da verificare</span>':''}${p.status==='active'?'<span class="tg ok">✓ verificato</span>':p.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':'<span class="tg warn">⏳ da verificare</span>'}</span>
+      <button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(p.org_name||p.display_name||'')}"
+        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">🗑 cancella</button>
+    </div></div>`;
+}
+function sortRows(rows, sortKey, nameFn){
+  const r = rows.slice();
+  const byDate = k => r.sort((a,b) => new Date(b[k]||0) - new Date(a[k]||0));
+  if (sortKey === 'name_asc')  r.sort((a,b) => nameFn(a).localeCompare(nameFn(b), 'it', {sensitivity:'base'}));
+  else if (sortKey === 'name_desc') r.sort((a,b) => nameFn(b).localeCompare(nameFn(a), 'it', {sensitivity:'base'}));
+  else if (sortKey === 'updated_desc') byDate('updated_at');
+  else if (sortKey === 'created_desc') byDate('created_at');
+  else if (sortKey === 'created_asc')  { byDate('created_at'); r.reverse(); }
+  return r;
+}
+function renderLists(){
+  const qa = fa_q.value.trim().toLowerCase(), show = fa_show.value, state = fa_state.value;
+  let A = _allA.filter(a => {
+    const hay = ((a.stage_name||a.display_name||'')+' '+(a.email||'')+' '+(a.comune||'')).toLowerCase();
+    if (qa && !hay.includes(qa)) return false;
+    if (show && a.formazione !== show) return false;
+    if (state==='online'     && a.published!=1)      return false;
+    if (state==='review'     && a.published==1)      return false;
+    if (state==='unverified' && a.email_verified!=0) return false;
+    if (state==='verified'   && a.verified!=1)       return false;
+    return true;
+  });
+  A = sortRows(A, fa_sort.value, a => a.stage_name||a.display_name||'');
+  const qp = fp_q.value.trim().toLowerCase(), tipo = fp_tipo.value, pstate = fp_state.value;
+  let P = _allP.filter(p => {
+    const hay = ((p.org_name||p.display_name||'')+' '+(p.email||'')+' '+(p.comune||'')).toLowerCase();
+    if (qp && !hay.includes(qp)) return false;
+    if (tipo && p.tipo !== tipo) return false;
+    if (pstate==='verified'   && p.status!=='active')  return false;
+    if (pstate==='unverified' && p.status==='active')  return false;
+    if (pstate==='blocked'    && p.status!=='blocked') return false;
+    return true;
+  });
+  P = sortRows(P, fp_sort.value, p => p.org_name||p.display_name||'');
+  cntA.textContent = qa||show||state ? `${A.length} / ${_allA.length}` : _allA.length;
+  cntP.textContent = qp||tipo||pstate ? `${P.length} / ${_allP.length}` : _allP.length;
+  listA.innerHTML = A.map(artistRow).join('') || '<div class="empty">Nessun artista</div>';
+  listP.innerHTML = P.map(promoterRow).join('') || '<div class="empty">Nessun promoter</div>';
+  fillManagerOptions();
+}
+
+/* Popola il select "Agenzia booking" del form artista con gli account management
+ * (arrivano da admin-list nell'elenco promoter, con role='management'). Preserva la scelta corrente. */
+function fillManagerOptions(){
+  const sel = document.getElementById('a_manager'); if (!sel) return;
+  const cur = sel.value;
+  const ags = _allP.filter(p => p.role === 'management');
+  sel.innerHTML = '<option value="">— nessuna —</option>' +
+    ags.map(a => `<option value="${a.id}">${esc(a.org_name||a.display_name||('#'+a.id))}</option>`).join('');
+  sel.value = cur;
+}
+
+/* ---- Elimina un utente ---- */
+async function deleteUser(id, role, btn){
+  const label = role==='artist' ? 'artista' : 'promoter';
+  const name = (btn && btn.dataset ? btn.dataset.name : '') || ('#'+id);
+  if (!confirm('Vuoi eliminare definitivamente il '+label+' "'+name+'"?\n\nL\'operazione è IRREVERSIBILE e rimuove profilo, statistiche e richieste collegate.')) return;
+  try {
+    await api('admin-delete-user.php',{method:'POST',body:{id}});
+    toast('Eliminato ✓');
+    if (editAId===id){ newArtist(); showArtistList(); }
+    if (editPId===id){ newPromoter(); showPromoterList(); }
+    refreshCurrent();
+  } catch(err){ toast(errMsg(err), true); }
+}
+
+/* ---- Approva (pubblica) / nascondi un artista ---- */
+async function approveArtist(id, pub, btn){
+  btn.disabled = true;
+  try {
+    await api('admin-publish.php',{method:'POST',body:{id, published:pub}});
+    toast(pub ? 'Artista approvato ✓ ora è visibile' : 'Artista nascosto dalla ricerca');
+    refreshCurrent();
+  } catch(err){ toast(errMsg(err), true); btn.disabled = false; }
+}
+
+/* ---- Aggiorna statistiche social + calendario disponibilità di un artista (insieme) ---- */
+async function refreshStats(id, btn){
+  const old = btn.textContent; btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const r = await api('admin-refresh-stats.php',{method:'POST',body:{id}});
+    const n = Object.keys(r.stats||{}).length;
+    const nc = (r.calendar_busy||[]).length;
+    const parts = [];
+    parts.push(n ? n+' statistiche' : 'nessun social');
+    parts.push(nc ? nc+' giorni occupati' : 'nessun calendario');
+    toast('Aggiornato: '+parts.join(' · '));
+  } catch(err){ toast(errMsg(err), true); }
+  finally { btn.textContent = old; btn.disabled = false; }
+}
+
+/* ---- GATE (login / bootstrap) ---- */
+async function doLogin(e){ e.preventDefault();
+  try {
+    const u = await api('login.php',{method:'POST',body:{email:li_email.value,password:li_pass.value}});
+    if (u.user.role !== 'admin'){ toast('Questo account non è admin', true); return false; }
+    _me=null; renderNav(); showPanel();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+async function doBootstrap(e){ e.preventDefault();
+  try {
+    await api('admin-bootstrap.php',{method:'POST',body:{token:bs_token.value, email:bs_email.value, password:bs_pass.value}});
+    toast('Admin creato!'); _me=null; renderNav(); showPanel();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+</script>
+
+<style>
+.check{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-weight:500}
+.check input{width:auto}
+.edit-banner{background:#fff7e6;border:1px solid #ffe1a8;color:#7a5b00;padding:8px 12px;border-radius:10px;margin-bottom:14px;font-weight:600;font-size:14px}
+.admin-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:var(--panel);cursor:pointer;transition:border-color .15s}
+.admin-row:hover{border-color:var(--txt)}
+.admin-row .ar-left{display:flex;gap:10px;align-items:baseline;min-width:0;flex-wrap:wrap}
+.admin-row .ar-right{display:flex;gap:10px;align-items:center;flex:none}
+.admin-row .muted{color:var(--muted);font-size:14px}
+.sec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.rc.clk{cursor:pointer;transition:border-color .15s,transform .1s}
+.rc.clk:hover{border-color:var(--txt);transform:translateY(-1px)}
+.list-section{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--panel2)}
+.ls-title{margin:0 0 12px;font-family:var(--f-display)}
+.ls-count{color:var(--muted);font-size:14px;font-weight:600;margin-left:6px}
+.list-filters{display:flex;gap:10px;flex-wrap:nowrap;margin-bottom:14px}
+.list-filters input{flex:2 1 0;min-width:0}
+.list-filters select{flex:1 1 0;min-width:0}
+@media(max-width:700px){
+  .list-filters{flex-wrap:wrap}
+  .list-filters input{flex:1 1 220px;min-width:160px}
+  .list-filters select{flex:1 1 160px;min-width:120px}
+}
+.ar-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.tg.on{background:#eafaf0;color:#0a7d38}
+.tg.warn{background:#fff7e6;color:#a5730a}
+.tg.mail{background:#eaf1fb;color:#2563eb}
+.tg.ok{background:#eef2ff;color:#4f46e5}
+.tg.bad{background:#fbeaef;color:#c0395e}
+#gate{max-width:460px;margin:0 auto}
+.area{font-family:var(--f-display);font-size:18px;font-weight:700;margin:26px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+.fsec{border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px}
+.fsec-h{font-family:var(--f-display);font-size:21px;font-weight:700;margin:0 0 14px}
+.fsec h3{margin:16px 0 8px;font-size:16px}
+.infogrid{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:start;margin-bottom:14px}
+.fsec.info{background:#f3f8ff;border-color:#dbe7fb}
+.fsec.music{background:#faf3fb;border-color:#eed9ef}
+.fsec.money{background:#f1fbf5;border-color:#cdeed8}
+.fsec.tech{background:#fff8ef;border-color:#ffe4bd}
+.req-report{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+.rc-n{font-size:22px;font-weight:700;font-family:var(--f-display)}
+.rc-l{font-size:12px;color:var(--muted);margin-top:2px}
+.req-row{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;background:var(--panel)}
+.req-main{font-size:15px}.req-main .arrow{color:var(--muted);margin:0 4px}
+.req-main a{text-decoration:none;color:inherit}.req-main a:hover b{text-decoration:underline}
+.req-meta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:13px;color:var(--txt);margin-top:6px}
+.req-badge{font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px}
+.req-msg{margin-top:8px;font-size:13px;color:#444;background:var(--panel2);border-radius:8px;padding:8px 10px;white-space:pre-line}
+.req-row .muted{color:var(--muted)}
+.stbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px}
+.stbadge.ok{background:#eafaf0;color:#0a7d38}
+.stbadge.off{background:#fbeaef;color:#c0395e}
+.admin-row .del{color:#c0395e;border-color:#f0c2ce}
+.admin-row .del:hover{background:#fbeaef}
+</style>
+</body>
+</html>

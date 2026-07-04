@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>148 Roster — trova artisti per il tuo evento</title>
+<meta name="description" content="La piattaforma che collega artisti emergenti e promoter. Cerca per budget, distanza e genere.">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+.browse{display:flex;flex-direction:column;gap:18px;padding-top:18px}
+#map{height:380px;border-radius:16px;overflow:hidden;border:1px solid var(--line);position:relative;z-index:0;isolation:isolate}
+.leaflet-pane,.leaflet-top,.leaflet-bottom{z-index:1}
+@media(max-width:640px){#map{height:280px}}
+.artist-pin{background:none;border:0}
+.pin{width:46px;height:46px;position:relative;transform:translateY(-6px)}
+.pin img,.pin .fallback{width:42px;height:42px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);background:#eee}
+.pin .fallback{display:flex;align-items:center;justify-content:center;font-size:19px;background:linear-gradient(135deg,#f0f0f0,#ddd)}
+.pin:after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:7px solid transparent;border-top-color:#fff}
+.pin.vok img,.pin.vok .fallback{border-color:var(--brand)}
+.pin-count{position:absolute;top:-4px;right:-4px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pp .nm{font-weight:700;font-size:15px}
+.pp .mt{color:var(--muted);font-size:13px;margin:2px 0 8px}
+.browse-list{scroll-margin-top:150px}
+/* box prossimi eventi (sopra la mappa): 12 giorni a scorrimento laterale */
+.evtbox{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff}
+.evtbox .feat-head{font-size:14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.evt-link{font-size:12px;font-weight:600;color:var(--brand);white-space:nowrap}
+.evt-link:hover{text-decoration:underline}
+.evt-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.evt-scroll::-webkit-scrollbar{height:5px}
+.evt-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.evt-day{flex:none;width:92px;border:1px solid var(--line2);border-radius:10px;padding:7px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.evt-day.today{border-color:var(--brand);background:#fff5f7}
+.evt-day .edrow{display:flex;align-items:baseline;gap:4px}
+.evt-day .edow{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted)}
+.evt-day .edate{font-size:15px;font-weight:800;font-family:var(--f-display)}
+.evt-day .emon{font-size:10px;font-weight:700;color:var(--muted)}
+.evt-day .eicons{display:flex;justify-content:center;min-height:26px}
+.evt-day .eicons img,.evt-day .eicons .ph{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer;background:#eee}
+.evt-day .eicons .ph{display:flex;align-items:center;justify-content:center;font-size:12px;background:linear-gradient(135deg,#f0f0f0,#ddd)}
+.evt-day .eicons .more{width:26px;height:26px;border-radius:50%;background:var(--txt);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;border:2px solid #fff}
+.evt-day .eicons>*:not(:first-child){margin-left:-10px}
+/* mappa a metà + box artisti in evidenza */
+.browse-top{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.browse-top{grid-template-columns:1fr}}
+.browse-featured{border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;height:380px;background:#fff}
+@media(max-width:640px){.browse-featured{height:auto}}
+.feat-head{font-family:var(--f-display);font-weight:700;font-size:17px;margin-bottom:8px}
+#featured{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,1fr);gap:0 18px}
+@media(max-width:520px){
+  #featured{grid-template-columns:1fr;grid-template-rows:repeat(5,1fr)}
+  #featured .feat-item:nth-child(n+6){display:none}
+}
+.feat-item{display:flex;align-items:center;gap:11px;padding:9px 6px;border-radius:12px;text-decoration:none;color:inherit;transition:.12s;border-bottom:1px solid var(--line2);min-width:0}
+.feat-item:hover{background:var(--panel2)}
+.feat-ic{width:50px;height:50px;border-radius:11px;overflow:hidden;flex:none;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c9c9c9}
+.feat-ic img{width:100%;height:100%;object-fit:cover}
+.feat-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.feat-info .fn{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feat-info .fs{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* barra filtri */
+.filterbar{display:flex;flex-wrap:nowrap;gap:14px;align-items:flex-end;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;overflow-x:auto}
+.filterbar::-webkit-scrollbar{height:6px}
+.filterbar::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.fb{display:flex;flex-direction:column;gap:5px;flex:none}
+.fb label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.fb input,.fb select{height:40px}
+.fb-search{flex:1 1 180px;min-width:150px}
+.fb-range{flex:none;width:160px}
+.fb-range input[type=range]{width:100%;accent-color:var(--brand);height:30px}
+.fb .val{color:var(--txt)}
+.switch{position:relative;display:inline-block;width:48px;height:26px;margin-bottom:7px}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:#ccc;border-radius:26px;transition:.2s;cursor:pointer}
+.switch .slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:var(--brand)}
+.switch input:checked + .slider:before{transform:translateX(22px)}
+/* pill condiviso: CTA registrati + bottone Vicino a me */
+.fb-pill{display:inline-flex;align-items:center;gap:11px;background:linear-gradient(135deg,#fff5f7,#fff);border:1.5px solid var(--brand);border-radius:12px;padding:7px 15px 7px 8px;text-decoration:none;transition:.18s;box-shadow:0 1px 5px rgba(213,36,84,.14);cursor:pointer;font-family:inherit;height:52px}
+.fb-pill:hover{background:var(--brand);box-shadow:0 6px 18px rgba(213,36,84,.32);transform:translateY(-1px)}
+.fb-pill .cta-ic{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;transition:.18s}
+.fb-pill:hover .cta-ic{background:#fff;color:var(--brand)}
+.fb-pill .cta-tx{display:flex;flex-direction:column;line-height:1.2;text-align:left}
+.fb-pill .cta-tx b{font-size:14px;color:var(--brand);transition:.18s;white-space:nowrap}
+.fb-pill .cta-tx span{font-size:12px;color:var(--muted);transition:.18s;white-space:nowrap}
+.fb-pill:hover .cta-tx b,.fb-pill:hover .cta-tx span{color:#fff}
+.fb-pill.gps-on,.fb-pill.on{background:var(--brand);box-shadow:0 6px 18px rgba(213,36,84,.32)}
+.fb-pill.gps-on .cta-ic,.fb-pill.on .cta-ic{background:#fff;color:var(--brand)}
+.fb-pill.gps-on .cta-tx b,.fb-pill.on .cta-tx b,.fb-pill.gps-on .cta-tx span,.fb-pill.on .cta-tx span{color:#fff}
+.fb-cta{display:none}
+/* chip formazione (icone cliccabili) */
+.formchips{display:flex;flex-wrap:nowrap;gap:5px}
+.fchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;user-select:none;transition:.12s;white-space:nowrap}
+.fchip:hover{border-color:var(--txt)}
+.fchip.on{background:var(--txt);border-color:var(--txt);color:#fff}
+@media(max-width:600px){.fb-search{flex-basis:100%}.fb-range{flex:1}}
+/* icone ordinamento/filtro rapido accanto al conteggio risultati */
+.sort-icons{display:flex;gap:14px;flex:none}
+.sicon{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted);cursor:pointer;padding:2px 2px 6px;border:0;border-bottom:2px solid transparent;background:none;font-size:11px;font-weight:600;white-space:nowrap;opacity:.85;font-family:inherit}
+.sicon .sic-ic{font-size:20px;filter:grayscale(1);opacity:.7}
+.sicon:hover{color:var(--txt);border-color:var(--line)}
+.sicon.on{color:var(--txt);border-color:var(--txt);opacity:1}
+.sicon.on .sic-ic{filter:none;opacity:1}
+/* CTA registrazione artisti / promoter */
+.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:10px 0 4px}
+@media(max-width:900px){.cta-grid{grid-template-columns:1fr}}
+.artist-cta{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:20px;border-radius:22px;padding:32px 34px;isolation:isolate}
+.artist-cta-glow{position:absolute;inset:0;pointer-events:none;z-index:0}
+.artist-cta-tx{position:relative;z-index:1}
+.artist-cta-badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;border-radius:999px;padding:5px 13px;margin-bottom:14px}
+.artist-cta-tx h2{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px;color:#fff}
+.artist-cta-tx p{color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.6;margin:0}
+.artist-cta-btn{position:relative;z-index:1;flex:none;display:inline-flex;align-items:center;gap:9px;background:#fff;font-weight:700;font-size:15px;text-decoration:none;padding:14px 24px;border-radius:12px;transition:.18s;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.artist-cta-btn:hover{color:#fff;transform:translateY(-1px)}
+.artist-cta-btn .arrow{transition:.18s}
+.artist-cta-btn:hover .arrow{transform:translateX(3px)}
+/* artista — celeste, come la spunta verificato */
+.cta-blue{background:radial-gradient(140% 140% at 0% 0%,#0f2333 0%,#0a1620 55%,#070f16 100%)}
+.cta-blue .artist-cta-glow{background:radial-gradient(60% 90% at 85% 20%,rgba(29,155,240,.45),transparent 70%)}
+.cta-blue .artist-cta-badge{color:#8fd4ff;background:rgba(29,155,240,.16);border:1px solid rgba(255,255,255,.14)}
+.cta-blue .artist-cta-btn{color:#0a1620}
+.cta-blue .artist-cta-btn:hover{background:#1d9bf0}
+/* promoter — rosa/brand */
+.cta-pink{background:radial-gradient(140% 140% at 0% 0%,#2a0f1a 0%,#180a12 55%,#0f0710 100%)}
+.cta-pink .artist-cta-glow{background:radial-gradient(60% 90% at 85% 20%,rgba(213,36,84,.45),transparent 70%)}
+.cta-pink .artist-cta-badge{color:#ffb3c6;background:rgba(213,36,84,.16);border:1px solid rgba(255,255,255,.14)}
+.cta-pink .artist-cta-btn{color:#180a12}
+.cta-pink .artist-cta-btn:hover{background:var(--brand)}
+@media(max-width:640px){.artist-cta{padding:26px}.artist-cta-btn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<!-- category bar generi -->
+<div class="catbar-wrap">
+  <div class="container">
+    <div class="catbar" id="catbar"></div>
+  </div>
+</div>
+
+<main class="container">
+  <div class="browse">
+    <div class="evtbox">
+      <div class="feat-head"><span>Prossimi eventi</span><a class="evt-link" href="/calendario.html">📅 Calendario completo</a></div>
+      <div class="evt-scroll" id="evtScroll"></div>
+    </div>
+    <div class="browse-top">
+      <aside class="browse-map"><div id="map"></div></aside>
+      <aside class="browse-featured">
+        <div class="feat-head"><span class="vchk">✓</span> Artisti in evidenza</div>
+        <div id="featured" style="flex:1;overflow:auto"></div>
+      </aside>
+    </div>
+
+    <section class="browse-list">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>
+          <div id="count" class="sub" style="margin:0"></div>
+          <div class="hint" style="margin-top:4px;color:#7a5b00">I prezzi degli artisti non verificati sono indicativi</div>
+        </div>
+        <div class="sort-icons" id="sortIcons"></div>
+      </div>
+      <div id="results" class="grid-cards"></div>
+      <div id="empty" class="empty" style="display:none">Nessun artista trovato con questi filtri.</div>
+      <div id="loadmore" style="display:none;text-align:center;padding:20px 0">
+        <button class="btn ghost" onclick="loadMore()">Carica altri risultati</button>
+      </div>
+    </section>
+
+    <div class="cta-grid">
+      <section class="artist-cta cta-blue" id="artistCta">
+        <div class="artist-cta-glow"></div>
+        <div class="artist-cta-tx">
+          <span class="artist-cta-badge">Incluso gratis · link in bio</span>
+          <h2>Sei un artista?</h2>
+          <p>Registrati su 148 Roster e fatti trovare dai promoter: pubblica il tuo profilo con cachet, disponibilità e generi. Foto, biografia, statistiche e link in bio si aggiornano da soli — meno fatica per te, così pensi solo alla musica. In regalo ricevi il tuo link in bio personalizzato, gratuito, per raccogliere tutti i tuoi social in un'unica pagina.</p>
+        </div>
+        <a class="artist-cta-btn" href="/registrati-artista.html">Registrati gratis<span class="arrow">→</span></a>
+      </section>
+
+      <section class="artist-cta cta-pink" id="promoterCta">
+        <div class="artist-cta-glow"></div>
+        <div class="artist-cta-tx">
+          <span class="artist-cta-badge">Tutti gli artisti che vuoi</span>
+          <h2>Sei un promoter?</h2>
+          <p>Registrati su 148 Roster e cerca l'artista giusto per il tuo evento filtrando per budget, distanza e genere. I cachet sono spesso trattabili e alcuni artisti si esibiscono anche solo a rimborso spese.</p>
+        </div>
+        <a class="artist-cta-btn" href="/registrati-promoter.html">Registrati gratis<span class="arrow">→</span></a>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false };
+let genres=[], lastResults=[];
+let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false;
+let lastArtistCount=null, promoterCount=null;
+
+// Legge i filtri passati via query string (es. dal popup "Cerca" nell'header, su qualsiasi pagina)
+function applyParamsFromURL(){
+  const sp=new URLSearchParams(location.search);
+  if(sp.has('q')) state.q=sp.get('q');
+  if(sp.has('formazione')) state.form=sp.get('formazione');
+  if(sp.get('trattabile')==='1') state.tratt=true;
+  if(sp.get('no_price')==='1') state.noPrice=true;
+  if(sp.get('promo')==='1') state.promo=true;
+  if(sp.has('cachet_max')) state.cachetMax=+sp.get('cachet_max');
+  sp.getAll('genre').forEach(g=>state.genres.add(g));
+  // /genere/<slug> (link diretto condivisibile): il rewrite lato server è invisibile a location.search,
+  // va letto dal path come già si fa per /nome-artista in artista.html.
+  const genreMatch = location.pathname.match(/^\/genere\/([a-z0-9][a-z0-9-]*)\/?$/);
+  if(genreMatch) state.genres.add(genreMatch[1]);
+  if(sp.has('lat') && sp.has('lng')){
+    state.gps={lat:+sp.get('lat'), lng:+sp.get('lng')};
+    state.km=sp.get('max_km')||'250'; state.sort='distance';
+  }
+}
+
+let CAN_SORT_PRICE=false, priceDir='asc';
+async function init(){
+  await renderNav();
+  applyParamsFromURL();
+  const me=await getMe();
+  if(me.user){ document.querySelector('.cta-grid').style.display='none'; }
+  CAN_SORT_PRICE = !!(me.user && me.user.role==='promoter');
+  renderSortIcons();
+  genres=(await api('genres.php')).genres.filter(g=>g.cnt>0);
+  document.getElementById('catbar').innerHTML =
+    `<div class="cat${state.genres.size?'':' on'}" data-slug="" onclick="pickCat(this)"><span class="ic">✨</span>Tutti</div>` +
+    genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${GENRE_ICONS[g.slug]||'🎵'}</span>${esc(g.name)}</div>`).join('');
+
+  initMap();
+  search();
+  loadUpcomingEvents();
+  loadPlatformStats();
+}
+
+// Icone rapide: prezzo su/giù (solo promoter), vicino a me, cachet da concordare, promo
+function renderSortIcons(){
+  const el=document.getElementById('sortIcons'); if(!el) return;
+  el.innerHTML = `
+    ${CAN_SORT_PRICE?`<button type="button" class="sicon${state.sort==='cachet'?' on':''}" onclick="toggleSortPrice()" title="Ordina per prezzo"><span class="sic-ic">💶</span>Prezzo${state.sort==='cachet'?(priceDir==='desc'?' ▼':' ▲'):''}</button>`:''}
+    <button type="button" class="sicon${state.sort==='distance'?' on':''}" onclick="toggleSortGps()" title="Vicino a me"><span class="sic-ic">📍</span>Vicino</button>
+    <button type="button" class="sicon${state.noPrice?' on':''}" onclick="toggleNoPriceIcon()" title="Artisti con cachet da concordare"><span class="sic-ic">🥪</span>Offerta</button>
+    <button type="button" class="sicon${state.promo?' on':''}" onclick="togglePromoIcon()" title="Artisti con promozione attiva"><span class="sic-ic">🏷️</span>Promo</button>`;
+}
+function toggleSortPrice(){
+  if(state.sort!=='cachet'){ state.sort='cachet'; priceDir='asc'; }
+  else { priceDir = priceDir==='asc'?'desc':'asc'; }
+  state.gps=null; state.km='';
+  renderSortIcons(); scrollToResults(); search();
+}
+function toggleSortGps(){
+  if(state.sort==='distance'){ state.gps=null; state.km=''; state.sort='az'; renderSortIcons(); scrollToResults(); search(); return; }
+  if(!navigator.geolocation || !window.isSecureContext){ toast('Geolocalizzazione non disponibile',true); return; }
+  toast('Rilevo la tua posizione…');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    state.gps={lat:pos.coords.latitude,lng:pos.coords.longitude}; state.km='250'; state.sort='distance';
+    renderSortIcons(); scrollToResults(); search();
+    toast('Artisti entro 250 km da te');
+  }, err=>{
+    toast(err && err.code===1 ? 'Permesso posizione negato dal browser' : 'Posizione non disponibile', true);
+  }, {enableHighAccuracy:false, timeout:10000, maximumAge:600000});
+}
+function toggleNoPriceIcon(){
+  state.noPrice=!state.noPrice;
+  renderSortIcons(); scrollToResults(); search();
+}
+function togglePromoIcon(){
+  state.promo=!state.promo;
+  renderSortIcons(); scrollToResults(); search();
+}
+
+// Box "Prossimi eventi": 120 giorni da oggi (~12 visibili, resto a scorrimento), icona degli artisti impegnati quel giorno
+const GIORNI_SETT=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const MESI_ABBR=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+async function loadUpcomingEvents(){
+  let data=[];
+  try{ data=(await api('calendars-busy.php')).artists||[]; }catch(e){ return; }
+  const busyByDay={};
+  data.forEach(a=>{ (a.busy||[]).forEach(iso=>{ (busyByDay[iso]=busyByDay[iso]||[]).push(a); }); });
+  const today=new Date(); today.setHours(0,0,0,0);
+  let html='';
+  for(let i=0;i<120;i++){
+    const d=new Date(today); d.setDate(d.getDate()+i);
+    const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const list=busyByDay[iso]||[];
+    const shown=list.slice(0,3);
+    const extra=list.length-shown.length;
+    const icons=shown.map(a=>`<span onclick="event.stopPropagation();goArtist('${esc(a.slug||'')}')" title="${esc(a.stage_name||'Artista')}">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'<div class="ph">🎵</div>'}</span>`).join('')
+      + (extra>0?`<span class="more">+${extra}</span>`:'');
+    html+=`<div class="evt-day${i===0?' today':''}">
+      <div class="edrow"><span class="edow">${GIORNI_SETT[d.getDay()]}</span><span class="edate">${d.getDate()}</span><span class="emon">${MESI_ABBR[d.getMonth()]}</span></div>
+      <div class="eicons">${icons}</div>
+    </div>`;
+  }
+  document.getElementById('evtScroll').innerHTML=html;
+}
+
+// Box "Artisti in evidenza": segue gli stessi filtri applicati alla ricerca/mappa
+async function loadFeatured(qs=''){
+  try{
+    const r=await api('artists-featured.php'+(qs?'?'+qs:'')); const list=r.artists||[];
+    document.getElementById('featured').innerHTML = list.length ? list.map(a=>`
+      <a class="feat-item" href="/${esc(a.slug||'')}">
+        <span class="feat-ic">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'🎵'}</span>
+        <span class="feat-info">
+          <span class="fn">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</span>
+          <span class="fs">${esc(showLabel(a.formazione))}${a.genre?' · '+esc(a.genre):''}${a.comune?' · '+esc(a.comune):''}</span>
+        </span>
+      </a>`).join('') : '<div class="hint">Nessun artista in evidenza</div>';
+  }catch(e){}
+}
+function scrollToResults(){
+  document.querySelector('.browse-list').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function pickCat(el){
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  state.genres.clear();
+  if(el.dataset.slug){
+    state.genres.add(el.dataset.slug);
+    history.pushState({}, '', '/genere/'+encodeURIComponent(el.dataset.slug));
+  } else {
+    history.pushState({}, '', '/');
+  }
+  scrollToResults();
+  search();
+}
+
+const LIMIT=20;
+let page=1, loading=false, hasMore=false;
+function buildFilterParams(){
+  const p=new URLSearchParams();
+  if(state.q) p.set('q',state.q);
+  if(state.cachetMax!=null) p.set('cachet_max',state.cachetMax);
+  if(state.tratt) p.set('trattabile','1');
+  if(state.noPrice) p.set('no_price','1');
+  if(state.promo) p.set('promo','1');
+  if(state.form) p.set('formazione',state.form);
+  if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
+  state.genres.forEach(g=>p.append('genre',g));
+  return p;
+}
+function buildParams(pg){
+  const p=buildFilterParams();
+  p.set('sort',state.sort);
+  if(state.sort==='cachet' && priceDir==='desc') p.set('dir','desc');
+  p.set('page',pg); p.set('limit',LIMIT);
+  return p;
+}
+async function search(){
+  page=1; hasMore=false; lastResults=[];
+  await loadPage(true);
+  const qs=buildFilterParams().toString();
+  loadAllMapArtists(qs);
+  loadFeatured(qs);
+}
+function loadMore(){ loadPage(false); }
+async function loadPage(reset){
+  if(loading || (!reset && !hasMore)) return;
+  loading=true;
+  const pg = reset?1:page+1;
+  try{
+    const r=await api('artists-search.php?'+buildParams(pg).toString());
+    LOCKED=!!r.locked;
+    PENDING_VERIFICATION=!!r.pending_verification;
+    const list=r.results||[];
+    const res=document.getElementById('results');
+    if(reset){ lastResults=list.slice(); res.innerHTML=list.map((a,i)=>cardHtml(a,i)).join(''); }
+    else{ const start=lastResults.length; res.insertAdjacentHTML('beforeend', list.map((a,i)=>cardHtml(a,start+i)).join('')); lastResults=lastResults.concat(list); }
+    page=pg;
+    hasMore = list.length===LIMIT;
+    document.getElementById('empty').style.display=!lastResults.length?'block':'none';
+    renderCounts(r.total??lastResults.length);
+    document.getElementById('loadmore').style.display=hasMore?'block':'none';
+  }catch(err){ toast(errMsg(err),true); }
+  loading=false;
+}
+
+function renderCounts(n){
+  lastArtistCount=n;
+  const artistsTxt = n ? `${n} artist${n>1?'i':'a'} disponibil${n>1?'i':'e'}` : '';
+  const promoTxt = (artistsTxt && promoterCount!=null) ? ` · ${promoterCount} promoter registrat${promoterCount>1?'i':'o'}` : '';
+  document.getElementById('count').textContent = artistsTxt + promoTxt;
+}
+async function loadPlatformStats(){
+  try{ const r=await api('platform-stats.php'); promoterCount=r.promoters; renderCounts(lastArtistCount); }catch(e){}
+}
+
+function cachetLabel(a){
+  if(LOCKED) return PENDING_VERIFICATION?'🔒 Verifica in corso':'🔒 <a href="/accedi.html" onclick="event.stopPropagation()">Accedi</a> per il prezzo';
+  const tratt = a.cachet_trattabile==1?' (trattabile)':'';
+  if(a.cachet_min==null && a.cachet_max==null) return 'Trattativa riservata';
+  const v=a.cachet_min ?? a.cachet_max;
+  if(v===0) return 'Disponibile, senza impegno';
+  if(a.has_promo && a.cachet_promo!=null)
+    return `<s style="color:var(--muted);font-weight:400">${eur(v)}</s> <b style="color:#c0395e">${eur(a.cachet_promo)}</b> a serata${tratt}`;
+  return `<b>${eur(v)}</b> a serata${tratt}`;
+}
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+function cardHtml(a,i){
+  return `
+    <div class="card" onclick="goArtist('${esc(a.slug||'')}')">
+      <div class="imgwrap">
+        ${a.photo_url?`<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer" loading="lazy">`:'<div class="ph-empty">🎵</div>'}
+        ${topSocialStats(a.stats).length?`<div class="imgtop">${topSocialStats(a.stats).map(([plat,v])=>miniSocialIcon(plat,v)).join('')}</div>`:''}
+        <div class="imgfoot">
+          <span class="if-left">${esc(showLabel(a.formazione))}</span>
+          <span class="if-right">${a.comune?esc(a.comune):''}</span>
+        </div>
+      </div>
+      <div class="info">
+        <div class="row1">
+          <span class="name"${a.has_promo?' style="color:#c0395e"':''}>${(a.genres||[]).some(g=>g.slug==='hard')?'🔞 ':''}${esc(a.stage_name||'Senza nome')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</span>
+          ${a.distance_km!=null?`<span class="dist">${a.distance_km} km</span>`:''}
+        </div>
+        ${(a.genres&&a.genres.length)?`<div class="sub">${esc(a.genres.map(g=>g.name).join(' · '))}</div>`:''}
+        <div class="price">${cachetLabel(a)}</div>
+      </div>
+    </div>`;
+}
+function goArtist(slug){ if(slug) location.href='/'+slug; }
+
+// ---- Mappa in home (mostra sempre TUTTO il roster, indipendente dai filtri della lista) ----
+// Caricamento rimandato al consenso cookie per terze parti (la mappa usa riquadri OpenStreetMap/CARTO)
+function initMap(){
+  initGatedMap('map', doInitMap);
+}
+function doInitMap(){
+  if(map) return;
+  map=L.map('map',{scrollWheelZoom:true}).setView([42.2,12.6],6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(map);
+  markerLayer=L.layerGroup().addTo(map);
+  setTimeout(()=>map.invalidateSize(),100);
+  loadAllMapArtists(buildFilterParams().toString());
+}
+async function loadAllMapArtists(qs=''){
+  if(!map||!markerLayer) return;
+  try{
+    const r=await api('artists-map.php'+(qs?'?'+qs:''));
+    renderArtistPins(map, markerLayer, r.artists||[], {fit:true, locked:!!r.locked, pendingVerification:!!r.pending_verification});
+  }catch(e){}
+}
+
+init();
+</script>
+</body>
+</html>

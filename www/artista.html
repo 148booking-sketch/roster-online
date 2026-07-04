@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Artista · 148 Roster</title>
+<meta name="description" content="Profilo artista su 148 Roster">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.listing{max-width:var(--maxw);margin:0 auto;padding:28px 24px}
+.hero2{display:grid;grid-template-columns:352px 1fr;gap:16px;margin-bottom:26px;align-items:stretch}
+.hero2.solo{grid-template-columns:352px}
+@media(max-width:760px){.hero2,.hero2.solo{grid-template-columns:1fr}}
+.hero2 .photo{width:352px;max-width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);position:relative}
+.promo-pin{position:absolute;top:12px;left:12px;background:#c0395e;color:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:2}
+@media(max-width:760px){.hero2 .photo{width:100%}}
+.hero2 .photo img{width:100%;height:100%;object-fit:cover}
+.hero2 .spotifybox{border-radius:16px;overflow:hidden;min-height:352px;background:var(--panel2);position:relative}
+.hero2 .spotifybox iframe{display:block;width:100%;height:100%;min-height:352px;border:0}
+@media(max-width:760px){.hero2 .spotifybox,.hero2 .spotifybox iframe{min-height:352px}}
+.layout2{display:grid;grid-template-columns:352px 1fr;gap:16px;align-items:start;margin-top:20px}
+@media(max-width:760px){.layout2{grid-template-columns:1fr}}
+/* mobile: il box bio (panel) va per primo, prima della foto */
+@media(max-width:760px){
+  #main.listing{display:flex;flex-direction:column;gap:18px}
+  #main.listing .layout2{display:contents}
+  #main.listing .rightcol{display:contents}
+  .hero2{order:2;margin-bottom:0}
+  #main.listing .layout2 > aside{order:3}
+  .panel{order:1}
+  .media{order:4}
+}
+.bookcard{border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.bookcard .irow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line2);font-size:14px}
+.bookcard .irow:first-of-type{border-top:0}
+.bookcard .irow span{color:var(--muted)}
+.divide{border:0;border-top:1px solid var(--line2);margin:22px 0}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(min-width:761px){.statgrid{grid-template-columns:1fr 1fr 1fr}}
+.statbox{border:1px solid var(--line);border-radius:14px;padding:16px}
+.statbox .n{font-size:24px;font-weight:700;font-family:var(--f-display)}
+.igbox{margin-top:16px}
+.igphotos{display:flex;gap:10px}
+.igphotos a{flex:1;aspect-ratio:1;border-radius:12px;overflow:hidden;display:block;background:var(--line2)}
+.igphotos img{width:100%;height:100%;object-fit:cover;display:block}
+.tkvideos{display:flex;gap:10px}
+.tkvideos a{flex:1;aspect-ratio:3/4;border-radius:12px;overflow:hidden;display:block;background:var(--line2);position:relative}
+.tkvideos img{width:100%;height:100%;object-fit:cover;display:block}
+.tkvideos .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;text-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none}
+.sociallinks{display:flex;flex-wrap:wrap;gap:10px}
+.h1{font-family:var(--f-display);font-size:28px;font-weight:700;letter-spacing:-.5px;margin:0 0 4px}
+/* box identità: titolo in cima, social sotto il nome, genere a destra */
+.idgrid{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:20px;row-gap:8px;align-items:center}
+.idgrid .id-title{grid-column:1/-1;grid-row:1;min-width:0}
+.idgrid .id-social{grid-column:1;grid-row:2;justify-self:start;display:flex;gap:14px;align-items:center;flex:none}
+.idgrid .id-genre{grid-column:2;grid-row:2;justify-self:end;margin:0}
+@media(max-width:520px){
+  .idgrid{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .idgrid .id-title{grid-column:1;grid-row:1}
+  .idgrid .id-social{grid-column:1;grid-row:2;justify-self:start}
+  .idgrid .id-genre{grid-column:1;grid-row:3;justify-self:start}
+}
+.callabel{font-weight:700;font-size:14px;margin:16px 0 2px}
+.bookcard .irow.gearrow{flex-direction:column;align-items:flex-start;gap:6px}
+.calnav{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}
+.calnav b{font-size:14px;text-transform:capitalize}
+.calnav button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+.calnav button:hover:not(:disabled){background:var(--panel2)}
+.calnav button:disabled{opacity:.35;cursor:default}
+.calhead{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.calhead span{text-align:center;font-size:10px;font-weight:700;color:var(--muted)}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal{aspect-ratio:1/1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid var(--line2)}
+.cal.blank{border:0;background:transparent}
+.cal.free{background:#eafaf0;border-color:#bfe9cf;color:#0a7d38;cursor:pointer}
+.cal.free:hover{background:#d3f0df}
+.cal.sel{background:var(--brand);border-color:var(--brand);color:#fff}
+.cal.busy{background:#fbeaef;border-color:#f3b9c8;color:#d98aa0;text-decoration:line-through}
+.cal.past{background:#f7f7f7;color:#cfcfcf}
+.callegend{display:flex;align-items:center;gap:14px;margin-top:9px;font-size:12px;color:var(--muted)}
+.callegend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.dot.free{background:#7ed6a2}.dot.busy{background:#f3b9c8}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+<main class="listing" id="main"><div class="empty">Caricamento…</div></main>
+
+
+<script src="/assets/api.js"></script>
+<script>
+let A=null;
+const slug=(new URLSearchParams(location.search)).get('slug')||location.pathname.replace(/^\/|\/$/g,'');
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+function cachetLabel(a){ const v=a.cachet_min ?? a.cachet_max; if(v==null) return 'Trattativa riservata';
+  if(v===0) return 'Disponibile, senza impegno';
+  if(a.has_promo && a.cachet_promo!=null) return `<s style="color:var(--muted);font-weight:400;font-size:17px">${eur(v)}</s> <span style="color:#c0395e">${eur(a.cachet_promo)}</span>`;
+  return eur(v); }
+function promoDate(s){ if(!s) return ''; const d=new Date((''+s).replace(' ','T')); return isNaN(d)?'':d.toLocaleDateString('it-IT'); }
+function trattabileLabel(a){ const v=a.cachet_min ?? a.cachet_max; if(v==null||a.cachet_trattabile==null) return '';
+  return a.cachet_trattabile==1 ? ' · trattabile' : ' · non trattabile'; }
+function rimborsoLabel(a){ switch(a.rimborso_tipo){
+  case'incluso':return'Incluso nel cachet';
+  case'forfait':return a.rimborso_forfait!=null?('Forfait '+eur(a.rimborso_forfait)):'Forfait'; default:return'Da concordare'; } }
+function socialIcon(k,href,color){
+  const p=SOCIAL_SVG[k]; if(!p) return '';
+  return `<a href="${esc(href)}" target="_blank" rel="noopener" title="${SM[k]?SM[k][0]:esc(k)}" style="display:inline-flex;color:${color||'#555'}">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="display:block">${p}</svg></a>`;
+}
+
+function spotifyId(a){ const m=((a.socials||{}).spotify||'').match(/\/artist\/([A-Za-z0-9]+)/); return m?m[1]:''; }
+function youtubeEmbed(a){
+  const id=(a.stats||{}).youtube_video; if(!id) return '';
+  return gatedEmbed(`<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;margin-top:22px">
+      <iframe style="position:absolute;inset:0;width:100%;height:100%" src="https://www.youtube.com/embed/${esc(id)}"
+        frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
+    </div>`,'YouTube');
+}
+function twitchEmbed(a){
+  const id=(a.stats||{}).twitch_video; if(!id) return '';
+  return gatedEmbed(`<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;margin-top:22px">
+      <iframe style="position:absolute;inset:0;width:100%;height:100%"
+        src="https://player.twitch.tv/?video=${esc(id)}&parent=${location.hostname}&autoplay=false"
+        frameborder="0" allowfullscreen></iframe>
+    </div>`,'Twitch');
+}
+/* Ultimi video TikTok — miniature (copertina) in riga, stesso stile delle foto Instagram
+   sopra (3 colonne uguali), ogni miniatura apre il video vero e proprio su TikTok in una
+   nuova scheda. La copertina è servita via proxy (/api/tiktok-photo.php): tikwm dà solo
+   URL firmati che scadono in 1-2 giorni, quindi vanno rifatti al volo invece che salvati
+   in stats. */
+function tiktokVideosWidget(a){
+  const ids=((a.stats||{}).tiktok_videos||[]).slice(0,3);
+  if(!ids.length || !(a.socials||{}).tiktok) return '';
+  const handle=(a.socials.tiktok.match(/tiktok\.com\/@?([\w.]+)/)||[,a.socials.tiktok.replace(/^@/,'')])[1];
+  const v=encodeURIComponent(a.stats_updated_at||'');
+  return `<div class="igbox tkvideos">${ids.map((id,i)=>`
+      <a href="https://www.tiktok.com/@${esc(handle)}/video/${esc(id)}" target="_blank" rel="noopener" title="Guarda su TikTok">
+        <img src="/api/tiktok-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'">
+        <span class="play">▶</span>
+      </a>`).join('')}</div>`;
+}
+/* Ultime foto Instagram — solo hotlink (nessun download), ogni miniatura porta al profilo IG.
+   Le URL delle foto sono link CDN firmati da Instagram e scadono dopo pochi giorni: onerror
+   nasconde la singola miniatura invece di mostrarla rotta. */
+function igPhotosWidget(a){
+  const photos=(a.stats||{}).instagram_photos||[];
+  if(!photos.length || !(a.socials||{}).instagram) return '';
+  const href=esc(socialHref('instagram',a.socials.instagram));
+  // le foto vengono servite via proxy (/api/ig-photo.php): il CDN di Instagram manda
+  // Cross-Origin-Resource-Policy:same-origin, quindi l'hotlink diretto da un altro
+  // dominio viene bloccato dal browser (ERR_BLOCKED_BY_RESPONSE.NotSameOrigin).
+  const v=encodeURIComponent(a.stats_updated_at||'');
+  return `<div class="igbox igphotos">${photos.slice(0,3).map((u,i)=>`
+      <a href="${href}" target="_blank" rel="noopener" title="Apri il profilo Instagram">
+        <img src="/api/ig-photo.php?u=${a.user_id}&i=${i}&v=${v}" loading="lazy" alt="" onerror="this.closest('a').style.display='none'">
+      </a>`).join('')}</div>`;
+}
+// ---- Calendario mensile navigabile (dentro il box prenotazione) ----
+const MESI_FULL=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let calY, calM, selectedDate=null, busySet=new Set();
+function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function initCal(a){ busySet=new Set(a.calendar_busy||[]); const t=new Date(); calY=t.getFullYear(); calM=t.getMonth(); }
+function calNav(delta){ calM+=delta; if(calM<0){calM=11;calY--} if(calM>11){calM=0;calY++} drawCal(); }
+function pickDate(iso){ selectedDate=(selectedDate===iso?null:iso); drawCal(); updateSelDate(); }
+function updateSelDate(){
+  const el=document.getElementById('selDateLabel'); if(!el) return;
+  if(!selectedDate){ el.textContent=''; return; }
+  const d=new Date(selectedDate+'T00:00:00');
+  el.innerHTML='📅 Data scelta: <b>'+d.getDate()+' '+MESI_FULL[d.getMonth()].toLowerCase()+' '+d.getFullYear()+'</b>';
+}
+function drawCal(){
+  const box=document.getElementById('calBox'); if(!box) return;
+  const GG=['L','M','M','G','V','S','D'];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const first=new Date(calY,calM,1); const startDow=(first.getDay()+6)%7;
+  const daysInMonth=new Date(calY,calM+1,0).getDate();
+  const canPrev=(new Date(calY,calM,1) > new Date(today.getFullYear(),today.getMonth(),1));
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+=`<div class="cal blank"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(calY,calM,d); const iso=isoOf(date);
+    let cls,click='';
+    if(date<today) cls='past';
+    else if(busySet.has(iso)) cls='busy';
+    else { cls='free'+(selectedDate===iso?' sel':''); click=`onclick="pickDate('${iso}')"`; }
+    cells+=`<div class="cal ${cls}" ${click} title="${iso}">${d}</div>`;
+  }
+  box.innerHTML=`
+    <div class="calnav">
+      <button ${canPrev?'':'disabled'} onclick="calNav(-1)" aria-label="Mese precedente">‹</button>
+      <b>${MESI_FULL[calM]} ${calY}</b>
+      <button onclick="calNav(1)" aria-label="Mese successivo">›</button>
+    </div>
+    <div class="calhead">${GG.map(g=>`<span>${g}</span>`).join('')}</div>
+    <div class="calgrid">${cells}</div>
+    <div class="callegend"><span><i class="dot free"></i>Libero</span><span><i class="dot busy"></i>Occupato</span></div>`;
+}
+function backlineBox(a){
+  const bring=(a.gear_bring||[]), need=(a.gear_need||[]);
+  const tech = a.tech_sheet_url ? `<a class="btn ghost sm" target="_blank" rel="noopener" href="${esc(a.tech_sheet_url)}">📄 Scheda tecnica</a>` : '';
+  if(!bring.length && !need.length && !tech && !a.locked) return '';
+  const chips=arr=> arr.length? `<div class="tags" style="margin-top:6px">${arr.map(g=>`<span class="chip" style="cursor:default">${esc(g)}</span>`).join('')}</div>` : '<div class="hint" style="margin-top:4px">—</div>';
+  const techRow = a.locked
+    ? `<div class="hint" style="margin-top:12px">🔒 <a href="/accedi.html">Accedi</a> per la scheda tecnica</div>`
+    : (tech?`<div style="margin-top:12px">${tech}</div>`:'');
+  return `<hr class="divide"><h3>🎛️ Backline & scheda tecnica</h3>
+    <div style="margin-top:10px"><b style="font-size:14px">Cosa porta l'artista</b>${chips(bring)}</div>
+    <div style="margin-top:12px"><b style="font-size:14px">Cosa serve sul posto</b>${chips(need)}</div>
+    ${techRow}`;
+}
+/* backline con lo stile delle righe del box "Contatta l'artista" (.irow) */
+function backlineRows(a){
+  const hasTech=!!a.tech_sheet_url;
+  if(a.locked)  return `<div class="irow"><span>Scheda tecnica</span><b>🔒 ${a.pending_verification?'In attesa di verifica':ME?'<a href="/registrati-promoter.html">Solo promoter</a>':'<a href="/accedi.html">Accedi</a>'}</b></div>`;
+  if(hasTech)   return `<div class="irow"><span>Scheda tecnica</span><b><a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener">📄 Apri</a></b></div>`;
+  return '';
+}
+/* Cosa porta / Cosa serve — righe info (come le altre .irow), una per riga, senza icone */
+function gearRows(a){
+  const bring=(a.gear_bring||[]), need=(a.gear_need||[]);
+  if(!bring.length && !need.length) return '';
+  const row=(title,arr)=> arr.length
+    ? `<div class="irow gearrow"><span>${title}</span><div class="tags">${arr.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div></div>`
+    : '';
+  return row("Cosa porta l'artista",bring) + row("Cosa serve sul posto",need);
+}
+function statsBox(a){
+  const s=a.stats||{};
+  const items=[['spotify_followers','Spotify','follower'],['spotify_listeners','Spotify','ascoltatori/mese'],
+    ['youtube_subs','YouTube','iscritti'],['tiktok_followers','TikTok','follower'],['twitch_followers','Twitch','follower'],
+    ['instagram_followers','Instagram','follower'],['facebook_followers','Facebook','follower']]
+    .filter(([k])=>s[k]!=null);
+  if(!items.length) return '';
+  const when=a.stats_updated_at?new Date(a.stats_updated_at.replace(' ','T')).toLocaleDateString('it-IT'):'';
+  return `<div class="statgrid" style="margin-top:22px">${items.map(([k,l,sub])=>`<div class="statbox"><div class="n">${fmt(s[k])}</div><div class="hint" style="margin-top:2px">${l} · ${sub}</div></div>`).join('')}</div>
+    ${when?`<div class="hint" style="margin-top:8px">Aggiornate ${when} · ogni settimana</div>`:''}`;
+}
+
+let ME=null;
+async function init(){
+  await renderNav();
+  ME=(await getMe()).user;
+  try{ A=(await api('artist-get.php?slug='+encodeURIComponent(slug))).artist; }
+  catch(e){ document.getElementById('main').innerHTML=`<div class="empty">Artista non trovato.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Torna alla ricerca</a></div>`; return; }
+  document.title=(A.stage_name||'Artista')+' · 148 Roster';
+  render();
+}
+
+function render(){
+  const a=A;
+  const socials=Object.entries(a.socials||{}).filter(([k,v])=>v&&SM[k]);
+  const genres=(a.genres||[]).map(g=>`<a class="chip" href="/genere/${esc(g.slug)}" title="Cerca altri artisti ${esc(g.name)}">${esc(g.name)}</a>`).join('');
+  const spId=spotifyId(a);
+  const ytId=(a.stats||{}).youtube_video||'';
+  const heroYt=!spId && !!ytId;   // niente Spotify ma c'è un video YouTube: lo mostriamo in alto al posto suo
+  const hasPhoto=!!a.photo_url;
+  const hasMedia=!!(spId||heroYt);
+  const promoPin=a.has_promo?'<div class="promo-pin">PROMO</div>':'';
+  const photoBox=hasPhoto?`<div class="photo"><img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">${promoPin}</div>`:'';
+  const mediaBox=spId?`<div class="spotifybox">${promoPin}${gatedEmbed(`<iframe src="https://open.spotify.com/embed/artist/${spId}?utm_source=generator"
+        allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`,'Spotify')}</div>`
+      :heroYt?`<div class="spotifybox">${promoPin}${gatedEmbed(`<iframe src="https://www.youtube.com/embed/${esc(ytId)}"
+        frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>`,'YouTube')}</div>`:'';
+  // Niente box foto generico: se manca la foto (IG/Spotify) mostriamo solo l'eventuale player, senza segnaposto.
+  document.getElementById('main').innerHTML=`
+    ${(hasPhoto||hasMedia)?`<div class="hero2 ${(hasPhoto&&hasMedia)?'':'solo'}">${photoBox}${mediaBox}</div>`:''}
+
+    <div class="layout2" style="margin-top:22px">
+      <!-- SOTTO LA FOTO: prenotazione + tutte le info + calendario -->
+      <aside>
+        <div class="bookcard">
+          ${a.locked ? `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <span style="font-size:20px;font-weight:700;font-family:var(--f-display)">🔒 Prezzo riservato</span>
+              ${a.verified?'<span class="badge">✓ Verificato</span>':''}
+            </div>
+            <div class="hint" style="margin:2px 0 14px">${a.pending_verification?'Il tuo account promoter è in attesa di verifica: potrai vedere il cachet a breve':ME?'Il cachet è visibile solo ai promoter':'Accedi per vedere cachet e contattare'}</div>
+          ` : `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <span style="font-size:22px;font-weight:700;font-family:var(--f-display)">${cachetLabel(a)}</span>
+              ${a.verified?'<span class="badge">✓ Verificato</span>':''}
+            </div>
+            <div class="hint" style="margin:2px 0 14px">Cachet · a serata${trattabileLabel(a)}${a.has_promo&&a.promo_until?` · <b style="color:#c0395e">PROMO fino al ${promoDate(a.promo_until)}</b>`:''}</div>
+            <div class="irow"><span>Viaggi</span><b>${rimborsoLabel(a)}</b></div>
+          `}
+          <div class="irow"><span>Tipo di show</span><b>${esc(showLabel(a.formazione))}</b></div>
+          ${a.comune?`<div class="irow"><span>Base</span><b>${esc(a.comune)}${a.provincia?' ('+esc(a.provincia)+')':''}</b></div>`:''}
+          ${a.durata_set_min?`<div class="irow"><span>Durata set</span><b>${a.durata_set_min} min</b></div>`:''}
+          ${a.componenti?`<div class="irow"><span>On Stage</span><b>${a.componenti}</b></div>`:''}
+          <div class="irow"><span>Disponibilità</span><b>${a.travel_max_km?a.travel_max_km+' km':'In tutta Italia'}</b></div>
+          ${a.label?`<div class="irow"><span>Label</span><b>${esc(a.label)}</b></div>`:''}
+          ${a.management?`<div class="irow"><span>Booking / Management</span><b>${esc(a.management)}</b></div>`:''}
+          ${backlineRows(a)}
+          ${gearRows(a)}
+          ${!a.can_contact ? `
+            <hr class="divide" style="margin:16px 0 12px">
+            ${ME
+              ? `<a class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box" href="/registrati-promoter.html">Registrati come promoter</a>`
+              : `<a class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box" href="/accedi.html">Accedi per contattare</a>`}
+          ` : `
+            <div class="callabel">Scegli la data</div><div id="calBox"></div>
+            <div id="selDateLabel" class="hint" style="margin-top:6px"></div>
+            ${a.cachet_trattabile==1?`<div class="field" style="margin-top:12px"><label>Offerta economica (€)</label><input type="number" id="m_fee" min="0" placeholder="${(()=>{const base=(a.has_promo&&a.cachet_promo!=null)?a.cachet_promo:(a.cachet_min??a.cachet_max);return base!=null?Math.round(base*0.9):'es. 500';})()}"></div>`:''}
+            <div class="field" style="margin-top:12px"><label>Note</label><textarea id="m_msg" placeholder="Racconta l'evento, il locale, gli orari..."></textarea></div>
+            <button class="btn primary" style="width:100%;margin-top:4px" onclick="sendReq()">Invia richiesta</button>
+          `}
+          <div class="hint" style="text-align:center;margin-top:10px">${a.verified?'Questo artista è gestito da <a href="https://www.148booking.it" target="_blank" rel="noopener">148 Booking</a>':'Nessun costo di intermediazione'}</div>
+        </div>
+      </aside>
+
+      <!-- BOX ACCANTO: nome · location · tipologia → social → bio -->
+      <div class="rightcol">
+        <div class="panel">
+          <div class="idgrid">
+            <h1 class="h1 id-title">${esc(a.stage_name||'Senza nome')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</h1>
+            <div class="id-social">
+              ${socials.map(([k,v])=>socialIcon(k,socialHref(k,v),SM[k]&&SM[k][1])).join('')}
+              ${a.website?socialIcon('website',a.website,'#555'):''}
+            </div>
+            <div class="id-genre tags">${genres}</div>
+          </div>
+          <hr class="divide" style="margin:16px 0">
+          <p style="color:#333;white-space:pre-line;margin:0">${a.bio?esc(a.bio):'<span style="color:var(--muted)">Nessuna bio inserita.</span>'}</p>
+        </div>
+        ${igPhotosWidget(a)}
+        ${tiktokVideosWidget(a)}
+        <div class="media">${heroYt?'':youtubeEmbed(a)}${twitchEmbed(a)}${statsBox(a)}</div>
+      </div>
+    </div>`;
+  // il calendario/booking inline si mostra a chi può contattare (non "locked")
+  if(a.can_contact){ initCal(a); drawCal(); }
+}
+
+// invio richiesta INLINE (niente popup): data dal calendario + offerta + note
+async function sendReq(){
+  const me=await getMe();
+  if(!me.user){ toast('Accedi come promoter per contattare',true); setTimeout(()=>location.href='/accedi.html',900); return; }
+  if(me.user.role!=='promoter'){ toast('Solo i promoter possono inviare richieste',true); return; }
+  if(!selectedDate){ toast('Seleziona una data dal calendario',true); return; }
+  const msg=(document.getElementById('m_msg').value||'').trim();
+  if(!msg){ toast('Scrivi una nota',true); return; }
+  const feeEl=document.getElementById('m_fee');   // presente solo se cachet trattabile
+  const fee=feeEl?(feeEl.value||null):null;
+  try{
+    await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id,
+      event_date:selectedDate, proposed_fee:fee, message:msg}});
+    toast('Richiesta inviata! ✉️');
+    document.getElementById('m_msg').value=''; if(feeEl) feeEl.value='';
+    selectedDate=null; drawCal(); updateSelDate();
+  }catch(err){ toast(errMsg(err),true); }
+}
+init();
+</script>
+</body>
+</html>

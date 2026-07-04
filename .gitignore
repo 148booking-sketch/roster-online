@@ -1,0 +1,10 @@
+# Segreti — MAI su Git
+www/api/config.php
+.deploy.env
+
+# Cache runtime
+www/api/cache/
+
+# Sistema
+.DS_Store
+Thumbs.db

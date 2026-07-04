@@ -1,0 +1,10 @@
+-- Migrazione 02: statistiche social + meta app
+ALTER TABLE artist_profiles
+  ADD COLUMN IF NOT EXISTS stats JSON DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS stats_updated_at DATETIME DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS app_meta (
+  k VARCHAR(60) NOT NULL,
+  v VARCHAR(255) DEFAULT NULL,
+  PRIMARY KEY (k)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

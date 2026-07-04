@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opzioni account · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container narrow section">
+  <h1 class="title">Opzioni account</h1>
+  <p class="sub">Gestisci i dati di accesso e le impostazioni del tuo account.</p>
+
+  <div class="grid cols-2" style="align-items:start">
+  <!-- DATI ACCOUNT -->
+  <form class="panel" onsubmit="return saveAccount(event)">
+    <h3 style="margin:0 0 12px">👤 Dati account</h3>
+    <div class="field"><label id="ac_nameLbl">Nome visualizzato</label><input id="ac_name" required></div>
+    <div class="field"><label>Email</label><input id="ac_email" type="email" required>
+      <div class="hint" id="emailHint">È l'indirizzo con cui accedi.</div></div>
+    <button class="btn primary">Salva dati account</button>
+  </form>
+
+  <!-- PASSWORD -->
+  <form class="panel" onsubmit="return changePass(event)">
+    <h3 style="margin:0 0 12px">🔒 Password</h3>
+    <div class="field"><label>Nuova password (min 8)</label><input id="pw_new" type="password" minlength="8" required></div>
+    <div class="field"><label>Ripeti nuova password</label><input id="pw_new2" type="password" minlength="8" required></div>
+    <button class="btn primary">Cambia password</button>
+    <div class="hint" style="margin-top:10px">Password dimenticata? Esci e usa <a href="/accedi.html#recupera">Recupera password</a>.</div>
+  </form>
+  </div>
+
+  <!-- DATI PROMOTER -->
+  <form class="panel" id="promoterBox" style="display:none;margin-top:18px" onsubmit="return savePromoterProfile(event)">
+    <h3 style="margin:0 0 12px">📣 Dati locale / organizzazione</h3>
+    <div class="row">
+      <div class="field" style="max-width:220px"><label>Tipo</label>
+        <select id="pp_tipo">
+          <option value="locale">Locale</option><option value="festival">Festival</option>
+          <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+          <option value="privato">Privato</option><option value="altro">Altro</option>
+        </select>
+      </div>
+      <div class="field"><label>Telefono</label><input id="pp_phone" placeholder="+39..."></div>
+    </div>
+    <div class="row">
+      <div class="autocomplete field"><label>Comune</label><input id="pp_comune" placeholder="Es. Roma"></div>
+      <div class="field" style="max-width:120px"><label>Prov.</label><input id="pp_prov" maxlength="2" placeholder="RM"></div>
+    </div>
+    <div class="field"><label>Sito web o altro link</label><input id="pp_web" placeholder="https://..."></div>
+    <button class="btn primary">Salva dati promoter</button>
+  </form>
+
+  <!-- ALERT EMAIL (solo promoter) -->
+  <form class="panel" id="emailPrefsBox" style="display:none;margin-top:18px" onsubmit="return saveEmailPrefs(event)">
+    <h3 style="margin:0 0 4px">📬 Alert email</h3>
+    <p class="hint" style="margin-top:0">Ricevi via email i nuovi artisti pubblicati, gli artisti in promo e le risposte alle tue richieste.</p>
+    <div class="row" style="align-items:center">
+      <div class="field" style="max-width:220px;margin-bottom:0"><label>Frequenza</label>
+        <select id="ep_freq" onchange="if (ep_freq.value !== 'off') ep_consent.checked = true">
+          <option value="off">Nessuna email</option>
+          <option value="daily">Giornaliera</option>
+          <option value="weekly">Settimanale</option>
+          <option value="monthly">Mensile</option>
+        </select>
+      </div>
+      <label class="hint" id="ep_consentRow" style="display:flex;gap:8px;align-items:center;flex:2">
+        <input type="checkbox" id="ep_consent">
+        <span>Acconsento a ricevere queste email da 148 Roster.</span>
+      </label>
+    </div>
+    <button class="btn primary" style="margin-top:14px">Salva preferenze</button>
+    <div class="hint" id="ep_consentAt" style="margin-top:10px"></div>
+  </form>
+
+  <!-- ALTRE IMPOSTAZIONI -->
+  <div class="panel" style="margin-top:18px">
+    <h3 style="margin:0 0 6px">⚙️ Altre impostazioni</h3>
+    <div class="hint">Privacy, eliminazione account e altre opzioni arriveranno qui.</div>
+  </div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+let ME = null;
+(async function init(){
+  const me = await getMe(true);
+  if (!me.user){ location.href = '/accedi.html'; return; }
+  if (me.user.role === 'artist'){ location.href = '/profilo.html'; return; }
+  await renderNav();
+  ME = me.user;
+  ac_name.value  = me.user.display_name || '';
+  ac_email.value = me.user.email || '';
+  if (me.user.role === 'promoter') {
+    document.getElementById('ac_nameLbl').textContent = 'Nome locale / festival / promoter';
+    initPromoterProfile(me.profile || {});
+    initEmailPrefs(me.profile || {});
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.get('unsub') === 'ok')   toast('Disiscrizione dagli alert email effettuata ✓');
+  if (params.get('unsub') === 'fail') toast('Link di disiscrizione non valido', true);
+})();
+
+function initPromoterProfile(p){
+  document.getElementById('promoterBox').style.display = '';
+  pp_tipo.value  = p.tipo || 'locale';
+  pp_phone.value = p.phone || '';
+  pp_comune.value = p.comune || '';
+  pp_prov.value   = p.provincia || '';
+  pp_web.value    = p.website || '';
+  comuniAutocomplete(pp_comune, (n, pr) => pp_prov.value = pr);
+}
+
+async function savePromoterProfile(e){ e.preventDefault();
+  try {
+    await api('promoter-profile-save.php',{method:'POST',body:{
+      org_name: ac_name.value, tipo: pp_tipo.value, phone: pp_phone.value,
+      comune: pp_comune.value, provincia: pp_prov.value, website: pp_web.value }});
+    toast('Dati promoter salvati ✓');
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+
+function initEmailPrefs(p){
+  document.getElementById('emailPrefsBox').style.display = '';
+  ep_freq.value = p.email_freq || 'off';
+  ep_consent.checked = ep_freq.value !== 'off';
+  document.getElementById('ep_consentAt').textContent = p.email_consent_at
+    ? 'Consenso registrato il ' + new Date(p.email_consent_at.replace(' ','T')).toLocaleDateString('it-IT') : '';
+}
+
+async function saveEmailPrefs(e){ e.preventDefault();
+  if (ep_freq.value !== 'off' && !ep_consent.checked){ toast('Serve il consenso per attivare gli alert', true); return false; }
+  try {
+    await api('promoter-email-prefs-save.php',{method:'POST',body:{ freq: ep_freq.value, consent: ep_consent.checked }});
+    toast('Preferenze email salvate ✓');
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+
+async function saveAccount(e){ e.preventDefault();
+  try {
+    const r = await api('account-save.php',{method:'POST',body:{
+      display_name: ac_name.value, email: ac_email.value }});
+    _me = null; toast('Dati account salvati ✓'); renderNav();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+
+async function changePass(e){ e.preventDefault();
+  if (pw_new.value !== pw_new2.value){ toast('Le due password non coincidono', true); return false; }
+  try {
+    await api('password-change.php',{method:'POST',body:{ new_password: pw_new.value }});
+    toast('Password aggiornata ✓');
+    pw_new.value = pw_new2.value = '';
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+</script>
+</body>
+</html>

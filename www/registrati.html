@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registrati · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+@media(max-width:720px){.role-grid{grid-template-columns:1fr}}
+.role-card{border:1px solid var(--line);border-radius:16px;padding:26px 22px;text-align:center;text-decoration:none;color:inherit;transition:.15s;display:block}
+.role-card:hover{border-color:var(--txt);box-shadow:var(--shadow)}
+.role-card .ic{font-size:36px;line-height:1;margin-bottom:10px}
+.role-card h2{font-family:var(--f-display);font-size:20px;margin:0 0 6px}
+.role-card p{color:var(--muted);font-size:14px;margin:0}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container" style="max-width:860px;padding-top:40px;text-align:center">
+  <h1 class="title">Registrati su 148 Roster</h1>
+  <p class="sub">Scegli come vuoi iscriverti.</p>
+
+  <div class="role-grid">
+    <a class="role-card" href="/registrati-artista.html">
+      <div class="ic">🎤</div>
+      <h2>Sono un artista</h2>
+      <p>Pubblica il tuo profilo con cachet, disponibilità e generi e fatti trovare dai promoter.</p>
+    </a>
+    <a class="role-card" href="/registrati-promoter.html">
+      <div class="ic">📣</div>
+      <h2>Sono un promoter</h2>
+      <p>Locale, festival, associazione o agenzia: cerca l'artista giusto per il tuo evento.</p>
+    </a>
+    <a class="role-card" href="/registrati-management.html">
+      <div class="ic">🎧</div>
+      <h2>Booking / Management</h2>
+      <p>Gestisci i tuoi artisti sotto un unico profilo e cerca date.</p>
+    </a>
+  </div>
+
+  <div class="hint" style="margin-top:20px">Hai già un account? <a href="/accedi.html">Accedi</a></div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>renderNav();</script>
+</body>
+</html>

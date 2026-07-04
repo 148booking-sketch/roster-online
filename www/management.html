@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Il tuo roster · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.roster{display:grid;gap:12px;margin-top:16px}
+.rost-row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.rost-pic{width:52px;height:52px;border-radius:10px;background:#f1f1f3;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;color:#3a3f4d;overflow:hidden;flex-shrink:0}
+.rost-pic img{width:100%;height:100%;object-fit:cover}
+.rost-main{flex:1;min-width:0}
+.rost-main b{display:block;font-size:16px}
+.rost-meta{color:var(--muted);font-size:13px;margin-top:2px}
+.rost-acts{display:flex;gap:8px;flex-shrink:0}
+.tg{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px}
+.tg.on{background:#e6f6ec;color:#0a7d38}.tg.warn{background:#fdf3e0;color:#a5730a}
+.sec-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container narrow section">
+
+  <!-- non loggato / ruolo errato -->
+  <div id="gate" style="display:none;max-width:460px;margin:0 auto;text-align:center">
+    <h1 class="title">Area booking / management</h1>
+    <p class="sub">Accesso riservato agli account booking/management.</p>
+    <a class="btn primary" href="/accedi.html">Accedi</a>
+  </div>
+
+  <!-- account in attesa di approvazione -->
+  <div id="pending" style="display:none;max-width:520px;margin:0 auto;text-align:center">
+    <div style="font-size:44px;line-height:1">⏳</div>
+    <h1 class="title" style="margin-top:10px">Account in attesa di approvazione</h1>
+    <p class="sub">Lo staff 148 sta verificando il tuo account booking. Appena approvato potrai <b>vedere i cachet</b> e <b>inserire i tuoi artisti</b>. Nel frattempo puoi già cercare e contattare artisti.</p>
+    <a class="btn ghost" href="/cerca.html">Vai alla ricerca</a>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="panel" style="display:none">
+    <div id="rosterView">
+      <div class="sec-toolbar">
+        <div>
+          <h1 class="title" style="margin:0">🎧 Il tuo roster</h1>
+          <p class="sub" style="margin:4px 0 0">Gli artisti che gestisci. Vengono pubblicati subito, previa verifica del catalogo Apple Music.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" onclick="showProfile()">⚙️ Profilo agenzia</button>
+          <button type="button" class="btn primary" onclick="startNew()">➕ Aggiungi artista</button>
+        </div>
+      </div>
+      <div id="roster" class="roster"></div>
+    </div>
+
+    <!-- PROFILO AGENZIA -->
+    <form id="agencyForm" class="panel" style="display:none;max-width:560px" onsubmit="return saveAgency(event)">
+      <h3 style="margin:0 0 12px">⚙️ Profilo agenzia</h3>
+      <div class="field"><label>Nome agenzia / booking *</label><input id="ag_org" required></div>
+      <div class="field"><label>Tipo</label>
+        <select id="ag_tipo">
+          <option value="agenzia">Agenzia</option><option value="associazione">Associazione</option>
+          <option value="festival">Festival</option><option value="locale">Locale</option>
+          <option value="privato">Privato</option><option value="altro">Altro</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="autocomplete field"><label>Comune</label><input id="ag_comune" placeholder="Es. Roma"></div>
+        <div class="field" style="max-width:110px"><label>Prov.</label><input id="ag_prov" maxlength="2" placeholder="RM"></div>
+        <div class="field"><label>Telefono</label><input id="ag_phone" placeholder="+39..."></div>
+      </div>
+      <div class="field"><label>Sito web o altro link</label><input id="ag_web" placeholder="https://..."></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1">Salva profilo</button>
+        <button type="button" class="btn ghost" onclick="backToList()">← Torna al roster</button>
+      </div>
+    </form>
+
+    <!-- STEP 1 (solo nuovo): idoneità Apple Music -->
+    <form id="eligStep" class="panel" style="display:none;max-width:560px" onsubmit="return checkElig(event)">
+      <h3 style="margin:0 0 4px">🎧 Verifica idoneità</h3>
+      <p class="hint" style="margin:0 0 14px">Per aggiungere un artista al roster serve un profilo Apple Music con almeno <b>4 brani pubblicati negli ultimi 2 anni</b> (anche in feat./collaborazione).</p>
+      <div class="field"><label>Link profilo artista Apple Music</label>
+        <input type="url" id="am_url" placeholder="https://music.apple.com/it/artist/..." required>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1" id="eligBtn">Verifica idoneità</button>
+        <button type="button" class="btn ghost" onclick="backToList()">← Annulla</button>
+      </div>
+    </form>
+
+    <!-- non idoneo -->
+    <div id="notElig" class="panel" style="display:none;max-width:560px;text-align:center">
+      <div style="font-size:40px;line-height:1">🎧</div>
+      <h3 style="margin:10px 0 4px">Non ancora idoneo</h3>
+      <p class="sub" id="notEligMsg" style="margin-top:0"></p>
+      <button type="button" class="btn ghost" onclick="startNew()">← Prova un altro link</button>
+    </div>
+
+    <!-- STEP 2: form artista (condiviso con profilo/admin) -->
+    <form id="artForm" style="display:none" onsubmit="return saveArtist(event)">
+      <div id="af_banner" class="edit-banner" style="display:none"></div>
+      <div id="mfMount"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn primary" style="flex:1" id="af_submit">Aggiungi al roster</button>
+        <button type="button" class="btn ghost" onclick="backToList()">← Torna al roster</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/artist-form.js"></script>
+<script>
+let editId = null, ME = null, MEPROF = null;
+
+(async function init(){
+  const me = await getMe(true);
+  if (!me.user){ document.getElementById('gate').style.display = ''; renderNav(); return; }
+  if (me.user.role !== 'management'){ location.href = '/'; return; }
+  ME = me.user; MEPROF = me.profile || {};
+  await renderNav();
+  if (me.user.status !== 'active'){ document.getElementById('pending').style.display = ''; return; }
+  document.getElementById('panel').style.display = '';
+  await loadGenres();
+  artistFormMount('mfMount', 'm_');
+  artistFormReset('m_');
+  comuniAutocomplete(document.getElementById('ag_comune'), (n,pr)=> ag_prov.value = pr);
+  loadRoster();
+})();
+
+/* ---- viste ---- */
+function showList(){ rosterView.style.display=''; eligStep.style.display='none'; notElig.style.display='none'; artForm.style.display='none'; agencyForm.style.display='none'; }
+
+/* ---- profilo agenzia ---- */
+function showProfile(){
+  const p = MEPROF || {};
+  ag_org.value = p.org_name || ME.display_name || '';
+  ag_tipo.value = p.tipo || 'agenzia';
+  ag_comune.value = p.comune || ''; ag_prov.value = p.provincia || '';
+  ag_phone.value = p.phone || ''; ag_web.value = p.website || '';
+  rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none'; artForm.style.display='none';
+  agencyForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
+}
+async function saveAgency(e){ e.preventDefault();
+  try {
+    await api('promoter-profile-save.php',{method:'POST',body:{
+      org_name:ag_org.value, tipo:ag_tipo.value, comune:ag_comune.value,
+      provincia:ag_prov.value, phone:ag_phone.value, website:ag_web.value }});
+    MEPROF = {...(MEPROF||{}), org_name:ag_org.value, tipo:ag_tipo.value, comune:ag_comune.value, provincia:ag_prov.value, phone:ag_phone.value, website:ag_web.value};
+    _me = null; toast('Profilo agenzia salvato ✓'); renderNav();
+    backToList();
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+function backToList(){ editId=null; showList(); loadRoster(); }
+function startNew(){
+  editId = null;
+  rosterView.style.display='none'; notElig.style.display='none'; artForm.style.display='none';
+  am_url.value = '';
+  eligStep.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- elenco roster ---- */
+function rostRow(a){
+  const pub = a.published==1
+    ? '<span class="tg on">🟢 online</span>'
+    : '<span class="tg warn">⏳ in revisione</span>';
+  const loc = [a.comune, a.provincia].filter(Boolean).join(' · ');
+  const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : '🎵';
+  return `<div class="rost-row">
+    <div class="rost-pic">${pic}</div>
+    <div class="rost-main">
+      <b>${esc(a.stage_name||'(senza nome)')}</b>
+      <div class="rost-meta">${pub}${loc?` · ${esc(loc)}`:''}${a.slug?` · <a href="/${esc(a.slug)}" target="_blank" rel="noopener">vedi profilo</a>`:''}</div>
+    </div>
+    <div class="rost-acts">
+      <button type="button" class="btn ghost sm" onclick="editArtist(${a.id})">✏️ Modifica</button>
+      <button type="button" class="btn ghost sm" onclick="delArtist(${a.id},'${esc((a.stage_name||'').replace(/'/g,''))}')">🗑</button>
+    </div>
+  </div>`;
+}
+async function loadRoster(){
+  try {
+    const r = await api('management-artists.php');
+    const list = r.artists || [];
+    roster.innerHTML = list.length
+      ? list.map(rostRow).join('')
+      : '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Nessun artista ancora. Usa <b>➕ Aggiungi artista</b> per iniziare.</div>';
+  } catch(err){ toast(errMsg(err), true); }
+}
+
+/* ---- step 1: idoneità (solo nuovo artista) ---- */
+async function checkElig(e){ e.preventDefault();
+  const btn = eligBtn, old = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Verifica in corso…';
+  try {
+    const r = await api('artist-eligibility-check.php',{method:'POST',body:{itunes: am_url.value}});
+    if (r.eligible){
+      artistFormReset('m_');
+      setGenreVerified('m_', true);              // artista gestito = verificato → fino a 3 generi
+      const nameEl = document.getElementById('m_stage_name'); if (nameEl && r.artist_name) nameEl.value = r.artist_name;
+      const amEl = document.getElementById('m_s_am'); if (amEl) amEl.value = am_url.value;
+      editId = null;
+      af_submit.textContent = 'Aggiungi al roster';
+      af_banner.style.display = 'none';
+      eligStep.style.display='none'; artForm.style.display='';
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      notEligMsg.textContent = `Trovati solo ${r.track_count} brani pubblicati negli ultimi 2 anni (ne servono almeno 4).`;
+      eligStep.style.display='none'; notElig.style.display='';
+    }
+  } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
+  return false;
+}
+
+/* ---- modifica artista esistente ---- */
+async function editArtist(id){
+  try {
+    const r = await api('management-get-artist.php?id='+id);
+    editId = id;
+    artistFormReset('m_');
+    artistFormPopulate('m_', r.profile || {});
+    setGenreVerified('m_', true);
+    af_submit.textContent = 'Salva modifiche';
+    af_banner.style.display=''; af_banner.textContent = '✏️ Modifica di '+(r.profile?.stage_name||'artista');
+    rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none';
+    artForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
+  } catch(err){ toast(errMsg(err), true); }
+}
+
+/* ---- salva (crea/modifica) ---- */
+async function saveArtist(e){ e.preventDefault();
+  const body = artistFormCollect('m_');
+  const old = af_submit.textContent;
+  af_submit.disabled = true; af_submit.textContent = '⏳ Salvataggio…';
+  try {
+    if (editId){
+      await api('management-update-artist.php',{method:'POST',body:{...body, id:editId}});
+      toast('Artista aggiornato ✓');
+    } else {
+      const r = await api('management-create-artist.php',{method:'POST',body});
+      toast('Artista aggiunto al roster ✓');
+    }
+    backToList();
+  } catch(err){ toast(errMsg(err), true); }
+  finally { af_submit.disabled = false; af_submit.textContent = old; }
+  return false;
+}
+
+/* ---- elimina ---- */
+async function delArtist(id, name){
+  if (!confirm(`Eliminare "${name||'questo artista'}" dal roster? L'operazione è definitiva.`)) return;
+  try {
+    await api('management-delete-artist.php',{method:'POST',body:{id}});
+    toast('Artista eliminato');
+    loadRoster();
+  } catch(err){ toast(errMsg(err), true); }
+}
+</script>
+</body>
+</html>

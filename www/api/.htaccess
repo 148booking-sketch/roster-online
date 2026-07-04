@@ -1,0 +1,11 @@
+# Proteggi file sensibili e cache dall'accesso web diretto
+<FilesMatch "^(config\.php|config\.example\.php|_.*\.php)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+</IfModule>
+
+# Nega l'accesso alla cartella cache (geocode.json)
+RedirectMatch 403 ^/api/cache/.*$

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Richieste · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;align-items:start}
+@media(max-width:520px){#list{grid-template-columns:1fr}}
+.rq-card{border:1px solid var(--line);border-radius:16px;padding:18px 20px;background:#fff;box-shadow:var(--shadow);border-left:5px solid var(--line)}
+.rq-card.accettata{border-left-color:#0a7d38}
+.rq-card.rifiutata{border-left-color:#c0395e}
+.rq-card.inviata,.rq-card.vista{border-left-color:#2563eb}
+.rq-card.ritirata{border-left-color:#92700f}
+.rq-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.rq-who{display:flex;gap:12px;align-items:center;min-width:0}
+.rq-ico{width:46px;height:46px;border-radius:12px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.rq-name{font-weight:700;font-size:17px;font-family:var(--f-display);line-height:1.2}
+.rq-sent{font-size:12px;color:var(--muted);margin-top:3px}
+.rq-badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;flex:none}
+.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.rq-box{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--panel2)}
+.rq-box-l{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.rq-box-v{font-size:17px;font-weight:700;margin-top:3px;font-family:var(--f-display)}
+.rq-box-v.money{color:#0a7d38}
+.rq-msg{margin-top:14px;color:#444;background:var(--panel2);border-radius:10px;padding:11px 14px;position:relative}
+.rq-msg::before{content:'“';font-size:26px;color:var(--muted);line-height:0;position:relative;top:6px;margin-right:2px}
+.rq-actions{display:flex;gap:10px;margin-top:14px}
+@media(max-width:520px){.rq-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container section">
+  <h1 class="title" id="pageTitle">Richieste</h1>
+  <p class="sub" id="pageSub"></p>
+  <div id="list"></div>
+  <div id="empty" class="empty" style="display:none">Nessuna richiesta per ora.</div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+let role;
+const RQST = {
+  inviata:['📨 Inviata','#2563eb'], vista:['👀 Vista','#2563eb'],
+  accettata:['✅ Accettata','#0a7d38'], rifiutata:['❌ Rifiutata','#c0395e'], ritirata:['↩︎ Ritirata','#92700f']
+};
+const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const GG=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+function parseD(s){ return s ? new Date((''+s).replace(' ','T')) : null; }
+function fmtLong(s){ const d=parseD(s); if(!d||isNaN(d)) return '—';
+  return `${GG[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} ${d.getFullYear()}`; }
+function fmtShort(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
+  return `${d.getDate()} ${MESI[d.getMonth()].slice(0,3)} ${d.getFullYear()}`; }
+
+async function init(){
+  const me = await getMe(true);
+  if(!me.user){ location.href='/accedi.html'; return; }
+  role = me.user.role;
+  await renderNav();
+  pageTitle.textContent = role==='artist' ? 'Richieste ricevute' : 'Richieste inviate';
+  pageSub.textContent   = role==='artist' ? 'I promoter che ti hanno contattato.' : 'Gli artisti che hai contattato.';
+  load();
+}
+async function load(){
+  const box = role==='artist' ? 'received' : 'sent';
+  const r = await api('booking-request.php?box='+box);
+  const L = r.requests;
+  document.getElementById('empty').style.display = L.length?'none':'block';
+  document.getElementById('list').innerHTML = L.map(rq => card(rq)).join('');
+}
+function card(rq){
+  const who = role==='artist' ? (rq.org_name||rq.promoter_name||'Promoter') : (rq.stage_name||'Artista');
+  const st = RQST[rq.status] || [rq.status,'#666'];
+  let actions='';
+  if(role==='artist' && ['inviata','vista'].includes(rq.status)){
+    actions = `<div class="rq-actions">
+      <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">Accetta</button>
+      <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button></div>`;
+  }
+  if((role==='promoter'||role==='management') && ['inviata','vista'].includes(rq.status)){
+    actions = `<div class="rq-actions"><button class="btn ghost sm" onclick="respond(${rq.id},'ritira')">Ritira richiesta</button></div>`;
+  }
+  return `<div class="rq-card ${esc(rq.status)}">
+    <div class="rq-top">
+      <div class="rq-who">
+        <span class="rq-ico">${role==='artist'?'📣':'🎤'}</span>
+        <div>
+          <div class="rq-name">${esc(who)}</div>
+          <div class="rq-sent">Richiesta del ${fmtShort(rq.created_at)}${rq.responded_at?` · risposta ${fmtShort(rq.responded_at)}`:''}</div>
+        </div>
+      </div>
+      <span class="rq-badge" style="background:${st[1]}18;color:${st[1]}">${st[0]}</span>
+    </div>
+    <div class="rq-grid">
+      <div class="rq-box"><div class="rq-box-l">📅 Data evento</div>
+        <div class="rq-box-v">${rq.event_date?fmtLong(rq.event_date):'Da concordare'}</div></div>
+      <div class="rq-box"><div class="rq-box-l">💶 Offerta economica</div>
+        <div class="rq-box-v money">${rq.proposed_fee!=null?eur(rq.proposed_fee):'Da concordare'}</div></div>
+    </div>
+    ${rq.message?`<div class="rq-msg">${esc(rq.message)}</div>`:''}
+    ${actions}
+  </div>`;
+}
+async function respond(id, action){
+  try{ await api('booking-respond.php',{method:'POST',body:{request_id:id,action}}); toast('Fatto ✓'); load(); }
+  catch(err){ toast(errMsg(err),true); }
+}
+init();
+</script>
+</body>
+</html>

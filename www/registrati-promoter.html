@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registrati come promoter · 148 Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container" style="max-width:480px;padding-top:40px">
+  <h1 class="title">Registrati come promoter</h1>
+  <p class="sub">Locale, festival, associazione o agenzia: crea l'account e inizia a cercare artisti.</p>
+
+  <!-- REGISTRAZIONE -->
+  <form class="panel" id="formReg" onsubmit="return doReg(event)">
+    <div class="field"><label>Nome locale / festival / promoter</label><input id="rg_name" required></div>
+    <div class="field"><label>Tipo</label>
+      <select id="rg_tipo">
+        <option value="locale">Locale</option><option value="festival">Festival</option>
+        <option value="associazione">Associazione</option><option value="agenzia">Agenzia</option>
+        <option value="privato">Privato</option><option value="altro">Altro</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="autocomplete field"><label>Comune</label><input id="rg_comune" placeholder="Es. Roma" required></div>
+      <div class="field" style="max-width:100px"><label>Prov.</label><input id="rg_prov" maxlength="2" placeholder="RM"></div>
+    </div>
+    <div class="field"><label>Telefono</label><input id="rg_phone" placeholder="+39..." required></div>
+    <div class="field"><label>Sito web o altro link</label><input id="rg_web" placeholder="https://..." required></div>
+    <div class="field"><label>Email</label><input type="email" id="rg_email" required></div>
+    <div class="field"><label>Password (min 8 caratteri)</label><input type="password" id="rg_pass" minlength="8" required></div>
+    <label class="hint" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0 14px">
+      <input type="checkbox" id="rg_email_consent" style="margin-top:3px">
+      <span>Voglio ricevere via email gli alert su nuovi artisti e artisti in promo (frequenza settimanale, modificabile in seguito dalle impostazioni account).</span>
+    </label>
+    <button class="btn primary" style="width:100%">Crea account</button>
+    <div class="hint" style="margin-top:10px">Dopo la registrazione riceverai un'email per <b>verificare l'account</b>. I cachet restano riservati finché lo staff 148 non verifica l'account.</div>
+  </form>
+
+  <!-- VERIFICA EMAIL -->
+  <div class="panel" id="formVerify" style="display:none;text-align:center">
+    <div style="font-size:44px;line-height:1">📧</div>
+    <h3 style="margin:10px 0 4px">Verifica la tua email</h3>
+    <p class="sub" style="margin-top:0">Ti abbiamo inviato un link a <b id="vf_email"></b>.<br>Cliccalo per attivare l'account.<br><span style="color:var(--muted);font-size:13px">Controlla anche lo spam.</span></p>
+    <button class="btn ghost" style="width:100%" onclick="doResend()">Reinvia email di verifica</button>
+  </div>
+
+  <div class="hint" style="margin-top:14px;text-align:center">Sei un artista? <a href="/registrati-artista.html">Registrati qui</a></div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+renderNav();
+comuniAutocomplete(document.getElementById('rg_comune'), (n,pr)=> rg_prov.value = pr);
+let pendingEmail = '';
+
+function showVerify(email){
+  pendingEmail = email;
+  vf_email.textContent = email;
+  formReg.style.display = 'none';
+  document.querySelector('main .sub').style.display = 'none';
+  formVerify.style.display = '';
+}
+async function doResend(){
+  try { await api('resend-verification.php',{method:'POST',body:{email:pendingEmail}}); toast('Email di verifica reinviata ✉️'); }
+  catch(err){ toast(errMsg(err), true); }
+}
+
+async function doReg(e){ e.preventDefault();
+  try {
+    const r = await api('register.php',{method:'POST',body:{
+      role:'promoter', display_name:rg_name.value, email:rg_email.value, password:rg_pass.value,
+      tipo:rg_tipo.value, comune:rg_comune.value, provincia:rg_prov.value,
+      phone:rg_phone.value, website:rg_web.value, email_alert_consent: rg_email_consent.checked }});
+    showVerify(r.email || rg_email.value);
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+</script>
+</body>
+</html>
