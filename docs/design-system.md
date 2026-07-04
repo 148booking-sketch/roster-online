@@ -31,6 +31,8 @@
 - `.section-label` = maiuscoletto 11px tenue per intestazioni di sezione nei form/admin.
 
 ## Icone
+**Eccezione voluta (2026-07-05): i generi musicali usano le EMOJI** (`GENRE_ICONS`) nella category bar della home e nei chip del popup Cerca — l'utente le preferisce alle icone SVG generiche (che si ripetevano troppo). `GENRE_SVG`/`genreIcon()` restano disponibili ma non si usano lì.
+
 Catalogo in `assets/api.js → ICONS`. Nomi principali: `search, bell, heart, check, chevronDown/Right/Left, arrowRight, plus, x, mic, music, speaker, agency, inbox, grid, shield, sliders, filter, home, calendar, pin, user, logout, edit, trash, eye, eyeOff, mail, lock, play, refresh, star, wave, key`.
 Uso: `icon('heart', 20, 1.8)` → markup `<svg>` con `currentColor` (eredita il colore del testo). Aggiungere nuove icone al dizionario, non incollarle inline.
 
