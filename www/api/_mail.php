@@ -7,7 +7,7 @@ require_once __DIR__ . '/_db.php';
 
 function send_mail(string $to, string $subject, string $htmlBody): bool {
   $c = config();
-  $from     = $c['mail_from']      ?? 'noreply@148booking.it';
+  $from     = $c['mail_from']      ?? 'noreply@bookingroster.it';
   $fromName = $c['mail_from_name'] ?? 'Booking Roster';
 
   $headers = implode("\r\n", [

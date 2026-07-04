@@ -60,7 +60,7 @@ function artistFormHTML(p) {
       </div>
       <div class="row">
         <div class="field"><label>Label Musicale</label><input id="${p}label" placeholder="Nome della label"></div>
-        <div class="field"><label>Booking / Management</label><input id="${p}management" placeholder="Nome booking o management"></div>
+        <div class="field"><label>Agenzia</label><input id="${p}management" placeholder="Nome dell'agenzia"></div>
       </div>
     </section>
 

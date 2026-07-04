@@ -19,7 +19,7 @@ $in    = body();
 $stage = trim($in['stage_name'] ?? '');
 if ($stage === '') fail('stage_name_required');
 
-// Profilo "Verificato" gestito da 148 Booking: nessuna email/password richiesta all'admin,
+// Profilo "Verificato" gestito direttamente da noi: nessuna email/password richiesta all'admin,
 // se ne genera una automaticamente (l'artista non ha bisogno di accedere).
 $verifiedIn = isset($in['verified']) ? (int)!!$in['verified'] : 0;
 $managed = $verifiedIn && trim($in['email'] ?? '') === '';

@@ -117,7 +117,7 @@
           </div>
         </div>
       </div>
-      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da 148 Booking: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
+      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da noi: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
 
       <div class="field" id="a_managerWrap" style="max-width:360px;margin:0 0 16px">
         <label>🎧 Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
@@ -213,9 +213,9 @@
         <div class="field" style="max-width:260px"><label>Ruolo account</label>
           <select id="p_role">
             <option value="promoter">Promoter</option>
-            <option value="management">Booking / Management (gestisce un roster di artisti)</option>
+            <option value="management">Agenzia (gestisce un roster di artisti)</option>
           </select>
-          <div class="hint">Passando a "Booking / Management" l'account ottiene subito accesso a "Il tuo roster" e può creare/gestire artisti propri — dati e stato restano invariati.</div>
+          <div class="hint">Passando ad "Agenzia" l'account ottiene subito accesso a "Il tuo roster" e può creare/gestire artisti propri — dati e stato restano invariati.</div>
         </div>
       </div>
       <div class="row">
@@ -626,7 +626,7 @@ async function saveCustomLinksAdmin(){
   } catch (err) { toast(errMsg(err), true); }
 }
 
-/* Profilo "Verificato" = gestito direttamente da 148 Booking: niente email/password
+/* Profilo "Verificato" = gestito direttamente da noi: niente email/password
  * dell'artista (si genera tutto in automatico lato server, l'artista non deve accedere). */
 function onVerifiedToggle(){
   const managed = a_ver.checked;
@@ -719,7 +719,7 @@ async function editUser(id, role){
       tab(u.role==='management' ? 'agenzia' : 'promoter'); showPromoterForm(); editPId = id;
       p_passWrap.style.display='none'; p_pass.required=false; p_pass.value='';
       setV('p_status', u.status);
-      p_banner.style.display=''; p_banner.textContent = 'Modifica ' + (u.role==='management'?'booking/management':'promoter') + ' #'+id+' — '+ (p.org_name||u.display_name||'');
+      p_banner.style.display=''; p_banner.textContent = 'Modifica ' + (u.role==='management'?'agenzia':'promoter') + ' #'+id+' — '+ (p.org_name||u.display_name||'');
       p_submit.textContent='Salva modifiche';
       p_roleWrap.style.display=''; setV('p_role', u.role);
       setV('p_email',u.email); setV('p_org',p.org_name); setV('p_tipo',p.tipo);

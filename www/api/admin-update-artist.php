@@ -25,7 +25,7 @@ if ($role !== 'artist') fail('not_an_artist', 404);
 $stage = trim($in['stage_name'] ?? '');
 if ($stage === '') fail('stage_name_required');
 
-// Profilo "Verificato" gestito da 148 Booking: se l'admin lo spunta ORA (non lo era prima) e
+// Profilo "Verificato" gestito direttamente da noi: se l'admin lo spunta ORA (non lo era prima) e
 // non ha inserito un'email, gliene generiamo una e resettiamo la password (l'artista originale
 // perde l'accesso, l'account passa sotto il nostro controllo). Se era già gestito e il campo
 // email è rimasto vuoto (nascosto in form), manteniamo l'email attuale senza rigenerarla ad ogni salvataggio.

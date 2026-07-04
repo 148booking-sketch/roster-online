@@ -38,7 +38,7 @@ const ERR = {
   itunes_url_invalid:'Inserisci un link valido a un profilo artista Apple Music/iTunes',
   itunes_lookup_failed:'Verifica non disponibile al momento, riprova più tardi',
   itunes_artist_not_found:'Profilo Apple Music non trovato: controlla il link',
-  forbidden_management:'Accesso riservato agli account booking/management',
+  forbidden_management:'Accesso riservato agli account agenzia',
   account_pending:'Account in attesa di approvazione dallo staff 148',
   forbidden_not_owner:'Questo artista non è gestito dal tuo account',
   applemusic_required:'Serve il link Apple Music per verificare l’artista',
@@ -247,7 +247,7 @@ async function renderNav(center = '') {
   renderFooter();
 }
 
-/* footer condiviso (dati 148 Booking) */
+/* footer condiviso (dati SHADE-OFF S.R.L.S.) */
 function renderFooter() {
   if (document.querySelector('.site-footer')) return;
   const f = document.createElement('footer');
@@ -256,7 +256,7 @@ function renderFooter() {
     <div class="foot-grid">
       <div class="foot-brand">
         <div class="logo">Booking Roster</div>
-        <p>La piattaforma che collega artisti emergenti e promoter. Un progetto 148 Booking · Latina, Lazio.</p>
+        <p>La piattaforma che collega artisti emergenti e promoter. Un progetto SHADE-OFF S.R.L.S. · Latina, Lazio.</p>
       </div>
       <div class="foot-col">
         <h4>Piattaforma</h4>
@@ -272,9 +272,7 @@ function renderFooter() {
         <h4>Contatti</h4>
         <ul>
           <li><a href="/contatti.html">Pagina contatti</a></li>
-          <li><a href="mailto:148booking@gmail.com">148booking@gmail.com</a></li>
-          <li><a href="tel:+393805204687">+39 380 5204687</a></li>
-          <li><a href="https://www.148booking.it" target="_blank" rel="noopener">148booking.it</a></li>
+          <li><a href="mailto:support@bookingroster.it">support@bookingroster.it</a></li>
         </ul>
       </div>
       <div class="foot-col">
@@ -289,8 +287,7 @@ function renderFooter() {
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 148 Booking · P.IVA IT03345540599</span>
-      <span>Co-founders: Gian Luca Perez &amp; Alessandro Martinelli</span>
+      <span>© 2026 SHADE-OFF S.R.L.S. · P.IVA IT03133050595</span>
     </div>
   </div>`;
   document.body.appendChild(f);

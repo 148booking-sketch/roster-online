@@ -290,7 +290,7 @@ function render(){
           ${a.componenti?`<div class="irow"><span>On Stage</span><b>${a.componenti}</b></div>`:''}
           <div class="irow"><span>Disponibilità</span><b>${a.travel_max_km?a.travel_max_km+' km':'In tutta Italia'}</b></div>
           ${a.label?`<div class="irow"><span>Label</span><b>${esc(a.label)}</b></div>`:''}
-          ${a.management?`<div class="irow"><span>Booking / Management</span><b>${esc(a.management)}</b></div>`:''}
+          ${a.management?`<div class="irow"><span>Agenzia</span><b>${esc(a.management)}</b></div>`:''}
           ${backlineRows(a)}
           ${gearRows(a)}
           ${!a.can_contact ? `
@@ -305,7 +305,7 @@ function render(){
             <div class="field" style="margin-top:12px"><label>Note</label><textarea id="m_msg" placeholder="Racconta l'evento, il locale, gli orari..."></textarea></div>
             <button class="btn primary" style="width:100%;margin-top:4px" onclick="sendReq()">Invia richiesta</button>
           `}
-          <div class="hint" style="text-align:center;margin-top:10px">${a.verified?'Questo artista è gestito da <a href="https://www.148booking.it" target="_blank" rel="noopener">148 Booking</a>':'Nessun costo di intermediazione'}</div>
+          <div class="hint" style="text-align:center;margin-top:10px">${a.verified?'Questo artista è gestito direttamente da noi':'Nessun costo di intermediazione'}</div>
         </div>
       </aside>
 
