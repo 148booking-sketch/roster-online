@@ -57,6 +57,10 @@ $wasSocials = json_decode($wasRow['socials'] ?? '', true) ?: [];
 // DB: l'artista non può cambiarlo da sé, quindi qui vale solo lo stato attuale, non il payload.
 $maxGenres = (int) ($wasRow['verified'] ?? 0) === 1 ? PHP_INT_MAX : 3;
 
+// Trattativa riservata: solo gli artisti VERIFICATI possono attivarla (per gli altri resta 0).
+ensure_trattativa_col();
+$trvRis = ((int) ($wasRow['verified'] ?? 0) === 1 && !empty($in['trattativa_riservata'])) ? 1 : 0;
+
 // Backline & scheda tecnica
 require_once __DIR__ . '/_gear.php';
 $techUrl  = trim($in['tech_sheet_url'] ?? '');
@@ -80,7 +84,7 @@ $slug = $slug ? trim($slug, '-') : null;
 $sql = 'UPDATE artist_profiles SET
           stage_name=?, slug=?, formazione=?, componenti=?, bio=?, bio_from_spotify=?, phone=?,
           comune=?, provincia=?, lat=?, lng=?,
-          cachet_min=?, cachet_max=?, cachet_trattabile=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_km=?, rimborso_forfait=?,
+          cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_km=?, rimborso_forfait=?,
           travel_max_km=?, durata_set_min=?, website=?, socials=?,
           label=?, management=?,
           tech_sheet_url=?, gear_bring=?, gear_need=?
@@ -88,7 +92,7 @@ $sql = 'UPDATE artist_profiles SET
 db()->prepare($sql)->execute([
   $stage, $slug, $form, $componenti, $bio, $bioFromSpotify, $phone,
   ($comune ?: null), $prov, $lat, $lng,
-  $cachetMin, $cachetMax, $trattabile, $cachetPromo, $promoUntil, $rimb, $rimbKm, $rimbForf,
+  $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbKm, $rimbForf,
   $travelKm, $durata, $website, $socials,
   ($label ?: null), ($management ?: null),
   ($techUrl ?: null), $gearBringJson, $gearNeedJson,

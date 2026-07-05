@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS artist_profiles (
   cachet_min          INT UNSIGNED DEFAULT NULL,   -- € minimo richiesto ("Cachet a serata")
   cachet_max          INT UNSIGNED DEFAULT NULL,   -- € massimo / "ideale"
   cachet_trattabile   TINYINT(1) NOT NULL DEFAULT 1,
+  trattativa_riservata TINYINT(1) NOT NULL DEFAULT 0,  -- solo verificati: prezzi mai in chiaro (migration-23)
   cachet_promo        INT UNSIGNED DEFAULT NULL,   -- € prezzo promo (opzionale, mostra badge PROMO)
   promo_until         DATE DEFAULT NULL,           -- validità della promo (NULL = senza scadenza)
   rimborso_tipo       ENUM('incluso','a_km','forfait','da_concordare') NOT NULL DEFAULT 'da_concordare',

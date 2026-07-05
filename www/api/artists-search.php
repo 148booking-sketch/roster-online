@@ -18,6 +18,7 @@ require_once __DIR__ . '/_geo.php';
 require_once __DIR__ . '/_gear.php';
 require_once __DIR__ . '/_access.php';
 
+ensure_trattativa_col();
 $q       = trim($_GET['q'] ?? '');
 $genres  = (array)($_GET['genre'] ?? []);
 $cachMax = ($_GET['cachet_max'] ?? '') !== '' ? (int)$_GET['cachet_max'] : null;
@@ -122,7 +123,7 @@ if ($sort === 'az') {
 $havingSql = ($hasOrigin && $maxKm !== null) ? 'HAVING distance_km IS NOT NULL AND distance_km <= ' . (int)$maxKm : '';
 
 $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.provincia,
-               ap.cachet_min, ap.cachet_max, ap.cachet_trattabile, ap.cachet_promo, ap.promo_until, ap.rimborso_tipo, ap.travel_max_km,
+               ap.cachet_min, ap.cachet_max, ap.cachet_trattabile, ap.trattativa_riservata, ap.cachet_promo, ap.promo_until, ap.rimborso_tipo, ap.travel_max_km,
                ap.photo_url, ap.verified, ap.lat, ap.lng, ap.stats
                $distSelect $favSelect
         FROM artist_profiles ap
@@ -167,6 +168,10 @@ foreach ($rows as &$r) {
   $g = db()->prepare('SELECT g.slug, g.name FROM artist_genres ag JOIN genres g ON g.id=ag.genre_id WHERE ag.artist_user_id=?');
   $g->execute([$r['user_id']]);
   $r['genres'] = $g->fetchAll();
+  // Trattativa riservata attiva: nessun prezzo in chiaro, per nessuno (le UI mostrano "Trattativa riservata")
+  if ((int)($r['trattativa_riservata'] ?? 0) === 1) {
+    $r['cachet_min'] = $r['cachet_max'] = $r['cachet_promo'] = $r['promo_until'] = null;
+  }
   $r['has_promo'] = ($r['cachet_promo'] !== null && (int)$r['cachet_promo'] > 0
                      && ($r['promo_until'] === null || $r['promo_until'] >= date('Y-m-d')));
   if ($locked) { $r['cachet_min'] = null; $r['cachet_max'] = null; $r['cachet_promo'] = null; $r['promo_until'] = null; }

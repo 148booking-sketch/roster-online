@@ -92,3 +92,16 @@ function logout_user(): void {
   $_SESSION = [];
   session_destroy();
 }
+
+/**
+ * Colonna trattativa_riservata (migration-23): ADD COLUMN additivo e idempotente,
+ * auto-applicato al primo uso (stesso pattern di ensure_request_extras).
+ * Se attiva, i prezzi (cachet/promo/viaggi) spariscono dalle viste pubbliche.
+ */
+function ensure_trattativa_col(): void {
+  static $done = false; if ($done) return; $done = true;
+  try {
+    $c = db()->query("SHOW COLUMNS FROM artist_profiles LIKE 'trattativa_riservata'")->fetch();
+    if (!$c) db()->exec("ALTER TABLE artist_profiles ADD COLUMN trattativa_riservata TINYINT(1) NOT NULL DEFAULT 0 AFTER cachet_trattabile");
+  } catch (Throwable $e) { error_log('ensure_trattativa_col: ' . $e->getMessage()); }
+}

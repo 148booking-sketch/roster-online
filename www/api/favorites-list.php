@@ -20,7 +20,7 @@ $pendingVerification = (bool)(in_array($viewer['role'], ['promoter', 'management
 
 $st = db()->prepare(
   "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.provincia,
-          ap.cachet_min, ap.cachet_max, ap.cachet_trattabile, ap.cachet_promo, ap.promo_until,
+          ap.cachet_min, ap.cachet_max, ap.cachet_trattabile, ap.trattativa_riservata, ap.cachet_promo, ap.promo_until,
           ap.rimborso_tipo, ap.photo_url, ap.verified, ap.calendar_busy, ap.calendar_url,
           ap.stats, f.created_at AS favorited_at
    FROM favorites f
@@ -39,6 +39,9 @@ foreach ($rows as $r) {
   $busy = array_values(array_filter($busy, fn($d) => $d >= $today));
   sort($busy);
 
+  if ((int)($r['trattativa_riservata'] ?? 0) === 1) {
+    $r['cachet_min'] = $r['cachet_max'] = $r['cachet_promo'] = $r['promo_until'] = null; $r['cachet_trattabile'] = null;
+  }
   $hasPromo = ($r['cachet_promo'] !== null && (int)$r['cachet_promo'] > 0
                && ($r['promo_until'] === null || $r['promo_until'] >= $today));
 

@@ -61,7 +61,7 @@ $whereSql  = 'WHERE ' . implode(' AND ', $where);
 $havingSql = ($hasOrigin && $maxKm !== null) ? 'HAVING distance_km IS NOT NULL AND distance_km <= ' . (int)$maxKm : '';
 
 $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.provincia, ap.lat, ap.lng,
-               ap.cachet_min, ap.cachet_max, ap.photo_url, ap.verified
+               ap.cachet_min, ap.cachet_max, ap.trattativa_riservata, ap.photo_url, ap.verified
                $distSelect
         FROM artist_profiles ap
         $whereSql
@@ -82,6 +82,7 @@ $viewer = current_user();
 $locked = !viewer_can_see_prices($viewer);
 $pendingVerification = (bool) ($viewer && in_array($viewer['role'], ['promoter', 'management'], true) && !promoter_is_verified((int) $viewer['id']));
 foreach ($rows as &$r) {
+  if ((int)($r['trattativa_riservata'] ?? 0) === 1) { $r['cachet_min'] = $r['cachet_max'] = null; }
   $r['lat'] = (float)$r['lat']; $r['lng'] = (float)$r['lng'];
   if (isset($r['distance_km']) && $r['distance_km'] !== null) $r['distance_km'] = round((float)$r['distance_km'], 1);
   if ($locked) { $r['cachet_min'] = null; $r['cachet_max'] = null; }

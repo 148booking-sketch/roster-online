@@ -722,6 +722,7 @@ function onVerifiedToggle(){
   if (!showPass) a_pass.value = '';
   document.getElementById('a_managedHint').style.display = managed ? '' : 'none';
   setGenreVerified('a_', managed);
+  setTrvVerified('a_', managed);
 }
 
 async function saveArtist(e){ e.preventDefault();

@@ -300,7 +300,7 @@ async function checkElig(e){ e.preventDefault();
     const r = await api('artist-eligibility-check.php',{method:'POST',body:{itunes: am_url.value}});
     if (r.eligible){
       artistFormReset('m_');
-      setGenreVerified('m_', true);              // artista gestito = verificato → generi illimitati
+      setGenreVerified('m_', true); setTrvVerified('m_', true);              // artista gestito = verificato → generi illimitati
       const nameEl = document.getElementById('m_stage_name'); if (nameEl && r.artist_name) nameEl.value = r.artist_name;
       const amEl = document.getElementById('m_s_am'); if (amEl) amEl.value = am_url.value;
       editId = null;
@@ -329,7 +329,7 @@ async function editArtist(id){
     editId = id;
     artistFormReset('m_');
     artistFormPopulate('m_', r.profile || {});
-    setGenreVerified('m_', true);
+    setGenreVerified('m_', true); setTrvVerified('m_', true);
     af_submit.textContent = 'Salva modifiche';
     const p = r.profile || {};
     const nm = p.stage_name || 'Artista';

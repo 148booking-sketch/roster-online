@@ -111,6 +111,7 @@ Se manca qualcosa → `missing_fields_for_publish` con l'elenco dei campi mancan
 - La spunta **verified** la assegna l'admin, oppure è **automatica** per gli artisti creati da un'agenzia.
 - **Idoneità minima** per candidarsi/essere aggiunti come artista (`artist-eligibility-check.php`, iTunes/Apple Music pubblico): **≥ 2 brani pubblicati negli ultimi 12 mesi** e **≥ 6 brani totali** sul profilo.
   - Ri-verificata **lato server** quando un'agenzia crea un artista (`not_eligible` se non passa).
+- **Trattativa riservata** (solo artisti **verificati**): se attiva, cachet/promo/condizioni viaggi non compaiono MAI in chiaro (ricerca, mappa, pagina artista, preferiti, richieste); le UI mostrano "Trattativa riservata". I non verificati non possono attivarla (switch disabilitato + il server la forza a 0).
 - **Limite generi:** artista **non verificato → max 3 generi**; **verificato → illimitati**. L'artista non può cambiarsi il flag da solo (il limite segue lo stato già in DB).
 
 ---

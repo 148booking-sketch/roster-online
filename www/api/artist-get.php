@@ -5,6 +5,7 @@
  * in background (dopo la risposta) quando sono più vecchie di 7 giorni.
  */
 require_once __DIR__ . '/_http.php';
+ensure_trattativa_col();
 require_once __DIR__ . '/_stats.php';
 require_once __DIR__ . '/_calendar.php';
 require_once __DIR__ . '/_access.php';
@@ -14,7 +15,7 @@ if ($slug === '') fail('slug_required');
 
 $st = db()->prepare(
   'SELECT user_id, stage_name, slug, formazione, componenti, bio, comune, provincia,
-          lat, lng, cachet_min, cachet_max, cachet_trattabile, cachet_promo, promo_until, rimborso_tipo, rimborso_km, rimborso_forfait,
+          lat, lng, cachet_min, cachet_max, cachet_trattabile, trattativa_riservata, cachet_promo, promo_until, rimborso_tipo, rimborso_km, rimborso_forfait,
           travel_max_km, durata_set_min, website, socials, custom_links, photo_url, verified,
           label, management,
           tech_sheet_url, gear_bring, gear_need,
@@ -64,6 +65,10 @@ $a['has_calendar'] = !empty($calUrl);
 unset($a['calendar_url']);   // non esporre l'URL iCal (può essere un indirizzo segreto)
 
 // Promo attiva? (flag pubblico, mostra il pin PROMO anche ai non loggati)
+// Trattativa riservata: prezzi e condizioni viaggi MAI in chiaro sulla pagina pubblica.
+if ((int)($a['trattativa_riservata'] ?? 0) === 1) {
+  foreach (['cachet_min','cachet_max','cachet_trattabile','cachet_promo','promo_until','rimborso_tipo','rimborso_km','rimborso_forfait'] as $k) $a[$k] = null;
+}
 $a['has_promo'] = ($a['cachet_promo'] !== null && (int)$a['cachet_promo'] > 0
                    && ($a['promo_until'] === null || $a['promo_until'] >= date('Y-m-d')));
 

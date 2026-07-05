@@ -89,6 +89,7 @@ function fmtTime(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
 /* compenso mostrato: offerta storica se presente, altrimenti il cachet attuale del profilo */
 function feeOf(rq){
   if(rq.proposed_fee!=null) return eur(rq.proposed_fee);
+  if(rq.trattativa_riservata==1) return 'Trattativa riservata';
   const promoOk = rq.cachet_promo!=null && (+rq.cachet_promo>0) && (!rq.promo_until || rq.promo_until >= new Date().toISOString().slice(0,10));
   const v = promoOk ? rq.cachet_promo : (rq.cachet_min ?? rq.cachet_max);
   if(v==null) return '—';

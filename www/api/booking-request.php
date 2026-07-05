@@ -28,7 +28,7 @@ if ($method === 'GET') {
     $rows = $st->fetchAll();
   } else {
     $st = db()->prepare(
-      'SELECT br.*, ap.stage_name,
+      'SELECT br.*, ap.stage_name, ap.trattativa_riservata,
               ap.cachet_min, ap.cachet_max, ap.cachet_promo, ap.promo_until
        FROM booking_requests br
        JOIN artist_profiles ap ON ap.user_id = br.artist_user_id
@@ -36,6 +36,11 @@ if ($method === 'GET') {
     );
     $st->execute([$u['id']]);
     $rows = $st->fetchAll();
+    // Trattativa riservata: il cachet di listino non si mostra (resta l'eventuale offerta storica).
+    foreach ($rows as &$r) {
+      if ((int)($r['trattativa_riservata'] ?? 0) === 1) { $r['cachet_min'] = $r['cachet_max'] = $r['cachet_promo'] = $r['promo_until'] = null; }
+    }
+    unset($r);
     // Stessa regola dei prezzi di tutto il sito: i cachet solo a promoter verificati/admin.
     if (!viewer_can_see_prices($u)) {
       foreach ($rows as &$r) { $r['cachet_min'] = $r['cachet_max'] = $r['cachet_promo'] = $r['promo_until'] = null; }

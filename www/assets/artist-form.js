@@ -96,24 +96,30 @@ function artistFormHTML(p) {
     <section class="fsec money">
       <h2 class="fsec-h">Cachet & sconti</h2>
       <div class="row">
-        <div class="field" style="min-width:140px"><label>Cachet a serata (€)</label><input id="${p}cachet" type="number" min="0" placeholder="500"></div>
-        <div class="field" style="max-width:170px"><label>Cachet</label>
+        <div class="field" style="max-width:195px;flex:none"><label>Trattativa riservata <span class="hint" style="display:inline" id="${p}trv_hint"></span></label>
+          <div style="display:flex;align-items:center;height:38px">
+            <span class="switch"><input type="checkbox" id="${p}trv_ris" onchange="trvRisUI('${p}')"><span class="slider"></span></span>
+          </div>
+        </div>
+        <div class="field trvhide-${p}" style="min-width:140px"><label>Cachet a serata (€)</label><input id="${p}cachet" type="number" min="0" placeholder="500"></div>
+        <div class="field trvhide-${p}" style="max-width:170px"><label>Cachet</label>
           <select id="${p}cachet_trattabile"><option value="1">Trattabile</option><option value="0">Non trattabile</option></select>
         </div>
-        <div class="field" style="max-width:170px"><label>Viaggi</label>
+        <div class="field trvhide-${p}" style="max-width:170px"><label>Viaggi</label>
           <select id="${p}rimborso_tipo" onchange="rimbUI('${p}')">
             <option value="da_concordare">Da concordare</option>
             <option value="incluso">Incluso nel cachet</option>
             <option value="forfait">Forfait fisso</option>
           </select></div>
-        <div class="field" id="${p}wrap_forf" style="display:none;max-width:140px"><label>Forfait (€)</label><input id="${p}rimborso_forfait" type="number" min="0" placeholder="80"></div>
+        <div class="field trvhide-${p}" id="${p}wrap_forf" style="display:none;max-width:140px"><label>Forfait (€)</label><input id="${p}rimborso_forfait" type="number" min="0" placeholder="80"></div>
       </div>
-      <div class="row">
+      <div class="row trvhide-${p}">
         <div class="field"><label>Cachet PROMO (€) <span class="hint" style="display:inline">opzionale</span></label>
           <input id="${p}cachet_promo" type="number" min="0" placeholder="es. 400">
           <div class="hint">Se compilato, sul profilo appare il badge <b>PROMO</b> con il prezzo pieno barrato.</div></div>
         <div class="field" style="max-width:200px"><label>Promo valida fino al</label><input id="${p}promo_until" type="date"></div>
       </div>
+      <div class="hint trvnote-${p}" style="display:none;margin:-6px 0 0">Con la trattativa riservata attiva, cachet, promo e condizioni viaggi NON compaiono sul profilo pubblico: i promoter vedono "Trattativa riservata".</div>
     </section>
 
     <section class="fsec tech">
@@ -201,6 +207,27 @@ function bioSpotifyUI(p) {
 }
 
 /* ---- Rimborso (mostra/nasconde forfait) ---- */
+/* Trattativa riservata: se attiva nasconde tutti i campi cachet/viaggi/promo.
+ * Solo gli artisti VERIFICATI possono attivarla (lo switch resta disabilitato per gli altri;
+ * il server la ignora comunque per i non verificati). */
+function trvRisUI(p) {
+  const cb = document.getElementById(p + 'trv_ris');
+  if (!cb) return;
+  const on = cb.checked;
+  document.querySelectorAll('.trvhide-' + p).forEach(el => { el.style.display = on ? 'none' : ''; });
+  const note = document.querySelector('.trvnote-' + p); if (note) note.style.display = on ? '' : 'none';
+  if (!on) rimbUI(p);   // ripristina la visibilità condizionale del forfait
+}
+function setTrvVerified(p, verified) {
+  const cb = document.getElementById(p + 'trv_ris');
+  if (!cb) return;
+  cb.disabled = !verified;
+  if (!verified && cb.checked) cb.checked = false;
+  const hint = document.getElementById(p + 'trv_hint');
+  if (hint) hint.textContent = verified ? '' : '(solo verificati)';
+  trvRisUI(p);
+}
+
 function rimbUI(p) {
   const w = document.getElementById(p + 'wrap_forf'), s = document.getElementById(p + 'rimborso_tipo');
   if (w && s) w.style.display = s.value === 'forfait' ? '' : 'none';
@@ -251,6 +278,9 @@ function artistFormPopulate(p, prof) {
   const genreIds = (pf.genres || []).map(g => (g && g.id != null) ? g.id : g);
   renderGenreChips(p + 'genreChips', genreIds);
   setGenreVerified(p, pf.verified == 1);
+  const trvCb = document.getElementById(p + 'trv_ris');
+  if (trvCb) trvCb.checked = pf.trattativa_riservata == 1 && pf.verified == 1;
+  setTrvVerified(p, pf.verified == 1);
   setPhotoFromServer(p, pf.photo_url);
   rimbUI(p);
 }
@@ -267,6 +297,8 @@ function artistFormReset(p) {
   renderShowChips(p + 'showChips', 'live_band');
   renderGenreChips(p + 'genreChips', []);
   setGenreVerified(p, false);
+  const trvCb = document.getElementById(p + 'trv_ris'); if (trvCb) trvCb.checked = false;
+  setTrvVerified(p, false);
   renderGearChips(p + 'gearBring', [], GEAR_BRING);
   renderGearChips(p + 'gearNeed', GEAR_NEED_DEFAULT, GEAR_NEED);
   setPhotoFromServer(p, '');
@@ -287,6 +319,7 @@ function artistFormCollect(p) {
     genres: genresSelected(p + 'genreChips'),
     socials: { spotify: v('s_sp'), instagram: v('s_ig'), facebook: v('s_fb'), tiktok: v('s_tt'), youtube: v('s_yt'), twitch: v('s_tw'), applemusic: v('s_am') },
     cachet_min: v('cachet'), cachet_max: v('cachet'), cachet_trattabile: v('cachet_trattabile'),
+    trattativa_riservata: document.getElementById(p + 'trv_ris')?.checked ? '1' : '0',
     cachet_promo: v('cachet_promo'), promo_until: v('promo_until'),
     rimborso_tipo: v('rimborso_tipo'), rimborso_forfait: v('rimborso_forfait'),
     durata_set_min: v('durata_set_min'),

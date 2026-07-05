@@ -63,6 +63,10 @@ $gearNeed  = gear_whitelist($in['gear_need'] ?? [], 'need');
 $gearBringJson = $gearBring ? json_encode($gearBring, JSON_UNESCAPED_UNICODE) : null;
 $gearNeedJson  = $gearNeed  ? json_encode($gearNeed,  JSON_UNESCAPED_UNICODE) : null;
 
+// Trattativa riservata: artista gestito = verificato, quindi ammessa.
+ensure_trattativa_col();
+$trvRis = !empty($in['trattativa_riservata']) ? 1 : 0;
+
 $trattabile = (isset($in['cachet_trattabile']) && (string)$in['cachet_trattabile'] === '0') ? 0 : 1;
 $bioFromSpotify = (isset($in['bio_from_spotify']) && (string)$in['bio_from_spotify'] === '1') ? 1 : 0;
 
@@ -94,14 +98,14 @@ try {
   $pdo->prepare(
     'UPDATE artist_profiles SET
        stage_name=?, slug=?, formazione=?, componenti=?, bio=?, bio_from_spotify=?, phone=?, comune=?, provincia=?,
-       lat=?, lng=?, cachet_min=?, cachet_max=?, cachet_trattabile=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_forfait=?,
+       lat=?, lng=?, cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_forfait=?,
        travel_max_km=?, durata_set_min=?, website=?, socials=?, photo_url=?, calendar_url=?,
        label=?, management=?,
        tech_sheet_url=?, gear_bring=?, gear_need=?
      WHERE user_id=? AND manager_user_id=?'
   )->execute([
     $stage, $slug, $form, $componenti, $bio, $bioFromSpotify, $phone, ($comune ?: null), $prov,
-    $lat, $lng, $cachetMin, $cachetMax, $trattabile, $cachetPromo, $promoUntil, $rimb, $rimbForf,
+    $lat, $lng, $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbForf,
     $travelKm, $durata, $website, $socials, $photo, ($calUrl ?: null),
     ($label ?: null), ($management ?: null),
     ($techUrl ?: null), $gearBringJson, $gearNeedJson,
