@@ -37,7 +37,6 @@ $rimbForf  = $intOrNull($in['rimborso_forfait'] ?? null);
 $travelKm  = $intOrNull($in['travel_max_km'] ?? null);
 $durata    = $intOrNull($in['durata_set_min'] ?? null);
 $componenti= $intOrNull($in['componenti'] ?? null);
-$rimbKm    = ($in['rimborso_km'] ?? '') === '' ? null : round((float)$in['rimborso_km'], 2);
 $trattabile = (isset($in['cachet_trattabile']) && (string)$in['cachet_trattabile'] === '0') ? 0 : 1;
 $bioFromSpotify = (isset($in['bio_from_spotify']) && (string)$in['bio_from_spotify'] === '1') ? 1 : 0;
 // array_filter come negli altri write-path (admin/management): un social svuotato dall'artista
@@ -84,7 +83,7 @@ $slug = $slug ? trim($slug, '-') : null;
 $sql = 'UPDATE artist_profiles SET
           stage_name=?, slug=?, formazione=?, componenti=?, bio=?, bio_from_spotify=?, phone=?,
           comune=?, provincia=?, lat=?, lng=?,
-          cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_km=?, rimborso_forfait=?,
+          cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_forfait=?,
           travel_max_km=?, durata_set_min=?, website=?, socials=?,
           label=?, management=?,
           tech_sheet_url=?, gear_bring=?, gear_need=?
@@ -92,7 +91,7 @@ $sql = 'UPDATE artist_profiles SET
 db()->prepare($sql)->execute([
   $stage, $slug, $form, $componenti, $bio, $bioFromSpotify, $phone,
   ($comune ?: null), $prov, $lat, $lng,
-  $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbKm, $rimbForf,
+  $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbForf,
   $travelKm, $durata, $website, $socials,
   ($label ?: null), ($management ?: null),
   ($techUrl ?: null), $gearBringJson, $gearNeedJson,

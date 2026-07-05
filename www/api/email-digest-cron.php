@@ -15,7 +15,7 @@ require_once __DIR__ . '/_mail.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $token = config()['email_digest_token'] ?? '';
-if ($token === '' || ($_GET['token'] ?? '') !== $token) { http_response_code(403); exit('{"ok":false,"error":"forbidden"}'); }
+if ($token === '' || !hash_equals($token, (string)($_GET['token'] ?? ''))) { http_response_code(403); exit('{"ok":false,"error":"forbidden"}'); }
 
 $freq = $_GET['freq'] ?? '';
 if (!in_array($freq, ['daily', 'weekly', 'monthly'], true)) { http_response_code(400); exit('{"ok":false,"error":"freq_invalid"}'); }

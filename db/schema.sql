@@ -269,4 +269,5 @@ INSERT IGNORE INTO genres (slug, name) VALUES
   ('hard','Hard'), ('format','Format'),
   -- macro-categorie 2026-07 (migration-22)
   ('latin','Latin / Reggaeton'), ('rnb','R&B'), ('country','Country'),
-  ('gospel','Gospel / Spiritual'), ('ambient','Ambient / Chill'), ('ska','Ska');
+  ('gospel','Gospel / Spiritual'), ('ambient','Ambient / Chill'), ('ska','Ska'),
+  ('revival','Revival');   -- migration-24

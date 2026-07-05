@@ -11,7 +11,9 @@ require_once __DIR__ . '/_mail.php';
 require_once __DIR__ . '/_geo.php';
 require_once __DIR__ . '/_itunes.php';
 require_once __DIR__ . '/_calendar.php';
+require_once __DIR__ . '/_ratelimit.php';
 only('POST');
+rate_limit('register', 8, 600);
 
 $in    = body();
 $email = strtolower(trim($in['email'] ?? ''));

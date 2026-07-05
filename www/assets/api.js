@@ -16,7 +16,8 @@ async function api(path, {method = 'GET', body = null} = {}) {
 
 /* messaggi d'errore in italiano */
 const ERR = {
-  comune_required: "Indica il comune dell'evento.",
+  current_password_invalid: "La password attuale non è corretta.",
+  too_many_requests: "Troppi tentativi. Riprova tra qualche minuto.",
   email_invalid:'Email non valida', password_too_short:'Password troppo corta (min 8)',
   role_invalid:'Ruolo non valido', email_taken:'Email già registrata',
   credentials_invalid:'Email o password errati', account_blocked:'Account bloccato',
@@ -198,7 +199,7 @@ document.addEventListener('DOMContentLoaded', renderCookieBanner);
 let _me;
 async function getMe(force = false) {
   if (_me && !force) return _me;
-  try { _me = (await api('me.php')).user ? await api('me.php') : {user:null}; }
+  try { const _r = await api('me.php'); _me = _r.user ? _r : {user:null}; }
   catch (e) { _me = {user:null}; }
   return _me;
 }
@@ -209,7 +210,7 @@ const GENRE_ICONS = {
   elettronica:'🎛️', 'house-techno':'🔊', jazz:'🎷', blues:'🎺', 'funk-soul':'🕺',
   reggae:'🥁', folk:'🪕', metal:'🤘', punk:'⚡', classica:'🎻',
   'tributo-cover':'🎭', 'dance-commerciale':'🪩', world:'🌍', hard:'🔞', format:'🎪',
-  latin:'🌴', rnb:'🎶', country:'🤠', gospel:'🙏', ambient:'🌙', ska:'🕶️'
+  latin:'🌴', rnb:'🎶', country:'🤠', gospel:'🙏', ambient:'🌙', ska:'🕶️', revival:'📻'
 };
 
 /* tipi di show (ex "formazione") — slug ↔ etichetta, condivisi in tutto il frontend */
@@ -278,14 +279,6 @@ function injectIcons(root = document) {
     if (!el.querySelector('.ic-svg')) el.insertAdjacentHTML('afterbegin', icon(el.dataset.ic, +(el.dataset.icSize || 17), +(el.dataset.icStroke || 1.75)));
   });
 }
-/* icona SVG per genere musicale (sostituisce le emoji di GENRE_ICONS nelle UI nuove) */
-const GENRE_SVG = {
-  pop:'mic', rock:'music', indie:'agency', cantautore:'wave', 'rap-hiphop':'mic', trap:'disc',
-  elettronica:'sliders', 'house-techno':'speaker', jazz:'music', blues:'music', 'funk-soul':'wave',
-  reggae:'globe', folk:'music', metal:'zap', punk:'zap', classica:'music',
-  'tributo-cover':'wave', 'dance-commerciale':'disc', world:'globe', hard:'star', format:'grid'
-};
-function genreIcon(slug, size = 24, stroke = 1.6) { return icon(GENRE_SVG[slug] || 'music', size, stroke); }
 
 /* iniziali + colore stabile per gli avatar utente (menu header, shell admin) */
 function avatarInitials(name) {
@@ -414,7 +407,7 @@ function renderFooter() {
 function renderArtistPins(map, layer, list, opts = {}) {
   layer.clearLayers();
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : '';
-  const cachet = a => { if (opts.locked) return opts.pendingVerification ? '🔒 Verifica in corso' : '🔒 Accedi per il prezzo'; const v = a.cachet_min ?? a.cachet_max; if (v == null) return 'Trattativa riservata'; if (v === 0) return 'Disponibile, senza impegno'; return 'da ' + eur(v) + ' a serata'; };
+  const cachet = a => { if (opts.locked) return opts.pendingVerification ? icon('lock',13)+' Verifica in corso' : icon('lock',13)+' Accedi per il prezzo'; const v = a.cachet_min ?? a.cachet_max; if (v == null) return 'Trattativa riservata'; if (v === 0) return 'Disponibile, senza impegno'; return 'da ' + eur(v) + ' a serata'; };
   const groups = {};
   list.forEach(a => {
     if (a.lat == null || a.lng == null) return;
@@ -441,7 +434,7 @@ function renderArtistPins(map, layer, list, opts = {}) {
       pop = `<div class="pp"><div class="nm">${n} artisti${a.comune ? ' · ' + esc(a.comune) : ''}</div>
         <div style="max-height:230px;overflow:auto;margin-top:6px">
         ${g.items.map(x => `<a href="/${esc(x.slug || '')}" style="display:flex;gap:10px;align-items:center;padding:8px 2px;text-decoration:none;color:inherit;border-top:1px solid var(--line2)">
-          <span style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex:none;background:#eee;display:flex;align-items:center;justify-content:center;font-size:15px">${x.photo_url ? `<img src="${esc(x.photo_url)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : '🎵'}</span>
+          <span style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex:none;background:#eee;display:flex;align-items:center;justify-content:center;color:#c9c9c9">${x.photo_url ? `<img src="${esc(x.photo_url)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : icon('music',16,1.5)}</span>
           <span style="min-width:0"><b style="display:block">${esc(x.stage_name || 'Artista')}${vchk(x)}</b><span style="color:var(--muted);font-size:12px">${cachet(x)}</span></span></a>`).join('')}
         </div></div>`;
     }
@@ -498,37 +491,13 @@ function notifTimeAgo(ts) {
   return d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
 }
 async function refreshNotifDot() {
-  const dot = document.getElementById('notifDot');
   const mdot = document.getElementById('menuNotifDot');
-  if (!dot && !mdot) return;
+  if (!mdot) return;
   const list = await loadNotifs();
   const seen = +(localStorage.getItem(NOTIF_SEEN_KEY) || 0);
-  const hasNew = list.some(n => new Date((n.ts || '').replace(' ', 'T')).getTime() > seen);
-  if (dot) dot.style.display = hasNew ? '' : 'none';
-  if (mdot) mdot.style.display = hasNew ? '' : 'none';
+  mdot.style.display = list.some(n => new Date((n.ts || '').replace(' ', 'T')).getTime() > seen) ? '' : 'none';
 }
-async function fillNotifPop() {
-  const pop = document.getElementById('notifPop');
-  pop.innerHTML = '<div class="notif-empty">Carico…</div>';
-  const list = await loadNotifs(true);
-  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
-  ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
-  pop.innerHTML = list.length ? list.map(n => `
-    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
-      <span class="notif-left"><span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span><span class="notif-when">${notifTimeAgo(n.ts)}</span></span>
-      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
-    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
-}
-async function toggleNotif(e) {
-  e.stopPropagation();
-  const wrap = e.currentTarget.parentNode;
-  const was = wrap.classList.contains('open');
-  document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open'));
-  if (was) return;
-  wrap.classList.add('open');
-  fillNotifPop();
-}
-/* mobile: le notifiche si espandono DENTRO il sottomenu, sotto la voce */
+/* Le notifiche si espandono DENTRO il sottomenu dell'avatar, sotto la voce "Notifiche" */
 async function openNotifFromMenu(e) {
   e.stopPropagation(); e.preventDefault();
   const box = document.getElementById('menuNotifList');
@@ -538,18 +507,12 @@ async function openNotifFromMenu(e) {
   box.innerHTML = '<div class="notif-empty">Carico…</div>';
   const list = await loadNotifs(true);
   localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
-  ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
+  const _md = document.getElementById('menuNotifDot'); if (_md) _md.style.display = 'none';
   box.innerHTML = list.length ? list.map(n => `
     <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
       <span class="notif-left"><span class="notif-ic">${icon(n.icon || 'inbox', 15)}</span><span class="notif-when">${notifTimeAgo(n.ts)}</span></span>
       <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
     </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
-}
-function navBell() {
-  return `<div class="usermenu notifwrap">
-    <button type="button" class="nav-bell" onclick="toggleNotif(event)" title="Notifiche">${icon('bell', 18)}<span class="notif-dot" id="notifDot" style="display:none"></span></button>
-    <div class="menu-pop notif-pop" id="notifPop"></div>
-  </div>`;
 }
 
 /* ---- Shell area promoter/agenzia (design 5c/6b/7a): sidebar bianca al posto dell'header.
@@ -577,7 +540,8 @@ function mountPromoterShell(u, active) {
   const name = u.display_name || u.email || 'Account';
   // menu mobile: stesse voci della sidebar, dentro la tendina dell'avatar
   const mobileMenu = navItems.replace(/class="ps-item( on)?"/g, 'class="menu-item$1"').replace(/<div class="ps-sec">[^<]*<\/div>/g, '<div class="menu-divider"></div>')
-    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="logout()">${icon('logout', 16)}<span>Esci</span></button>`;
+    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="logout()">${icon('logout', 16)}<span>Esci</span></button>`
+    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button><div class="menu-notifs" id="menuNotifList" style="display:none"></div>`;
   const shell = document.createElement('div');
   shell.className = 'pshell';
   shell.innerHTML = `
@@ -618,91 +582,9 @@ function mountPromoterShell(u, active) {
     const n = (r.requests || []).filter(x => ['inviata', 'vista'].includes(x.status)).length, el = document.getElementById('psReq');
     if (el && n > 0) { el.textContent = n; el.style.display = ''; }
   }).catch(() => {});
+  refreshNotifDot();   // pallino notifiche nel menu mobile della shell
 }
 
-/* ---- Popup "Cerca" (header, utenti non loggati): stessi filtri che vedrebbero su "/" ---- */
-const SP_BUDGET_MAX_DEFAULT = 3000;   // fallback se il roster non ha ancora nessun cachet impostato
-let _searchGenres;
-async function loadSearchGenres(){
-  if (!_searchGenres) _searchGenres = (await api('genres.php')).genres || [];
-  return _searchGenres;
-}
-async function openSearchPopup(){
-  let ov = document.getElementById('searchPopup');
-  if (!ov) { ov = document.createElement('div'); ov.className = 'overlay'; ov.id = 'searchPopup'; document.body.appendChild(ov); }
-  const genres = await loadSearchGenres();
-  // Il filtro budget ha senso solo per chi vede davvero i cachet (admin o promoter approvato):
-  // per non loggati, artisti e promoter in attesa di verifica i prezzi sono comunque nascosti.
-  const me = await getMe();
-  const canSeePrices = !!(me.user && (me.user.role === 'admin' || (me.user.role === 'promoter' && me.user.status === 'active')));
-  let budgetMax = SP_BUDGET_MAX_DEFAULT;
-  if (canSeePrices) {
-    try { const r = await api('artists-search.php?limit=1'); if (r.roster_max_cachet > 0) budgetMax = r.roster_max_cachet; } catch (e) {}
-  }
-  const budgetField = !canSeePrices ? '' : `
-          <div class="field">
-            <label>Budget massimo · <span id="sp_budgetVal">${eur(budgetMax)}</span></label>
-            <input type="range" id="sp_budget" min="0" max="${budgetMax}" step="50" value="${budgetMax}"
-              style="width:100%;accent-color:var(--brand)" oninput="sp_budgetVal.textContent = eur(+sp_budget.value)">
-          </div>`;
-  ov.innerHTML = `
-    <div class="modal" style="max-width:480px">
-      <div class="mhead"><button type="button" class="iconbtn" onclick="closeSearchPopup()">✕</button><h3>Cerca artisti</h3><span style="width:34px"></span></div>
-      <div class="mbody">
-        <form onsubmit="return submitSearchPopup(event)">
-          <div class="field"><label>Cerca per nome</label><input type="text" id="sp_q" placeholder="Nome artista o parola chiave"></div>
-          ${budgetField}
-          <div class="field" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:8px">
-              <label class="switch" style="margin:0" title="Solo artisti entro 250 km da te"><input type="checkbox" id="sp_gps"><span class="slider"></span></label>
-              <span style="font-weight:600">Vicino a me</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <label class="switch" style="margin:0" title="Solo artisti disponibili a trattare il cachet"><input type="checkbox" id="sp_tratt"><span class="slider"></span></label>
-              <span style="font-weight:600">Trattabile</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <label class="switch" style="margin:0" title="Solo artisti con promozione attiva"><input type="checkbox" id="sp_promo"><span class="slider"></span></label>
-              <span style="font-weight:600">Promo</span>
-            </div>
-          </div>
-          <div class="field"><label>Generi</label>
-            <div class="chips">${genres.map(g => `<span class="chip" data-slug="${esc(g.slug)}" onclick="pickSearchGenre(this)">${GENRE_ICONS[g.slug] || '🎵'} ${esc(g.name)}</span>`).join('')}</div>
-          </div>
-          <div class="field"><label>Tipo di show</label>
-            <div class="chips">${SHOW_TYPES.map(([v, l]) => `<span class="chip" data-v="${v}" onclick="pickSearchShow(this)">${esc(l)}</span>`).join('')}</div>
-          </div>
-          <button class="btn primary" style="width:100%;margin-top:6px">Cerca</button>
-        </form>
-        <button type="button" class="btn ghost" style="width:100%;margin-top:8px" onclick="goSearchAll()">Vedi tutti gli artisti</button>
-      </div>
-    </div>`;
-  ov.classList.add('open');
-}
-function closeSearchPopup(){ document.getElementById('searchPopup')?.classList.remove('open'); }
-function goSearchAll(){ location.href = '/'; }
-function pickSearchGenre(el){ location.href = '/genere/' + encodeURIComponent(el.dataset.slug); }
-function pickSearchShow(el){ location.href = '/?' + new URLSearchParams({ formazione: el.dataset.v }).toString(); }
-function submitSearchPopup(e){
-  e.preventDefault();
-  const p = new URLSearchParams();
-  const q = document.getElementById('sp_q').value.trim();
-  if (q) p.set('q', q);
-  const budgetEl = document.getElementById('sp_budget');
-  if (budgetEl && +budgetEl.value < +budgetEl.max) p.set('cachet_max', budgetEl.value);
-  if (document.getElementById('sp_tratt').checked) p.set('trattabile', '1');
-  if (document.getElementById('sp_promo').checked) p.set('promo', '1');
-  if (document.getElementById('sp_gps').checked && navigator.geolocation && window.isSecureContext) {
-    navigator.geolocation.getCurrentPosition(
-      pos => { p.set('lat', pos.coords.latitude); p.set('lng', pos.coords.longitude); p.set('max_km', '250'); location.href = '/?' + p.toString(); },
-      () => { location.href = '/?' + p.toString(); },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
-    );
-    return false;
-  }
-  location.href = '/?' + p.toString();
-  return false;
-}
 document.addEventListener('click', e => { if (e.target.classList.contains('overlay') && e.target.id !== 'cookieConsentModal') e.target.classList.remove('open'); });
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function thousands(n){return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
@@ -725,26 +607,6 @@ const SOCIAL_SVG={
   applemusic:'<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>'
 };
 
-/* per le card: fino a 3 icone dei social con i numeri più alti (una per piattaforma, il metro
-   migliore se ce n'è più di uno, es. spotify_followers vs spotify_listeners) */
-const SOCIAL_STAT_PLATFORM = {
-  spotify_followers:'spotify', spotify_listeners:'spotify', youtube_subs:'youtube',
-  tiktok_followers:'tiktok', twitch_followers:'twitch', instagram_followers:'instagram', facebook_followers:'facebook',
-};
-function topSocialStats(stats){
-  const byPlatform = {};
-  for (const [k, v] of Object.entries(stats || {})) {
-    const plat = SOCIAL_STAT_PLATFORM[k];
-    if (!plat || v == null || v <= 0) continue;
-    if (!byPlatform[plat] || v > byPlatform[plat]) byPlatform[plat] = v;
-  }
-  return Object.entries(byPlatform).sort((a, b) => b[1] - a[1]).slice(0, 3);
-}
-function miniSocialIcon(plat, v){
-  const svg = SOCIAL_SVG[plat]; if (!svg) return '';
-  return `<span class="soc-mini" title="${SM[plat] ? esc(SM[plat][0]) : ''}">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">${svg}</svg>${fmt(v)}</span>`;
-}
 
 /* autocomplete comuni: /assets/comuni.json (Italia, ["Nome","PR"]) + /assets/europe-cities.json
    (resto d'Europa, ["Nome","Paese"]) + /assets/world-capitals.json (capitali extra-europee,

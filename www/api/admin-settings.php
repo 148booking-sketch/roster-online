@@ -7,7 +7,7 @@
  */
 require_once __DIR__ . '/_admin.php';
 require_once __DIR__ . '/_stats.php';   // meta_get/meta_set + stats_cred
-require_admin();
+require_super_admin();   // le chiavi API di terze parti sono riservate ai super admin
 
 $keys = ['spotify_client_id', 'spotify_client_secret', 'youtube_api_key', 'apify_token'];
 

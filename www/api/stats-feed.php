@@ -9,7 +9,7 @@ require_once __DIR__ . '/_http.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $token = config()['stats_token'] ?? '';
-if ($token === '' || ($_GET['token'] ?? '') !== $token) { http_response_code(403); exit('{"ok":false,"error":"forbidden"}'); }
+if ($token === '' || !hash_equals($token, (string)($_GET['token'] ?? ''))) { http_response_code(403); exit('{"ok":false,"error":"forbidden"}'); }
 
 $rows = db()->query(
   "SELECT user_id, stage_name, socials FROM artist_profiles

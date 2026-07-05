@@ -7,7 +7,9 @@
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_calendar.php';
+require_once __DIR__ . '/_ratelimit.php';
 only('POST');
+rate_limit('calcheck', 20, 300);
 
 $in  = body();
 $url = trim($in['calendar_url'] ?? '');

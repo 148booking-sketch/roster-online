@@ -3,7 +3,9 @@
  * POST /api/login.php   Body: { email, password }
  */
 require_once __DIR__ . '/_http.php';
+require_once __DIR__ . '/_ratelimit.php';
 only('POST');
+rate_limit('login', 12, 300);
 
 $in    = body();
 $email = strtolower(trim($in['email'] ?? ''));

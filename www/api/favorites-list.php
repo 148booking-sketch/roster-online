@@ -4,7 +4,7 @@
  * Restituisce le info per il monitoraggio: disponibilità (calendar_busy) e prezzo scontato
  * (cachet_promo/promo_until). I prezzi seguono la stessa regola di accesso della ricerca:
  * visibili solo ad admin o promoter/management verificato dall'admin.
- * Alimenta sia /preferiti.html sia il calendario aggregato /preferiti-calendario.html.
+ * Alimenta la pagina /preferiti.html (matrice disponibilità + prezzi scontati).
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_access.php';

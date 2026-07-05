@@ -15,21 +15,62 @@ const UA_BROWSER = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/
 // sia dall'hosting che dal cloud. Questo è ciò che rende lo scrape possibile senza app.
 const UA_CRAWLER = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
 
+/**
+ * Guardia anti-SSRF: accetta solo http/https verso host che risolvono a IP PUBBLICI.
+ * Blocca loopback, range privati (RFC1918), link-local (169.254.0.0/16 → metadata cloud)
+ * e riservati, sia IPv4 che IPv6. Da usare PRIMA di ogni fetch di URL forniti dall'utente
+ * (calendario iCal, social, sito). Ritorna true se l'URL è sicuro da contattare.
+ */
+function ssrf_url_ok(string $url): bool {
+  $p = parse_url($url);
+  if (!$p || empty($p['scheme']) || empty($p['host'])) return false;
+  if (!in_array(strtolower($p['scheme']), ['http', 'https'], true)) return false;
+  $host = $p['host'];
+
+  $ips = [];
+  if (filter_var($host, FILTER_VALIDATE_IP)) {
+    $ips = [$host];
+  } else {
+    foreach (@dns_get_record($host, DNS_A | DNS_AAAA) ?: [] as $r) {
+      if (!empty($r['ip']))   $ips[] = $r['ip'];
+      if (!empty($r['ipv6'])) $ips[] = $r['ipv6'];
+    }
+    if (!$ips) { $l = @gethostbynamel($host); if ($l) $ips = $l; }
+  }
+  if (!$ips) return false;
+
+  foreach ($ips as $ip) {
+    // NO_PRIV_RANGE + NO_RES_RANGE scartano privati/loopback/link-local/riservati
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false;
+  }
+  return true;
+}
+
 function http_get(string $url, int $timeout = 12, ?string $ua = null): array {
-  $ch = curl_init($url);
-  curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_MAXREDIRS      => 5,
-    CURLOPT_TIMEOUT        => $timeout,
-    CURLOPT_USERAGENT      => $ua ?: UA_BROWSER,
-    CURLOPT_HTTPHEADER     => ['Accept-Language: it,en;q=0.8'],
-    CURLOPT_COOKIE         => 'CONSENT=YES+1',   // bypassa il consent-wall YouTube dagli IP datacenter
-  ]);
-  $body = curl_exec($ch);
-  $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  $ct   = (string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-  curl_close($ch);
+  // Segue i redirect MANUALMENTE, rivalidando ogni hop contro la guardia SSRF: così un
+  // 302 verso un IP interno (169.254.169.254, localhost, RFC1918) viene bloccato invece
+  // di essere seguito ciecamente come farebbe CURLOPT_FOLLOWLOCATION.
+  $body = ''; $code = 0; $ct = '';
+  for ($hop = 0; $hop < 5; $hop++) {
+    if (!ssrf_url_ok($url)) return ['body' => '', 'code' => 0, 'ct' => '', 'blocked' => true];
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_FOLLOWLOCATION => false,
+      CURLOPT_TIMEOUT        => $timeout,
+      CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+      CURLOPT_USERAGENT      => $ua ?: UA_BROWSER,
+      CURLOPT_HTTPHEADER     => ['Accept-Language: it,en;q=0.8'],
+      CURLOPT_COOKIE         => 'CONSENT=YES+1',   // bypassa il consent-wall YouTube dagli IP datacenter
+    ]);
+    $body = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $ct   = (string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $loc  = (string)curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+    curl_close($ch);
+    if ($code >= 300 && $code < 400 && $loc !== '') { $url = $loc; continue; }
+    break;
+  }
   return ['body' => $body ?: '', 'code' => $code, 'ct' => $ct];
 }
 

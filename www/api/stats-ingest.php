@@ -11,7 +11,7 @@ only('POST');
 $in = body();
 
 $token = config()['stats_token'] ?? '';
-if ($token === '' || ($in['token'] ?? '') !== $token) fail('forbidden', 403);
+if ($token === '' || !hash_equals($token, (string)($in['token'] ?? ''))) fail('forbidden', 403);
 
 $items = $in['items'] ?? [];
 if (!is_array($items)) fail('bad_items');

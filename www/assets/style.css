@@ -158,26 +158,8 @@ a{color:inherit;text-decoration:none}
 .fpill.on{background:#222;color:#fff}
 .fpill.warn{background:#fff7e6;color:#a5730a}
 .fpill.ok{background:#eafaf0;color:#0a7d38}
-/* tabella richieste (6b) */
-.rq-table{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#fff}
-.rqt-head{display:grid;grid-template-columns:1fr 130px 110px 118px 150px;gap:12px;padding:10px 18px;background:#f7f7f7;border-bottom:1px solid var(--line2);font:700 10.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:#9a9aa2}
-.rqt-row{display:grid;grid-template-columns:1fr 130px 110px 118px 150px;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid #f2f2f2}
-.rqt-row:last-child{border-bottom:0}
-.rqt-who{display:flex;align-items:center;gap:11px;min-width:0}
-.rqt-who .avatar{width:36px;height:36px;font-size:12px}
-.rqt-who .nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px}
-.rqt-who .mt{font-size:11.5px;color:var(--muted)}
+/* badge di stato in tabella (usato nelle liste admin) */
 .rqt-st{font:700 10.5px var(--f-body);border-radius:20px;padding:3px 9px;display:inline-block}
-.rqt-actions{display:flex;justify-content:flex-end;gap:6px}
-.rqt-actions .abtn{font:600 12px var(--f-body);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 11px;cursor:pointer;color:#444;font-family:inherit}
-.rqt-actions .abtn.danger{color:#c0395e;border-color:#f2c9d5}
-.rqt-actions .abtn:hover{border-color:var(--txt)}
-.rqt-thread{grid-column:1/-1}
-@media(max-width:760px){
-  .rqt-head{display:none}
-  .rqt-row{grid-template-columns:1fr;gap:8px}
-  .rqt-actions{justify-content:flex-start}
-}
 
 /* ---------- PANNELLO FILTRI (design 9a) ---------- */
 .cb-divider{width:1px;height:38px;background:var(--line2);flex:none}
@@ -216,16 +198,6 @@ a{color:inherit;text-decoration:none}
 .lbl-row a{font-size:12.5px;color:var(--brand2);font-weight:600}
 
 /* ---------- SEARCH PILL (header) ---------- */
-.searchpill{display:flex;align-items:center;border:1px solid var(--line);border-radius:40px;box-shadow:0 1px 6px rgba(0,0,0,.08);background:#fff;height:56px;overflow:hidden}
-.searchpill:hover{box-shadow:var(--shadow)}
-.searchpill .seg{padding:8px 18px;cursor:text;position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0}
-.searchpill .seg+.seg{border-left:1px solid var(--line2)}
-.searchpill .seg small{font-size:11px;font-weight:700;color:var(--txt);line-height:1}
-.searchpill .seg input,.searchpill .seg select{border:0;padding:2px 0;font-size:14px;background:transparent;outline:0;width:130px;color:var(--txt)}
-.searchpill .seg input::placeholder{color:var(--muted)}
-.searchpill .go{margin:0 6px 0 4px;width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
-.searchpill .go:hover{background:var(--brand2)}
-.searchpill-mobile{display:none}
 
 /* ---------- CATEGORY BAR (generi) ---------- */
 .catbar-wrap{position:sticky;top:80px;z-index:40;background:#fff;border-bottom:1px solid var(--line2)}
@@ -364,10 +336,6 @@ textarea{min-height:100px;resize:vertical}
 @media(max-width:860px){
   .nav .container{height:auto;padding-top:12px;padding-bottom:12px;gap:10px 12px}
   .logo{font-size:20px}
-  .searchpill{display:none}
-  .searchpill-mobile{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--line);border-radius:40px;box-shadow:0 1px 6px rgba(0,0,0,.1);padding:12px 18px;cursor:pointer;font-weight:600;color:var(--txt)}
-  .searchpill-mobile .ic{color:var(--brand);font-size:18px}
-  .searchpill-mobile small{display:block;color:var(--muted);font-weight:500;font-size:12px}
   .catbar-wrap{position:static}
 }
 

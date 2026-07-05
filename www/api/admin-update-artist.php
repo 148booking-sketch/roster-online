@@ -101,7 +101,7 @@ $gearNeedJson  = $gearNeed  ? json_encode($gearNeed,  JSON_UNESCAPED_UNICODE) : 
 
 // Trattativa riservata: attivabile solo per artisti verificati.
 ensure_trattativa_col();
-$trvRis = ($verified && !empty($in['trattativa_riservata'])) ? 1 : 0;
+$trvRis = ($verifiedIn && !empty($in['trattativa_riservata'])) ? 1 : 0;
 
 $trattabile = (isset($in['cachet_trattabile']) && (string)$in['cachet_trattabile'] === '0') ? 0 : 1;
 $bioFromSpotify = (isset($in['bio_from_spotify']) && (string)$in['bio_from_spotify'] === '1') ? 1 : 0;

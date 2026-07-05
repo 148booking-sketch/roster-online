@@ -157,13 +157,13 @@
 
       <!-- MULTI LINK (link in bio) — solo in modifica, serve uno slug già salvato -->
       <div id="a_multilinkSec" style="display:none;border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px">
-        <h3 style="margin:0 0 6px">🔗 Multi link (link in bio)</h3>
+        <h3 style="margin:0 0 6px">Multi link (link in bio)</h3>
         <div class="hint" style="margin:0 0 12px">Un unico link con tutti i social e il box booking dell'artista.</div>
         <div id="a_mlNoSlug" class="hint" style="display:none">Serve un nome d'arte salvato per generare il link.</div>
         <div id="a_mlLinkRow" style="display:none;gap:10px;flex-wrap:wrap;align-items:center">
           <input id="a_mlUrl" readonly style="flex:1;min-width:200px">
-          <button type="button" class="btn ghost sm" onclick="copyMlLinkAdmin()">📋 Copia</button>
-          <a id="a_mlOpen" class="btn ghost sm" target="_blank" rel="noopener">👁️ Apri</a>
+          <button type="button" class="btn ghost sm" onclick="copyMlLinkAdmin()">Copia</button>
+          <a id="a_mlOpen" class="btn ghost sm" target="_blank" rel="noopener">Apri</a>
         </div>
 
         <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2)">
@@ -368,6 +368,10 @@
       <form class="fsec" onsubmit="return changeMyPass(event)">
         <h2 class="fsec-h">Password</h2>
         <div class="row">
+          <div class="field"><label>Password attuale</label><input id="acc_pwcur" type="password" autocomplete="current-password" required></div>
+          <div class="field"></div>
+        </div>
+        <div class="row">
           <div class="field"><label>Nuova password (min 8)</label><input id="acc_pw" type="password" minlength="8" required></div>
           <div class="field"><label>Ripeti nuova password</label><input id="acc_pw2" type="password" minlength="8" required></div>
         </div>
@@ -398,6 +402,7 @@ async function showPanel(me){
   IS_SUPER = !!(me && me.user && me.user.admin_super);
   ME_ID = me && me.user ? me.user.id : null;
   tabAd.style.display = IS_SUPER ? '' : 'none';
+  tabS.style.display  = IS_SUPER ? '' : 'none';   // chiavi API di terze parti: solo super admin
   // sidebar: icone SVG lineari + logo + avatar + ruolo
   injectIcons(document);
   asMk.innerHTML = icon('mic', 16, 1.9);
@@ -429,7 +434,7 @@ const VIEW_META = {
 };
 function setSideBadge(id, n){ const el=document.getElementById(id); if(!el) return; el.textContent=n; el.style.display = n>0 ? '' : 'none'; }
 function tab(t){
-  if (t==='admins' && !IS_SUPER) return;
+  if ((t==='admins' || t==='set') && !IS_SUPER) return;
   CUR = t;
   const wrappers = new Set(Object.values(TABS).map(x => x[0]));
   wrappers.forEach(w => document.getElementById(w).style.display = 'none');
@@ -993,7 +998,7 @@ async function saveMyAccount(e){ e.preventDefault();
 async function changeMyPass(e){ e.preventDefault();
   if (acc_pw.value !== acc_pw2.value){ toast('Le due password non coincidono', true); return false; }
   try {
-    await api('password-change.php',{method:'POST',body:{new_password:acc_pw.value}});
+    await api('password-change.php',{method:'POST',body:{current_password:acc_pwcur.value, new_password:acc_pw.value}});
     toast('Password aggiornata ✓'); acc_pw.value=acc_pw2.value='';
   } catch(err){ toast(errMsg(err), true); }
   return false;

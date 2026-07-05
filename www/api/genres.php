@@ -11,7 +11,9 @@ try {
       ('latin','Latin / Reggaeton'), ('rnb','R&B'), ('country','Country'),
       ('gospel','Gospel / Spiritual'), ('ambient','Ambient / Chill'), ('ska','Ska')");
   }
-} catch (Throwable $e) { error_log('genres seed 22: ' . $e->getMessage()); }
+  $has2 = db()->query("SELECT 1 FROM genres WHERE slug='revival' LIMIT 1")->fetch();
+  if (!$has2) { db()->exec("INSERT IGNORE INTO genres (slug, name) VALUES ('revival','Revival')"); }
+} catch (Throwable $e) { error_log('genres seed 22/24: ' . $e->getMessage()); }
 
 $rows = db()->query(
   "SELECT g.id, g.slug, g.name,

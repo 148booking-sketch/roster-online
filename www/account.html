@@ -6,7 +6,7 @@
 <title>Account & notifiche · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:1080px}
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:900px}
 @media(max-width:960px){.acc-grid{grid-template-columns:1fr}}
 .acc-card{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:20px}
 .acc-card h3{font:600 15px var(--f-display);margin:0 0 6px;display:flex;align-items:center;gap:8px}
@@ -77,6 +77,7 @@
         <form class="acc-card" onsubmit="return changePass(event)">
           <h3 data-ic="lock" data-ic-size="16">Password</h3>
           <p class="csub">Minimo 8 caratteri.</p>
+          <div class="field"><label>Password attuale</label><input id="pw_cur" type="password" autocomplete="current-password" required></div>
           <div class="field"><label>Nuova password</label><input id="pw_new" type="password" minlength="8" required></div>
           <div class="field"><label>Ripeti nuova password</label><input id="pw_new2" type="password" minlength="8" required></div>
           <button class="btn primary sm">Cambia password</button>
@@ -211,10 +212,11 @@ async function saveAccount(e){ e.preventDefault();
 }
 async function changePass(e){ e.preventDefault();
   if (pw_new.value !== pw_new2.value){ toast('Le due password non coincidono', true); return false; }
+  if (!pw_cur.value){ toast('Inserisci la password attuale', true); return false; }
   try {
-    await api('password-change.php',{method:'POST',body:{ new_password: pw_new.value }});
+    await api('password-change.php',{method:'POST',body:{ current_password: pw_cur.value, new_password: pw_new.value }});
     toast('Password aggiornata ✓');
-    pw_new.value = pw_new2.value = '';
+    pw_cur.value = pw_new.value = pw_new2.value = '';
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }

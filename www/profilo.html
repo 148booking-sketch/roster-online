@@ -29,7 +29,7 @@ body{background:#f7f7f7}
 <body>
 <nav class="nav" id="nav"></nav>
 
-<div id="pageContent" style="display:none"><div class="pmain-pad" style="max-width:1000px">
+<div id="pageContent" style="display:none"><div class="pmain-pad" style="max-width:900px">
   <div class="pr-hero" id="prHero">
     <span class="pr-ava" id="prAva"></span>
     <div style="min-width:0;flex:1">
@@ -96,6 +96,10 @@ async function init(){
     <div class="row">
       <div class="field"><label>Email</label><input id="pf_email" type="email" required>
         <div class="hint">Usa la stessa email della SIAE.</div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Password attuale</label><input id="pf_pwcur" type="password" autocomplete="current-password" placeholder="richiesta per cambiarla"></div>
+      <div class="field"></div>
     </div>
     <div class="row">
       <div class="field"><label>Nuova password (min 8)</label><input id="pf_pwnew" type="password" minlength="8" placeholder="lascia vuoto per non cambiarla"></div>
@@ -210,10 +214,11 @@ async function copyMlLink(){
 async function changePass(){
   if (!pf_pwnew.value && !pf_pwnew2.value){ toast('Inserisci la nuova password', true); return; }
   if (pf_pwnew.value !== pf_pwnew2.value){ toast('Le due password non coincidono', true); return; }
+  if (!pf_pwcur.value){ toast('Inserisci la password attuale', true); return; }
   try {
-    await api('password-change.php',{method:'POST',body:{ new_password: pf_pwnew.value }});
+    await api('password-change.php',{method:'POST',body:{ current_password: pf_pwcur.value, new_password: pf_pwnew.value }});
     toast('Password aggiornata ✓');
-    pf_pwnew.value = pf_pwnew2.value = '';
+    pf_pwcur.value = pf_pwnew.value = pf_pwnew2.value = '';
   } catch(err){ toast(errMsg(err), true); }
 }
 

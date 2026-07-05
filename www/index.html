@@ -362,7 +362,7 @@ function pickCat(el){
 }
 
 const LIMIT=20;
-let page=1, loading=false, hasMore=false;
+let page=1, loading=false, hasMore=false, searchSeq=0;
 function buildFilterParams(){
   const p=new URLSearchParams();
   if(state.q) p.set('q',state.q);
@@ -385,18 +385,22 @@ function buildParams(pg){
 }
 async function search(){
   page=1; hasMore=false; lastResults=[];
-  await loadPage(true);
+  const myReq=++searchSeq;      // token di generazione: le risposte più vecchie vengono ignorate
+  await loadPage(true, myReq);
   const qs=buildFilterParams().toString();
   loadAllMapArtists(qs);
   loadFeatured(qs);
 }
 function loadMore(){ loadPage(false); }
-async function loadPage(reset){
-  if(loading || (!reset && !hasMore)) return;
+async function loadPage(reset, reqTok){
+  // "Carica altri" resta serializzato; una nuova ricerca (reset) invece parte sempre
+  if((loading && !reset) || (!reset && !hasMore)) return;
+  if(reset && reqTok==null) reqTok=++searchSeq;
   loading=true;
   const pg = reset?1:page+1;
   try{
     const r=await api('artists-search.php?'+buildParams(pg).toString());
+    if(reset && reqTok!==searchSeq){ loading=false; return; }   // arrivata tardi: c'è già una ricerca più recente
     LOCKED=!!r.locked;
     PENDING_VERIFICATION=!!r.pending_verification;
     CAN_FAV=!!r.can_favorite;

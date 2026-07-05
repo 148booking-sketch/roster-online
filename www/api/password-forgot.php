@@ -6,7 +6,9 @@
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_mail.php';
+require_once __DIR__ . '/_ratelimit.php';
 only('POST');
+rate_limit('pwforgot', 6, 600);
 
 $in    = body();
 $email = strtolower(trim($in['email'] ?? ''));
