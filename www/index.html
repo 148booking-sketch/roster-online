@@ -23,24 +23,6 @@
 .pp .mt{color:var(--muted);font-size:13px;margin:2px 0 8px}
 .browse-list{scroll-margin-top:150px}
 /* box prossimi eventi (sopra la mappa): 12 giorni a scorrimento laterale */
-.evtbox{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff}
-.evtbox .feat-head{font-size:14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.evt-link{font-size:12px;font-weight:600;color:var(--brand);white-space:nowrap}
-.evt-link:hover{text-decoration:underline}
-.evt-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
-.evt-scroll::-webkit-scrollbar{height:5px}
-.evt-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
-.evt-day{flex:none;width:92px;border:1px solid var(--line2);border-radius:10px;padding:7px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
-.evt-day.today{border-color:var(--brand);background:#fff5f7}
-.evt-day .edrow{display:flex;align-items:baseline;gap:4px}
-.evt-day .edow{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted)}
-.evt-day .edate{font-size:15px;font-weight:800;font-family:var(--f-display)}
-.evt-day .emon{font-size:10px;font-weight:700;color:var(--muted)}
-.evt-day .eicons{display:flex;justify-content:center;min-height:26px}
-.evt-day .eicons img,.evt-day .eicons .ph{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer;background:#eee}
-.evt-day .eicons .ph{display:flex;align-items:center;justify-content:center;font-size:12px;background:linear-gradient(135deg,#f0f0f0,#ddd)}
-.evt-day .eicons .more{width:26px;height:26px;border-radius:50%;background:var(--txt);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;border:2px solid #fff}
-.evt-day .eicons>*:not(:first-child){margin-left:-10px}
 /* mappa a metà + box artisti in evidenza */
 .browse-top{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:860px){.browse-top{grid-template-columns:1fr}}
@@ -223,11 +205,6 @@
       </div>
     </section>
 
-    <div class="evtbox">
-      <div class="feat-head"><span>Prossimi eventi</span><a class="evt-link" href="/preferiti.html">Vedi i tuoi preferiti →</a></div>
-      <div class="evt-scroll" id="evtScroll"></div>
-    </div>
-
 
     <div class="cta-grid">
       <section class="artist-cta cta-blue" id="artistCta">
@@ -297,7 +274,6 @@ async function init(){
   initMap();
   paintFiltBtn();
   search();
-  loadUpcomingEvents();
   loadPlatformStats();
 }
 
@@ -333,28 +309,6 @@ function togglePromoIcon(){
 // Box "Prossimi eventi": 120 giorni da oggi (~12 visibili, resto a scorrimento), icona degli artisti impegnati quel giorno
 const GIORNI_SETT=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 const MESI_ABBR=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
-async function loadUpcomingEvents(){
-  let data=[];
-  try{ data=(await api('calendars-busy.php')).artists||[]; }catch(e){ return; }
-  const busyByDay={};
-  data.forEach(a=>{ (a.busy||[]).forEach(iso=>{ (busyByDay[iso]=busyByDay[iso]||[]).push(a); }); });
-  const today=new Date(); today.setHours(0,0,0,0);
-  let html='';
-  for(let i=0;i<120;i++){
-    const d=new Date(today); d.setDate(d.getDate()+i);
-    const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const list=busyByDay[iso]||[];
-    const shown=list.slice(0,3);
-    const extra=list.length-shown.length;
-    const icons=shown.map(a=>`<span onclick="event.stopPropagation();goArtist('${esc(a.slug||'')}')" title="${esc(a.stage_name||'Artista')}">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'<div class="ph">🎵</div>'}</span>`).join('')
-      + (extra>0?`<span class="more">+${extra}</span>`:'');
-    html+=`<div class="evt-day${i===0?' today':''}">
-      <div class="edrow"><span class="edow">${GIORNI_SETT[d.getDay()]}</span><span class="edate">${d.getDate()}</span><span class="emon">${MESI_ABBR[d.getMonth()]}</span></div>
-      <div class="eicons">${icons}</div>
-    </div>`;
-  }
-  document.getElementById('evtScroll').innerHTML=html;
-}
 
 // Box "Artisti in evidenza": segue gli stessi filtri applicati alla ricerca/mappa
 async function loadFeatured(qs=''){
