@@ -34,6 +34,11 @@ if ($user['role'] === 'artist') {
     foreach (['gear_bring', 'gear_need', 'custom_links'] as $gk) {
       if (is_string($profile[$gk] ?? null)) $profile[$gk] = json_decode($profile[$gk], true) ?: [];
     }
+    if (!empty($profile['manager_user_id'])) {
+      $mn = db()->prepare('SELECT org_name FROM promoter_profiles WHERE user_id = ?');
+      $mn->execute([$profile['manager_user_id']]);
+      $profile['manager_org_name'] = $mn->fetchColumn() ?: null;
+    }
   }
 } elseif (in_array($user['role'], ['promoter', 'management'], true)) {
   $p = db()->prepare('SELECT * FROM promoter_profiles WHERE user_id = ?');

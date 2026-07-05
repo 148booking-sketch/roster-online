@@ -140,7 +140,7 @@
       <div class="row" style="margin:0 0 16px">
         <div class="field" id="a_managerWrap" style="max-width:360px;margin:0">
           <label>Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
-          <select id="a_manager"><option value="">— nessuna —</option></select>
+          <select id="a_manager" onchange="onManagerPick()"><option value="">— nessuna —</option></select>
           <div class="hint">Associa l'artista a un'agenzia booking: la potrà gestire (modifica/elimina) dalla sua dashboard.</div>
         </div>
         <div class="field" style="flex:none">
@@ -933,6 +933,14 @@ function fillManagerOptions(){
   sel.innerHTML = '<option value="">— nessuna —</option>' +
     ags.map(a => `<option value="${a.id}">${esc(a.org_name||a.display_name||('#'+a.id))}</option>`).join('');
   sel.value = cur;
+}
+/* live: cambiando l'agenzia assegnata, il campo "Agenzia" si aggiorna e si blocca subito
+ * (o si sblocca se si torna a "— nessuna —"), senza aspettare il salvataggio. */
+function onManagerPick(){
+  const id = +(document.getElementById('a_manager')?.value || 0);
+  if (!id) { setManagementLock('a_', null); return; }
+  const ag = _allP.find(p => p.id === id);
+  setManagementLock('a_', ag ? (ag.org_name || ag.display_name || null) : null);
 }
 
 /* ---- Elimina dal form artista (sticky bar) ---- */

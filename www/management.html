@@ -301,6 +301,7 @@ async function checkElig(e){ e.preventDefault();
     if (r.eligible){
       artistFormReset('m_');
       setGenreVerified('m_', true); setTrvVerified('m_', true);              // artista gestito = verificato → generi illimitati
+      setManagementLock('m_', MEPROF.org_name || ME.display_name);           // ogni artista del roster è dell'agenzia corrente
       const nameEl = document.getElementById('m_stage_name'); if (nameEl && r.artist_name) nameEl.value = r.artist_name;
       const amEl = document.getElementById('m_s_am'); if (amEl) amEl.value = am_url.value;
       editId = null;
@@ -330,6 +331,7 @@ async function editArtist(id){
     artistFormReset('m_');
     artistFormPopulate('m_', r.profile || {});
     setGenreVerified('m_', true); setTrvVerified('m_', true);
+    setManagementLock('m_', MEPROF.org_name || ME.display_name);             // ogni artista del roster è dell'agenzia corrente
     af_submit.textContent = 'Salva modifiche';
     const p = r.profile || {};
     const nm = p.stage_name || 'Artista';

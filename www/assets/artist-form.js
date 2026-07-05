@@ -201,7 +201,9 @@ function bioSpotifyUI(p) {
   const bio = document.getElementById(p + 'bio');
   const hint = document.getElementById(p + 'bioSpotifyHint');
   if (!cb || !bio) return;
-  bio.disabled = cb.checked;
+  // readOnly (non disabled): il testo sincronizzato da Spotify deve restare ben leggibile,
+  // non spento come i campi "disabled" di serie del browser — così si vede che esiste ed è aggiornato.
+  bio.readOnly = cb.checked;
   bio.style.background = cb.checked ? '#f1f1f3' : '';
   if (hint) hint.style.display = cb.checked ? '' : 'none';
 }
@@ -226,6 +228,16 @@ function setTrvVerified(p, verified) {
   const hint = document.getElementById(p + 'trv_hint');
   if (hint) hint.textContent = verified ? '' : '(solo verificati)';
   trvRisUI(p);
+}
+
+/* Campo "Agenzia": se l'artista è assegnato a un'agenzia registrata (manager_user_id),
+ * mostra il suo nome reale e blocca il campo (niente testo libero disallineato dal dato vero).
+ * Senza assegnazione resta un campo libero come prima. */
+function setManagementLock(p, orgName) {
+  const el = document.getElementById(p + 'management');
+  if (!el) return;
+  if (orgName) { el.value = orgName; el.readOnly = true; el.style.background = '#f1f1f3'; }
+  else { el.readOnly = false; el.style.background = ''; }
 }
 
 function rimbUI(p) {
@@ -258,6 +270,7 @@ function artistFormPopulate(p, prof) {
   set(p + 'website', pf.website);
   set(p + 'label', pf.label);
   set(p + 'management', pf.management);
+  setManagementLock(p, pf.manager_user_id ? (pf.manager_org_name || null) : null);
   set(p + 'cachet', pf.cachet_min ?? pf.cachet_max);
   set(p + 'cachet_trattabile', pf.cachet_trattabile != null ? String(pf.cachet_trattabile) : '1');
   set(p + 'cachet_promo', pf.cachet_promo);
@@ -294,6 +307,7 @@ function artistFormReset(p) {
   const rim = document.getElementById(p + 'rimborso_tipo'); if (rim) rim.value = 'da_concordare';
   const bioCb = document.getElementById(p + 'bio_from_spotify'); if (bioCb) bioCb.checked = false;
   bioSpotifyUI(p);
+  setManagementLock(p, null);
   renderShowChips(p + 'showChips', 'live_band');
   renderGenreChips(p + 'genreChips', []);
   setGenreVerified(p, false);
