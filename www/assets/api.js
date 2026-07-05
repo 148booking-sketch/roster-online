@@ -301,13 +301,17 @@ function shortName(name, max = 22) { const n = String(name || ''); return n.leng
 function toggleUserMenu(e) { e.stopPropagation(); e.currentTarget.parentNode.classList.toggle('open'); }
 document.addEventListener('click', () => document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open')));
 
-/* menu utente header: pill con avatar + tendina (voci ruolo + Account + Esci) */
-function navUser(u, items) {
+/* menu utente header: pill con avatar + tendina (voci ruolo + Account + Esci).
+   mobileItems = link di navigazione replicati nel menu, visibili SOLO su mobile
+   (dove la barra link e la campana sono nascoste: resta solo l'icona utente). */
+function navUser(u, items, mobileItems = []) {
   const name = u.display_name || u.email || 'Account';
-  const menu = [...items, ['__logout__', 'Esci', 'logout']].map(([href, label, ic]) =>
+  const mk = (arr, cls = '') => arr.map(([href, label, ic]) =>
     href === '__logout__'
-      ? `<button type="button" class="menu-item" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
-      : `<a class="menu-item" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
+      ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
+      : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
+  const mobile = mobileItems.length ? mk(mobileItems, 'm-only') + '<div class="menu-divider m-only"></div>' : '';
+  const menu = mobile + mk([...items, ['__logout__', 'Esci', 'logout']]);
   return `<div class="usermenu">
     <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
       <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>
@@ -333,17 +337,21 @@ async function renderNav(center = '') {
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
     links = link('/profilo.html', 'Il mio profilo', '/profilo') + link('/richieste.html', 'Le mie richieste', '/richieste');
-    right = navBell() + navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
+    right = navBell() + navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']],
+      [['/', 'Cerca artisti', 'search']]);
   } else if (u.role === 'admin') {
     links = link('/', 'Cerca artisti', '/') + link('/admin', 'Admin', '/admin');
-    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']]);
+    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']],
+      [['/', 'Cerca artisti', 'search']]);
   } else { // promoter / management
     links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa')
           + link('/preferiti.html', 'Preferiti', '/preferiti') + link('/richieste.html', 'Le mie richieste', '/richieste');
     const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
-    right = navBell() + navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']]);
+    right = navBell() + navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']],
+      [['/', 'Cerca artisti', 'search'], ['/mappa.html', 'Mappa', 'pin'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
   }
 
+  el.className = 'nav' + (u ? ' logged' : '');
   el.innerHTML = `<div class="container nav-inner">
     <a class="logo" href="/">Booking<span style="color:var(--txt)"> Roster</span></a>
     <nav class="nav-links">${links}</nav>
