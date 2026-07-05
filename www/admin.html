@@ -126,26 +126,30 @@
       <div class="row">
         <div class="field" id="a_emailWrap"><label>Email *</label><input type="email" id="a_email" required>
           <div class="hint">Stessa email che l'artista usa per la <b>SIAE</b>.</div></div>
-        <div class="field" id="a_passWrap"><label>Password * (min 8)
-          <button type="button" class="btn ghost sm" style="margin-left:6px" onclick="genPass('a_pass')">genera</button></label>
-          <input id="a_pass" minlength="8"></div>
+        <div class="field" id="a_passWrap"><label>Password * (min 8)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="a_pass" minlength="8" style="flex:1;min-width:0">
+            <button type="button" class="btn ghost sm" onclick="genPass('a_pass')">genera</button>
+          </div></div>
         <div class="field" id="a_statusWrap" style="display:none;max-width:160px"><label>Stato</label>
           <select id="a_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
         </div>
-        <div class="field">
+      </div>
+      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da noi: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
+
+      <div class="row" style="margin:0 0 16px">
+        <div class="field" id="a_managerWrap" style="max-width:360px;margin:0">
+          <label>Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
+          <select id="a_manager"><option value="">— nessuna —</option></select>
+          <div class="hint">Associa l'artista a un'agenzia booking: la potrà gestire (modifica/elimina) dalla sua dashboard.</div>
+        </div>
+        <div class="field" style="flex:none">
           <label>&nbsp;</label>
           <div style="display:flex;flex-wrap:nowrap;align-items:center;height:38px">
             <label class="check" style="white-space:nowrap;gap:8px;cursor:pointer"><span class="switch"><input type="checkbox" id="a_ver" onchange="onVerifiedToggle()"><span class="slider"></span></span> Verificato</label>
             <label class="check" style="white-space:nowrap;gap:8px;cursor:pointer" title="Sempre tra gli 8 artisti in evidenza in home (gli altri posti restano random)"><span class="switch"><input type="checkbox" id="a_top8"><span class="slider"></span></span> Featured</label>
           </div>
         </div>
-      </div>
-      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da noi: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
-
-      <div class="field" id="a_managerWrap" style="max-width:360px;margin:0 0 16px">
-        <label>Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
-        <select id="a_manager"><option value="">— nessuna —</option></select>
-        <div class="hint">Associa l'artista a un'agenzia booking: la potrà gestire (modifica/elimina) dalla sua dashboard.</div>
       </div>
 
       <!-- ══ CAMPI CONDIVISI con profilo.html (assets/artist-form.js) ══ -->
