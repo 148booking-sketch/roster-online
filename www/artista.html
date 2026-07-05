@@ -13,8 +13,9 @@
 .crumb .sep{margin:0 6px}
 .crumb b{color:var(--txt);font-weight:600}
 .hero{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:stretch}
-@media(max-width:860px){.hero{grid-template-columns:1fr}.photo{height:auto;min-height:0;aspect-ratio:1/1}}
 .photo{border-radius:18px;overflow:hidden;background:var(--panel2);position:relative;height:100%;min-height:380px}
+/* mobile DOPO la regola base, altrimenti min-height:380 vince e con aspect-ratio 1/1 la foto sborda dal container */
+@media(max-width:860px){.hero{grid-template-columns:1fr}.photo{width:100%;height:auto;min-height:0;aspect-ratio:1/1}}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
 .photo .ph-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c9c9c9}
 .photo .verif{position:absolute;top:14px;left:14px;border:0;box-shadow:0 1px 4px rgba(0,0,0,.18);font-size:12px;padding:5px 12px}
