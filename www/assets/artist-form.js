@@ -28,9 +28,10 @@ function artistFormHTML(p) {
   return `
     <section class="fsec info">
       <h2 class="fsec-h">Informazioni personali</h2>
-      <div class="infogrid">
-        <div id="${p}photoPrev" style="width:84px;align-self:stretch;min-height:70px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#c9c9c9;overflow:hidden;flex-shrink:0">${icon('music',30,1.4)}</div>
-        <div class="field" style="margin-bottom:0"><label>Nome d'arte *</label><input id="${p}stage_name" required></div>
+      <div class="row">
+        <div class="field"><label>Nome d'arte *</label><input id="${p}stage_name" required></div>
+        <div class="field"><label>Label Musicale</label><input id="${p}label" placeholder="Nome della label"></div>
+        <div class="field"><label>Agenzia</label><input id="${p}management" placeholder="Nome dell'agenzia"></div>
       </div>
       <div class="hint" id="${p}nameHint" style="margin:8px 0 14px">La foto profilo viene presa automaticamente da <b>Spotify</b> (link nella sezione Musica). Se non è collegato, assegniamo in automatico un'icona a tema in base al <b>primo genere</b> scelto qui sotto.</div>
       <div class="field">
@@ -57,10 +58,6 @@ function artistFormHTML(p) {
         <div class="field" style="max-width:110px"><label>Prov.</label><input id="${p}provincia" maxlength="2" placeholder="LT"></div>
         <div class="field"><label>Telefono</label><input id="${p}phone" placeholder="+39..."></div>
         <div class="field" style="max-width:150px"><label>Raggio (km)</label><input id="${p}travel_max_km" type="number" min="0" placeholder="150"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label>Label Musicale</label><input id="${p}label" placeholder="Nome della label"></div>
-        <div class="field"><label>Agenzia</label><input id="${p}management" placeholder="Nome dell'agenzia"></div>
       </div>
     </section>
 
@@ -207,6 +204,7 @@ function rimbUI(p) {
  *  Qui si aggiorna solo l'anteprima con l'URL che il backend ha calcolato. */
 function setPhotoFromServer(p, url) {
   const el = document.getElementById(p + 'photoPrev');
+  if (!el) return;   // l'anteprima foto non è più nel form: la foto resta gestita dal server
   el.innerHTML = url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : icon('music',30,1.4);
 }
 
