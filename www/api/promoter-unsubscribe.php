@@ -2,13 +2,13 @@
 /**
  * GET /api/promoter-unsubscribe.php?token=...
  * Disiscrizione one-click dagli alert email (link cliccabile dall'email, nessun login richiesto).
- * Imposta email_freq='off' e reindirizza a /account.html con l'esito.
+ * Imposta email_freq='off' e reindirizza a /notifiche.html con l'esito.
  */
 require_once __DIR__ . '/_http.php';
 
 $app   = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
 $token = trim($_GET['token'] ?? '');
-$redir = function (string $qs) use ($app) { header('Location: ' . $app . '/account.html?' . $qs); exit; };
+$redir = function (string $qs) use ($app) { header('Location: ' . $app . '/notifiche.html?' . $qs); exit; };
 
 if ($token === '') $redir('unsub=fail');
 

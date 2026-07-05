@@ -55,7 +55,7 @@ function mail_layout(string $title, string $bodyHtml, string $footerHtml = ''): 
     .   '<div style="padding:20px 44px;border-top:1px solid #ebebeb;background:#fafafa;font-family:' . $fBody . ';font-size:12px;color:#9a9aa2;line-height:1.6">'
     .     'Booking Roster · SHADE-OFF S.R.L.S. · Latina, Lazio<br>'
     .     '<a href="' . $appUrl . '/contatti.html" style="color:#b81e47;text-decoration:none">Centro assistenza</a> · '
-    .     '<a href="' . $appUrl . '/account.html" style="color:#b81e47;text-decoration:none">Preferenze email</a>'
+    .     '<a href="' . $appUrl . '/notifiche.html" style="color:#b81e47;text-decoration:none">Preferenze email</a>'
     .     ($footerHtml !== '' ? '<br>' . $footerHtml : '')
     .   '</div>'
     . '</div></div>';
@@ -379,7 +379,7 @@ function send_promoter_digest_email(string $email, string $name, array $data, st
   $cta = '<div style="text-align:center;margin:24px 0 0"><a href="' . $appUrl . '/" style="display:inline-block;font:600 15px \'Inter\',Arial,sans-serif;color:#ffffff;background:#d52454;border-radius:11px;padding:13px 30px;text-decoration:none">Cerca artisti</a></div>';
 
   $footer = 'Ricevi questo riepilogo <b>' . htmlspecialchars($freqLabel) . '</b> perché hai attivato gli alert su Booking Roster.<br>'
-    . '<a href="' . $esc($appUrl . '/account.html') . '" style="color:#b81e47;text-decoration:none">Preferenze email</a>';
+    . '<a href="' . $esc($appUrl . '/notifiche.html') . '" style="color:#b81e47;text-decoration:none">Preferenze email</a>';
   if ($unsubToken !== '') {
     $footer .= ' · <a href="' . $esc($appUrl . '/api/promoter-unsubscribe.php?token=' . urlencode($unsubToken)) . '" style="color:#b81e47;text-decoration:none">Disiscriviti</a>';
   }

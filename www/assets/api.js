@@ -307,8 +307,7 @@ function navUser(u, items, mobileItems = []) {
       ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
       : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
   const notifItem = `<div class="menu-divider"></div>
-    <button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
-    <div class="menu-notifs" id="menuNotifList" style="display:none"></div>`;
+    <a class="menu-item" href="/notifiche.html">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></a>`;
   const nav = (mobileItems.length ? mk(mobileItems) + '<div class="menu-divider"></div>' : '');
   const menu = nav + mk([...items, ['__logout__', 'Esci', 'logout']]) + notifItem;
   return `<div class="usermenu">
@@ -336,15 +335,16 @@ async function renderNav(center = '') {
     links = '';
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
-    right = navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Richieste', 'inbox']],
-      [['/', 'Cerca artisti', 'search']]);
+    right = navUser(u, [['/', 'Cerca artisti', 'search'], ['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Richieste', 'inbox']]);
   } else if (u.role === 'admin') {
     right = navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']],
       [['/', 'Cerca artisti', 'search']]);
-  } else { // promoter / management
-    const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
-    right = navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']],
-      [['/', 'Cerca artisti', 'search'], ['/mappa.html', 'Mappa', 'pin'], ['/richieste.html', 'Richieste', 'inbox']]);
+  } else { // promoter / management: stesso ordine della sidebar (mountPromoterShell)
+    const roster = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
+    right = navUser(u, [...roster,
+      ['/', 'Cerca artisti', 'search'], ['/lineup.html', 'Crea Line Up', 'zap'], ['/mappa.html', 'Mappa', 'pin'],
+      ['/preferiti.html', 'Preferiti', 'heart'], ['/richieste.html', 'Richieste', 'inbox'], ['/account.html', 'Account', 'user'],
+    ]);
   }
 
   el.className = 'nav' + (u ? ' logged' : '');
@@ -497,23 +497,7 @@ async function refreshNotifDot() {
   const seen = +(localStorage.getItem(NOTIF_SEEN_KEY) || 0);
   mdot.style.display = list.some(n => new Date((n.ts || '').replace(' ', 'T')).getTime() > seen) ? '' : 'none';
 }
-/* Le notifiche si espandono DENTRO il sottomenu dell'avatar, sotto la voce "Notifiche" */
-async function openNotifFromMenu(e) {
-  e.stopPropagation(); e.preventDefault();
-  const box = document.getElementById('menuNotifList');
-  if (!box) return;
-  if (box.style.display !== 'none') { box.style.display = 'none'; return; }
-  box.style.display = '';
-  box.innerHTML = '<div class="notif-empty">Carico…</div>';
-  const list = await loadNotifs(true);
-  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
-  const _md = document.getElementById('menuNotifDot'); if (_md) _md.style.display = 'none';
-  box.innerHTML = list.length ? list.map(n => `
-    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
-      <span class="notif-left"><span class="notif-ic">${icon(n.icon || 'inbox', 15)}</span><span class="notif-when">${notifTimeAgo(n.ts)}</span></span>
-      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
-    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
-}
+
 
 /* ---- Shell area promoter/agenzia (design 5c/6b/7a): sidebar bianca al posto dell'header.
    Le pagine con id="pageContent" chiamano mountPromoterShell(u,'preferiti'|'richieste'|'account'):
@@ -530,19 +514,21 @@ function mountPromoterShell(u, active) {
       + item('social', '/profilo.html#social', 'globe', 'Link & social')
       + item('multilink', '/profilo.html#multilink', 'link', 'Multi link')
       + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
-    : item('cerca', '/', 'search', 'Cerca artisti')
+      + item('notifiche', '/notifiche.html', 'bell', 'Notifiche', 'psNotif')
+    // stesso ordine per tutti i ruoli non-artista: roster (se agenzia) → cerca → line up → mappa → preferiti → richieste → account → notifiche
+    : (isAg ? item('roster', '/management.html', 'agency', 'Il mio roster') : '')
+      + item('cerca', '/', 'search', 'Cerca artisti')
       + item('lineup', '/lineup.html', 'zap', 'Crea Line Up')
       + item('mappa', '/mappa.html', 'pin', 'Mappa')
       + item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')
       + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
-      + item('account', '/account.html', 'bell', 'Account & notifiche')
-      + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il mio roster')}` : '');
+      + item('account', '/account.html', 'user', 'Account')
+      + item('notifiche', '/notifiche.html', 'bell', 'Notifiche', 'psNotif');
   const areaLabel = isArtist ? 'Area artista' : (isAg ? 'Area agenzia' : 'Area promoter');
   const name = u.display_name || u.email || 'Account';
   // menu mobile: stesse voci della sidebar, dentro la tendina dell'avatar
-  const mobileMenu = navItems.replace(/class="ps-item( on)?"/g, 'class="menu-item$1"').replace(/<div class="ps-sec">[^<]*<\/div>/g, '<div class="menu-divider"></div>')
-    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="logout()">${icon('logout', 16)}<span>Esci</span></button>`
-    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button><div class="menu-notifs" id="menuNotifList" style="display:none"></div>`;
+  const mobileMenu = navItems.replace(/class="ps-item( on)?"/g, 'class="menu-item$1"')
+    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="logout()">${icon('logout', 16)}<span>Esci</span></button>`;
   const shell = document.createElement('div');
   shell.className = 'pshell';
   shell.innerHTML = `
@@ -581,6 +567,12 @@ function mountPromoterShell(u, active) {
   }
   api('booking-request.php?box=' + (isArtist ? 'received' : 'sent')).then(r => {
     const n = (r.requests || []).filter(x => ['inviata', 'vista'].includes(x.status)).length, el = document.getElementById('psReq');
+    if (el && n > 0) { el.textContent = n; el.style.display = ''; }
+  }).catch(() => {});
+  loadNotifs().then(list => {
+    const seen = +(localStorage.getItem(NOTIF_SEEN_KEY) || 0);
+    const n = list.filter(x => new Date((x.ts || '').replace(' ', 'T')).getTime() > seen).length;
+    const el = document.getElementById('psNotif');
     if (el && n > 0) { el.textContent = n; el.style.display = ''; }
   }).catch(() => {});
   refreshNotifDot();   // pallino notifiche nel menu mobile della shell
