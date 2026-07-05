@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Il tuo roster · Booking Roster</title>
+<title>Il mio roster · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
 /* tabella densa roster (design 4b) — stesse classi dt-* dell'admin */
@@ -91,7 +91,7 @@
     <div id="rosterView">
       <div class="sec-toolbar">
         <div>
-          <h1 class="title" style="margin:0">Il tuo roster</h1>
+          <h1 class="title" style="margin:0">Il mio roster</h1>
           <p class="sub" style="margin:4px 0 0" id="rosterCount">Gli artisti che gestisci.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -155,6 +155,35 @@
         </div>
       </div>
       <div id="mfMount"></div>
+
+      <!-- MULTI LINK dell'artista gestito (solo in modifica) -->
+      <div id="m_multilinkSec" class="fsec" style="display:none">
+        <h2 class="fsec-h">Multi link (link in bio)</h2>
+        <div class="hint" style="margin:0 0 12px">Un unico link con tutti i social e il box booking dell'artista: perfetto per la bio di Instagram e TikTok.</div>
+        <div id="m_mlNoSlug" class="hint" style="display:none">Serve un nome d'arte salvato per generare il link.</div>
+        <div id="m_mlLinkRow" style="display:none;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="m_mlUrl" readonly style="flex:1;min-width:200px">
+          <button type="button" class="btn ghost sm" onclick="copyMlLinkMgmt()">Copia</button>
+          <a id="m_mlOpen" class="btn ghost sm" target="_blank" rel="noopener">Apri</a>
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2)">
+          <h4 style="margin:0 0 4px;font-size:15px">Link personalizzati <span class="hint" style="display:inline">(max 3)</span></h4>
+          <div class="row">
+            <div class="field"><label>Titolo 1</label><input id="m_cl1_t" maxlength="60" placeholder="Es. Ascolta il nuovo singolo"></div>
+            <div class="field"><label>Link 1</label><input id="m_cl1_u" placeholder="https://..."></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Titolo 2</label><input id="m_cl2_t" maxlength="60" placeholder="Es. Merch ufficiale"></div>
+            <div class="field"><label>Link 2</label><input id="m_cl2_u" placeholder="https://..."></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Titolo 3</label><input id="m_cl3_t" maxlength="60" placeholder="Es. Sito ufficiale"></div>
+            <div class="field"><label>Link 3</label><input id="m_cl3_u" placeholder="https://..."></div>
+          </div>
+          <button type="button" class="btn primary sm" onclick="saveCustomLinksMgmt()">Salva link</button>
+        </div>
+      </div>
+
       <div class="af-save">
         <button type="button" class="btn ghost sm" id="afDelete" style="display:none;color:#c0395e;border-color:#f2c9d5" onclick="delFromForm()">Elimina artista</button>
         <div style="margin-left:auto;display:flex;gap:10px">
@@ -281,6 +310,7 @@ async function checkElig(e){ e.preventDefault();
       afAva.style.background = avatarColor(r.artist_name || 'A');
       afAva.innerHTML = esc(avatarInitials(r.artist_name || 'A'));
       afStatus.style.display='none'; afPreview.style.display='none'; afDelete.style.display='none';
+      document.getElementById('m_multilinkSec').style.display='none';
       eligStep.style.display='none'; artForm.style.display='';
       window.scrollTo({top:0,behavior:'smooth'});
     } else {
@@ -312,6 +342,7 @@ async function editArtist(id){
     afStatus.style.display='inline-flex';
     if (p.slug){ afPreview.href='/'+p.slug; afPreview.style.display=''; } else afPreview.style.display='none';
     afDelete.style.display='';
+    initMultilinkMgmt(p);
     rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none';
     artForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
   } catch(err){ toast(errMsg(err), true); }
@@ -334,6 +365,36 @@ async function saveArtist(e){ e.preventDefault();
   } catch(err){ toast(errMsg(err), true); }
   finally { af_submit.disabled = false; af_submit.textContent = old; }
   return false;
+}
+
+/* ---- multi link dell'artista gestito ---- */
+function initMultilinkMgmt(p){
+  const sec=document.getElementById('m_multilinkSec');
+  sec.style.display='';
+  m_mlNoSlug.style.display = p.slug ? 'none' : '';
+  m_mlLinkRow.style.display = p.slug ? 'flex' : 'none';
+  if (p.slug){
+    const url = location.origin + '/l/' + p.slug;
+    m_mlUrl.value = url; m_mlOpen.href = url;
+  }
+  const cl = p.custom_links ? (typeof p.custom_links === 'string' ? JSON.parse(p.custom_links) : p.custom_links) : [];
+  [0, 1, 2].forEach(i => {
+    document.getElementById('m_cl' + (i + 1) + '_t').value = cl[i]?.title || '';
+    document.getElementById('m_cl' + (i + 1) + '_u').value = cl[i]?.url || '';
+  });
+}
+async function copyMlLinkMgmt(){
+  try { await navigator.clipboard.writeText(m_mlUrl.value); }
+  catch (e) { m_mlUrl.select(); document.execCommand('copy'); }
+  toast('Link copiato ✓');
+}
+async function saveCustomLinksMgmt(){
+  const v = id => document.getElementById(id).value;
+  const custom_links = [1, 2, 3].map(i => ({ title: v('m_cl' + i + '_t'), url: v('m_cl' + i + '_u') })).filter(l => l.title || l.url);
+  try {
+    await api('management-custom-links-save.php', {method:'POST', body:{ id: editId, custom_links }});
+    toast('Link salvati ✓');
+  } catch (err) { toast(errMsg(err), true); }
 }
 
 /* ---- elimina dal form (sticky bar) ---- */
