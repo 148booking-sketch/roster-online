@@ -7,18 +7,34 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
-.lu-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:22px;max-width:900px}
-.lu-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
-.lu-row .field{flex:1;min-width:180px}
-.lu-row .field.budget{max-width:220px}
-.lu-submit{width:100%;margin-top:18px;padding:14px;font-size:15px;border-radius:11px;justify-content:center}
+/* Form di ricerca — design 14a (step numerati) */
+.lu-card{background:#fff;border:1px solid var(--line2);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;max-width:900px}
+.lu-body{padding:26px 28px}
+.lu-row2{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start}
+.lu-step{flex:1;min-width:240px}
+.lu-steph{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.lu-num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font:700 11px var(--f-body);display:flex;align-items:center;justify-content:center}
+.lu-lbl{font:700 14px var(--f-body);letter-spacing:-.1px}
+.lu-opt{font:500 12.5px var(--f-body);color:#9a9aa2}
+.lu-euro{position:relative;max-width:280px}
+.lu-euro span{position:absolute;left:15px;top:50%;transform:translateY(-50%);font:600 16px var(--f-display);color:#9a9aa2;pointer-events:none}
+.lu-euro input{border:1px solid var(--line);border-radius:11px;padding:13px 14px 13px 34px;font:600 16px var(--f-body);width:100%}
+.lu-seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:4px;gap:4px}
+.lu-seg span{border-radius:9px;padding:9px 20px;font:600 14px var(--f-body);color:var(--muted);cursor:pointer;user-select:none}
+.lu-seg span.on{background:#fff;color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.lu-step3{margin-top:24px;padding-top:22px;border-top:1px solid var(--line2)}
+.lu-foot{background:var(--panel2);border-top:1px solid var(--line2);padding:18px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.lu-summary{font-size:13px;color:#9a9aa2}
+.lu-summary b{color:var(--txt);font-weight:600}
+.lu-cta{margin-left:auto;min-width:280px;padding:15px 22px;font:700 15px var(--f-body);border-radius:12px;justify-content:center}
 .lu-locked{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:32px;max-width:900px;text-align:center}
 .lu-locked .ic{color:var(--muted);margin-bottom:10px}
+@media(max-width:640px){.lu-foot{flex-direction:column;align-items:stretch}.lu-cta{margin-left:0;min-width:0;width:100%}}
 
-/* risultati: card "line up" con foto reali degli artisti */
+/* Risultati: card con foto reali degli artisti */
 #luResults{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:14px}
 .lu-empty{border:1px solid var(--line2);border-radius:16px;padding:30px;text-align:center;color:var(--muted);background:#fff}
-.lu-card{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.lu-rescard{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
 .lu-artists{display:flex;gap:16px;flex-wrap:wrap}
 .lu-artist{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;text-decoration:none;color:inherit}
 .lu-artist .ph{width:80px;height:80px;border-radius:14px;overflow:hidden;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:#c9c9c9;position:relative}
@@ -31,7 +47,6 @@
 .lu-bar{flex:1;min-width:140px;height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}
 .lu-bar i{display:block;height:100%;background:var(--brand);border-radius:5px}
 .lu-pct{font-size:12px;color:var(--muted);white-space:nowrap}
-@media(max-width:640px){.lu-row .field{min-width:0;flex:1 1 100%}.lu-row .field.budget{max-width:none}}
 </style>
 </head>
 <body>
@@ -42,20 +57,30 @@
     <h1 class="ptitle">Line up</h1>
     <p class="psub">Indica un budget e ti proponiamo gli artisti (o le combinazioni) più adatti al tuo evento.</p>
 
-    <div class="lu-box" id="luBox">
-      <div class="lu-row">
-        <div class="field budget"><label>Budget massimo (€)</label><input type="number" id="lu_budget" min="1" placeholder="Es. 1500"></div>
-        <div class="field"><label>Cerco</label>
-          <div class="fm-chips" id="luMode">
-            <span class="fm-chip dark on" data-v="uno">1 artista</span>
-            <span class="fm-chip dark" data-v="piu">Più artisti</span>
+    <div class="lu-card" id="luBox">
+      <div class="lu-body">
+        <div class="lu-row2">
+          <div class="lu-step">
+            <div class="lu-steph"><span class="lu-num">1</span><span class="lu-lbl">Budget massimo</span></div>
+            <div class="lu-euro"><span>€</span><input type="number" id="lu_budget" min="1" placeholder="Es. 1500" oninput="updateLuSummary()"></div>
+          </div>
+          <div class="lu-step">
+            <div class="lu-steph"><span class="lu-num">2</span><span class="lu-lbl">Cerco</span></div>
+            <div class="lu-seg" id="luMode">
+              <span class="on" data-v="uno">1 artista</span>
+              <span data-v="piu">Più artisti</span>
+            </div>
           </div>
         </div>
+        <div class="lu-step3">
+          <div class="lu-steph"><span class="lu-num">3</span><span class="lu-lbl">Generi</span><span class="lu-opt">opzionale</span></div>
+          <div class="fm-chips" id="luGenres"></div>
+        </div>
       </div>
-      <div class="field" style="margin-top:14px"><label>Generi <span class="hint" style="display:inline">(opzionale)</span></label>
-        <div class="fm-chips" id="luGenres"></div>
+      <div class="lu-foot">
+        <div class="lu-summary" id="luSummary"><b>0 generi</b> · 1 artista</div>
+        <button type="button" class="btn primary lu-cta" id="luSubmitBtn" onclick="submitLineup()">Consiglia line up</button>
       </div>
-      <button type="button" class="btn primary lu-submit" onclick="submitLineup()">Consiglia line up</button>
     </div>
 
     <div class="lu-locked" id="luLocked" style="display:none">
@@ -88,24 +113,42 @@ async function init(){
   }
   genres=(await api('genres.php')).genres||[];
   document.getElementById('luGenres').innerHTML=genres.map(g=>`<span class="fm-chip" data-slug="${esc(g.slug)}"
-    onclick="this.classList.toggle('on')">${esc(g.name)}</span>`).join('');
-  document.querySelectorAll('#luMode .fm-chip').forEach(x=>{
-    x.onclick=function(){ document.querySelectorAll('#luMode .fm-chip').forEach(y=>y.classList.remove('on')); this.classList.add('on'); };
+    onclick="toggleLuGenre(this)"></span>`).join('');
+  paintLuGenres();
+  document.querySelectorAll('#luMode span').forEach(x=>{
+    x.onclick=function(){ document.querySelectorAll('#luMode span').forEach(y=>y.classList.remove('on')); this.classList.add('on'); updateLuSummary(); };
   });
+  document.getElementById('luSubmitBtn').innerHTML=icon('zap',17,2)+' Consiglia line up';
+  updateLuSummary();
 }
 
-function luArtistHtml(a){
-  const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : icon('music',24,1.4);
-  return `<a class="lu-artist" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
-    <span class="ph">${ph}</span>
-    <span class="nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</span>
-    <span class="pr">${eur(a.price)}</span>
-  </a>`;
+function paintLuGenres(){
+  document.querySelectorAll('#luGenres .fm-chip').forEach(el=>{
+    const g=genres.find(x=>x.slug===el.dataset.slug);
+    const on=el.classList.contains('on');
+    el.innerHTML=(on?icon('check',13,2.4)+' ':'')+esc(g?g.name:'');
+  });
 }
-function luCardHtml(s, budget){
+function toggleLuGenre(el){ el.classList.toggle('on'); paintLuGenres(); updateLuSummary(); }
+function updateLuSummary(){
+  const n=document.querySelectorAll('#luGenres .fm-chip.on').length;
+  const mode=document.querySelector('#luMode span.on')?.dataset.v||'uno';
+  document.getElementById('luSummary').innerHTML =
+    `<b>${n} generi</b> · ${mode==='piu'?'più artisti':'1 artista'}`;
+}
+
+function lineupCardHtml(s, budget){
   const pct = Math.min(100, Math.round(s.total/budget*100));
-  return `<div class="lu-card">
-    <div class="lu-artists">${s.artists.map(luArtistHtml).join('')}</div>
+  const artistHtml = a => {
+    const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : icon('music',24,1.4);
+    return `<a class="lu-artist" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
+      <span class="ph">${ph}</span>
+      <span class="nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</span>
+      <span class="pr">${eur(a.price)}</span>
+    </a>`;
+  };
+  return `<div class="lu-rescard">
+    <div class="lu-artists">${s.artists.map(artistHtml).join('')}</div>
     <div class="lu-total">
       <span class="amt">${eur(s.total)}</span>
       <div class="lu-bar"><i style="width:${pct}%"></i></div>
@@ -116,7 +159,7 @@ function luCardHtml(s, budget){
 async function submitLineup(){
   const budget=+document.getElementById('lu_budget').value||0;
   if(budget<=0){ toast('Indica un budget valido', true); return; }
-  const mode=document.querySelector('#luMode .fm-chip.on')?.dataset.v||'uno';
+  const mode=document.querySelector('#luMode span.on')?.dataset.v||'uno';
   const gs=[...document.querySelectorAll('#luGenres .fm-chip.on')].map(x=>x.dataset.slug);
   const box=document.getElementById('luResults');
   box.innerHTML='<div class="lu-empty">Cerco la combinazione migliore…</div>';
@@ -124,7 +167,7 @@ async function submitLineup(){
     const r=await api('lineup-suggest.php',{method:'POST',body:{budget,mode,genres:gs}});
     const list=r.suggestions||[];
     box.innerHTML = list.length
-      ? list.map(s=>luCardHtml(s,budget)).join('')
+      ? list.map(s=>lineupCardHtml(s,budget)).join('')
       : '<div class="lu-empty">Nessun artista trovato per questo budget/generi.<br>Prova ad alzare il budget o allargare i generi.</div>';
   }catch(err){ box.innerHTML='<div class="lu-empty">'+esc(errMsg(err))+'</div>'; }
 }
