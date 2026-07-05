@@ -81,7 +81,8 @@ function regionOf(a){ return a.provincia ? (PR_REG[String(a.provincia).toUpperCa
 function isForeign(a){ return !a.provincia; }   // niente sigla provincia = città estera
 function cachet(a){ const v=a.cachet_min??a.cachet_max;
   if(LOCKED) return 'Prezzo riservato';
-  if(v==null) return 'Trattativa riservata'; if(v===0) return 'Senza impegno'; return 'da '+eur(v); }
+  if(a.trattativa_riservata==1) return 'Trattativa riservata';
+  if(v==null) return 'Cachet non indicato'; if(v===0) return 'Senza impegno'; return 'da '+eur(v); }
 
 async function init(){
   const me = await getMe(true);

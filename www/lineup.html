@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Line up · Booking Roster</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.lu-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:22px;max-width:900px}
+.lu-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.lu-row .field{flex:1;min-width:180px}
+.lu-row .field.budget{max-width:220px}
+.lu-submit{width:100%;margin-top:18px;padding:14px;font-size:15px;border-radius:11px;justify-content:center}
+.lu-locked{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:32px;max-width:900px;text-align:center}
+.lu-locked .ic{color:var(--muted);margin-bottom:10px}
+
+/* risultati: card "line up" con foto reali degli artisti */
+#luResults{max-width:900px;margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.lu-empty{border:1px solid var(--line2);border-radius:16px;padding:30px;text-align:center;color:var(--muted);background:#fff}
+.lu-card{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.lu-artists{display:flex;gap:16px;flex-wrap:wrap}
+.lu-artist{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;text-decoration:none;color:inherit}
+.lu-artist .ph{width:80px;height:80px;border-radius:14px;overflow:hidden;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:#c9c9c9;position:relative}
+.lu-artist .ph img{width:100%;height:100%;object-fit:cover}
+.lu-artist .nm{font-size:12.5px;font-weight:600;text-align:center;line-height:1.25;display:flex;align-items:center;gap:3px;justify-content:center}
+.lu-artist .pr{font-size:11.5px;color:var(--muted)}
+.lu-artist:hover .nm{text-decoration:underline}
+.lu-total{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lu-total .amt{font:700 20px var(--f-display)}
+.lu-bar{flex:1;min-width:140px;height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}
+.lu-bar i{display:block;height:100%;background:var(--brand);border-radius:5px}
+.lu-pct{font-size:12px;color:var(--muted);white-space:nowrap}
+@media(max-width:640px){.lu-row .field{min-width:0;flex:1 1 100%}.lu-row .field.budget{max-width:none}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<div id="pageContent" style="display:none">
+  <div class="pmain-pad" id="pagePad">
+    <h1 class="ptitle">Line up</h1>
+    <p class="psub">Indica un budget e ti proponiamo gli artisti (o le combinazioni) più adatti al tuo evento.</p>
+
+    <div class="lu-box" id="luBox">
+      <div class="lu-row">
+        <div class="field budget"><label>Budget massimo (€)</label><input type="number" id="lu_budget" min="1" placeholder="Es. 1500"></div>
+        <div class="field"><label>Cerco</label>
+          <div class="fm-chips" id="luMode">
+            <span class="fm-chip dark on" data-v="uno">1 artista</span>
+            <span class="fm-chip dark" data-v="piu">Più artisti</span>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Generi <span class="hint" style="display:inline">(opzionale)</span></label>
+        <div class="fm-chips" id="luGenres"></div>
+      </div>
+      <button type="button" class="btn primary lu-submit" onclick="submitLineup()">Consiglia line up</button>
+    </div>
+
+    <div class="lu-locked" id="luLocked" style="display:none">
+      <div class="ic"></div>
+      <h3 style="margin:0 0 6px">Funzione riservata</h3>
+      <p class="hint" style="margin:0">Line up è disponibile per i promoter verificati e le agenzie. <a href="/accedi.html">Accedi</a> o attendi la verifica del tuo account.</p>
+    </div>
+
+    <div id="luResults"></div>
+  </div>
+</div>
+
+<script src="/assets/api.js"></script>
+<script>
+let genres=[];
+async function init(){
+  const me = await getMe(true);
+  if(!me.user){ location.href='/accedi.html'; return; }
+  if(!['promoter','management'].includes(me.user.role)){ location.href='/'; return; }
+  mountPromoterShell(me.user, 'lineup');
+  injectIcons();
+  document.getElementById('pageContent').style.display='';
+  const canSeePrices = me.user.role==='admin' || (['promoter','management'].includes(me.user.role) && me.user.status==='active');
+  if(!canSeePrices){
+    document.getElementById('luBox').style.display='none';
+    const lk=document.getElementById('luLocked');
+    lk.style.display='';
+    lk.querySelector('.ic').innerHTML=icon('lock',34,1.5);
+    return;
+  }
+  genres=(await api('genres.php')).genres||[];
+  document.getElementById('luGenres').innerHTML=genres.map(g=>`<span class="fm-chip" data-slug="${esc(g.slug)}"
+    onclick="this.classList.toggle('on')">${esc(g.name)}</span>`).join('');
+  document.querySelectorAll('#luMode .fm-chip').forEach(x=>{
+    x.onclick=function(){ document.querySelectorAll('#luMode .fm-chip').forEach(y=>y.classList.remove('on')); this.classList.add('on'); };
+  });
+}
+
+function luArtistHtml(a){
+  const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : icon('music',24,1.4);
+  return `<a class="lu-artist" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
+    <span class="ph">${ph}</span>
+    <span class="nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</span>
+    <span class="pr">${eur(a.price)}</span>
+  </a>`;
+}
+function luCardHtml(s, budget){
+  const pct = Math.min(100, Math.round(s.total/budget*100));
+  return `<div class="lu-card">
+    <div class="lu-artists">${s.artists.map(luArtistHtml).join('')}</div>
+    <div class="lu-total">
+      <span class="amt">${eur(s.total)}</span>
+      <div class="lu-bar"><i style="width:${pct}%"></i></div>
+      <span class="lu-pct">${pct}% del budget</span>
+    </div>
+  </div>`;
+}
+async function submitLineup(){
+  const budget=+document.getElementById('lu_budget').value||0;
+  if(budget<=0){ toast('Indica un budget valido', true); return; }
+  const mode=document.querySelector('#luMode .fm-chip.on')?.dataset.v||'uno';
+  const gs=[...document.querySelectorAll('#luGenres .fm-chip.on')].map(x=>x.dataset.slug);
+  const box=document.getElementById('luResults');
+  box.innerHTML='<div class="lu-empty">Cerco la combinazione migliore…</div>';
+  try{
+    const r=await api('lineup-suggest.php',{method:'POST',body:{budget,mode,genres:gs}});
+    const list=r.suggestions||[];
+    box.innerHTML = list.length
+      ? list.map(s=>luCardHtml(s,budget)).join('')
+      : '<div class="lu-empty">Nessun artista trovato per questo budget/generi.<br>Prova ad alzare il budget o allargare i generi.</div>';
+  }catch(err){ box.innerHTML='<div class="lu-empty">'+esc(errMsg(err))+'</div>'; }
+}
+init();
+</script>
+</body>
+</html>

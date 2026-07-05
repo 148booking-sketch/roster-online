@@ -146,7 +146,8 @@ function spotifyId(a){ const m=((a.socials||{}).spotify||'').match(/\/artist\/([
 function priceBig(a){
   if(a.locked) return {amount:icon('lock',20,1.9)+' Riservato', meta:a.pending_verification?'account in attesa di verifica':'visibile ai promoter registrati'};
   const v=a.cachet_min ?? a.cachet_max;
-  if(v==null) return {amount:'Trattativa riservata', meta:''};
+  if(a.trattativa_riservata==1) return {amount:'Trattativa riservata', meta:''};
+  if(v==null) return {amount:'Cachet non indicato', meta:''};
   if(v===0)  return {amount:'Senza impegno', meta:'disponibile anche a rimborso spese'};
   const tratt=a.cachet_trattabile==1?' · trattabile':'';
   if(a.has_promo && a.cachet_promo!=null)

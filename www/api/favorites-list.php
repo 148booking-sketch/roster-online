@@ -60,6 +60,7 @@ foreach ($rows as $r) {
     'rimborso_tipo'=> $r['rimborso_tipo'],
     'stats'        => $r['stats'] ? (json_decode($r['stats'], true) ?: []) : [],
     'favorited_at' => $r['favorited_at'],
+    'trattativa_riservata' => (int)($r['trattativa_riservata'] ?? 0),
   ];
   if ($locked) {
     $a['cachet_min'] = $a['cachet_max'] = $a['cachet_promo'] = $a['promo_until'] = null;

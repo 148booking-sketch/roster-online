@@ -407,7 +407,7 @@ function renderFooter() {
 function renderArtistPins(map, layer, list, opts = {}) {
   layer.clearLayers();
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : '';
-  const cachet = a => { if (opts.locked) return opts.pendingVerification ? icon('lock',13)+' Verifica in corso' : icon('lock',13)+' Accedi per il prezzo'; const v = a.cachet_min ?? a.cachet_max; if (v == null) return 'Trattativa riservata'; if (v === 0) return 'Disponibile, senza impegno'; return 'da ' + eur(v) + ' a serata'; };
+  const cachet = a => { if (opts.locked) return opts.pendingVerification ? icon('lock',13)+' Verifica in corso' : icon('lock',13)+' Accedi per il prezzo'; if (a.trattativa_riservata == 1) return 'Trattativa riservata'; const v = a.cachet_min ?? a.cachet_max; if (v == null) return 'Cachet non indicato'; if (v === 0) return 'Disponibile, senza impegno'; return 'da ' + eur(v) + ' a serata'; };
   const groups = {};
   list.forEach(a => {
     if (a.lat == null || a.lng == null) return;
@@ -533,6 +533,7 @@ function mountPromoterShell(u, active) {
     : item('cerca', '/', 'search', 'Cerca artisti')
       + item('mappa', '/mappa.html', 'pin', 'Mappa')
       + item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')
+      + item('lineup', '/lineup.html', 'zap', 'Line up')
       + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
       + item('account', '/account.html', 'bell', 'Account & notifiche')
       + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il mio roster')}` : '');
