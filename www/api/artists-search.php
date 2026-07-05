@@ -76,6 +76,7 @@ if ($genres) {
 
 // Distanza calcolata in SQL (Haversine) se abbiamo origine e l'artista ha coordinate
 $distSelect = '';
+$favSelect  = '';
 if ($hasOrigin) {
   $distSelect = ', (6371 * 2 * ASIN(SQRT(
       POWER(SIN(RADIANS(ap.lat - ?) / 2), 2) +
@@ -95,6 +96,17 @@ if ($sort === 'az') {
 } elseif ($sort === 'cachet') {
   $dir = ($_GET['dir'] ?? '') === 'desc' ? 'DESC' : 'ASC';
   $orderSql = "ORDER BY ap.top8 DESC, ap.verified DESC, ap.cachet_min IS NULL, ap.cachet_min $dir";
+} elseif ($sort === 'favs') {
+  // Più aggiunti ai preferiti; a parità di salvataggi, nome A→Z.
+  // Tollerante se la tabella favorites non esiste ancora (regola hot-endpoint).
+  $hasFav = false;
+  try { $hasFav = (bool) db()->query("SHOW TABLES LIKE 'favorites'")->fetch(); } catch (Throwable $e) {}
+  if ($hasFav) {
+    $favSelect = ', (SELECT COUNT(*) FROM favorites fv WHERE fv.artist_user_id = ap.user_id) AS fav_count';
+    $orderSql  = 'ORDER BY ap.top8 DESC, ap.verified DESC, fav_count DESC, ap.stage_name ASC';
+  } else {
+    $orderSql = 'ORDER BY ap.top8 DESC, ap.verified DESC, ap.stage_name ASC';
+  }
 } elseif ($sort === 'recent') {
   $orderSql = 'ORDER BY ap.top8 DESC, ap.verified DESC, ap.updated_at DESC';
 } elseif ($sort === 'distance' && $hasOrigin) {
@@ -112,7 +124,7 @@ $havingSql = ($hasOrigin && $maxKm !== null) ? 'HAVING distance_km IS NOT NULL A
 $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.provincia,
                ap.cachet_min, ap.cachet_max, ap.cachet_trattabile, ap.cachet_promo, ap.promo_until, ap.rimborso_tipo, ap.travel_max_km,
                ap.photo_url, ap.verified, ap.lat, ap.lng, ap.stats
-               $distSelect
+               $distSelect $favSelect
         FROM artist_profiles ap
         $whereSql
         $havingSql

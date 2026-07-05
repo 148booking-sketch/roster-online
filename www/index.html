@@ -161,6 +161,7 @@
         <span class="fm-chip dark" data-s="za">Nome Z→A</span>
         <span class="fm-chip dark" data-s="budget_desc">Budget alto→basso</span>
         <span class="fm-chip dark" data-s="budget_asc">Budget basso→alto</span>
+        <span class="fm-chip dark" data-s="favs">Più preferiti</span>
       </div>
       <div class="section-label" style="margin-top:22px">Dove</div>
       <div class="fm-where">
@@ -492,7 +493,7 @@ async function openFilters(){
     fmBudgetPaint();
   }
   // ordinamento
-  const curSort = state.sort==='cachet' ? (priceDir==='desc'?'budget_desc':'budget_asc') : (state.sort==='za'?'za':'az');
+  const curSort = state.sort==='cachet' ? (priceDir==='desc'?'budget_desc':'budget_asc') : (['za','favs'].includes(state.sort)?state.sort:'az');
   document.querySelectorAll('#fmSort .fm-chip').forEach(x=>{
     x.classList.toggle('on', x.dataset.s===curSort);
     x.onclick=()=>{ document.querySelectorAll('#fmSort .fm-chip').forEach(y=>y.classList.remove('on')); x.classList.add('on'); };
