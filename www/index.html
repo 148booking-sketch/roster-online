@@ -247,7 +247,7 @@ function applyParamsFromURL(){
   if(sp.get('no_price')==='1') state.noPrice=true;
   if(sp.get('promo')==='1') state.promo=true;
   if(sp.has('cachet_max')) state.cachetMax=+sp.get('cachet_max');
-  sp.getAll('genre').forEach(g=>state.genres.add(g));
+  sp.getAll('genre').concat(sp.getAll('genre[]')).forEach(g=>state.genres.add(g));
   // /genere/<slug> (link diretto condivisibile): il rewrite lato server è invisibile a location.search,
   // va letto dal path come già si fa per /nome-artista in artista.html.
   const genreMatch = location.pathname.match(/^\/genere\/([a-z0-9][a-z0-9-]*)\/?$/);
@@ -354,7 +354,7 @@ function buildFilterParams(){
   if(state.form) p.set('formazione',state.form);
   if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
   else if(state.comune){ p.set('comune',state.comune); p.set('max_km',state.kmZona||'250'); }
-  state.genres.forEach(g=>p.append('genre',g));
+  state.genres.forEach(g=>p.append('genre[]',g));   // [] obbligatorio: PHP altrimenti tiene solo l'ultimo
   return p;
 }
 function buildParams(pg){
