@@ -319,7 +319,7 @@ textarea{min-height:100px;resize:vertical}
 .favbtn.card-fav{position:absolute;top:11px;right:11px;z-index:3;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
 .favbtn.card-fav.on{color:var(--brand)}
 /* badge Verificato pill sull'immagine card */
-.card-verif{position:absolute;top:11px;left:11px;z-index:2;border:0;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.card-verif{position:absolute;bottom:11px;left:11px;z-index:2;border:0;box-shadow:0 1px 4px rgba(0,0,0,.18);font-size:10.5px;padding:3px 8px}
 /* bottone "Salva" nel booking box: cuore pieno brand quando salvato */
 .favsave.on{color:var(--brand);border-color:var(--brand)}
 .favsave.on .ic-svg{fill:currentColor}
