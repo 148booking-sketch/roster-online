@@ -55,7 +55,7 @@
 .lu-row-h{display:flex;align-items:center;gap:7px;margin-bottom:14px}
 .lu-row-h .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);flex:none}
 .lu-row-h .lbl{font:700 12px var(--f-body);color:var(--muted)}
-.lu-row-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.lu-row-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
 .lu-slot{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
 .lu-av-wrap{position:relative}
 .lu-slot .av{width:68px;height:68px;border-radius:14px;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font:700 22px var(--f-display)}
@@ -200,7 +200,7 @@ function rowCardHtml(row, budget){
     ...row.artists.map(a=>luSlotHtml(a,{opener:false})),
     ...row.openers.map(a=>luSlotHtml(a,{opener:true})),
   ];
-  while(slots.length<5) slots.push('<div></div>');
+  while(slots.length<6) slots.push('<div></div>');
   const lbl = row.openersCount>0 ? `${row.paidCount} artist${row.paidCount===1?'a':'i'} + ${row.openersCount} apertur${row.openersCount===1?'a':'e'}` : `${row.paidCount} artisti`;
   return `<div class="lu-rowcard">
     <div class="lu-row-h"><span class="dot"></span><span class="lbl">${lbl}</span></div>

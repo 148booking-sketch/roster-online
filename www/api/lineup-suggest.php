@@ -10,12 +10,13 @@
  *   mostra artisti da 4.000 a 6.000). Ordine casuale tra i compatibili: variano a ogni click.
  *   Propone anche fino a 2 artisti "senza impegno" (cachet 0) come apertura.
  *
- * mode "piu": SEMPRE 4 righe con lo schema fisso (paganti + aperture, sempre 5 posti totali):
- *   2 artisti + 3 aperture · 3 artisti + 2 aperture · 4 artisti + 1 apertura · 5 artisti soli.
- *   Gli artisti paganti di ogni riga sommano tra il 10% e il 110% del budget (tolleranza +10%
- *   per non scartare combinazioni quasi perfette); pool e aperture rimescolati a ogni chiamata,
- *   quindi anche a parità di budget/generi le righe cambiano a ogni click. Una riga per cui non
- *   si trova una combinazione valida viene semplicemente omessa (mai un errore).
+ * mode "piu": SEMPRE 5 righe con lo schema fisso (paganti + aperture, sempre 6 posti totali):
+ *   1 artista + 5 aperture · 2+4 · 3+3 · 4+2 · 5+1.
+ *   Gli artisti paganti di ogni riga sommano tra il 10% e il 110% del budget (tolleranza +10%),
+ *   cercando di avvicinarsi il più possibile al tetto (usare tutto il budget indicato); pool e
+ *   aperture rimescolati a ogni chiamata, quindi anche a parità di budget/generi le righe
+ *   cambiano a ogni click. Una riga per cui non si trova una combinazione valida viene
+ *   semplicemente omessa (mai un errore).
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_access.php';
@@ -118,27 +119,31 @@ function fetch_openers(array $genres, array $exclude, int $limit): array {
 }
 
 /**
- * Cerca una combinazione di ESATTAMENTE $n artisti paganti la cui somma rientri in [$lo,$hi].
- * Pesca preferibilmente tra i più economici (altrimenti con $n grande la somma sfora quasi
- * sempre) ma mescolati per variare a ogni chiamata; alcuni tentativi casuali, nessuna ricerca
- * esaustiva (il pool è già ristretto, sufficiente per un roster reale).
+ * Cerca una combinazione di ESATTAMENTE $n artisti paganti la cui somma rientri in [$lo,$hi],
+ * cercando di avvicinarsi il più possibile a $hi (usare tutto il budget indicato).
+ * N=1: caso banale, risolto in modo esatto (il prezzo più alto ammesso, niente casuale).
+ * N>1: prova molte combinazioni casuali su TUTTO il pool (non solo i più economici — pescare
+ * solo tra quelli avrebbe sistematicamente sotto-usato budget alti) e tiene la migliore trovata;
+ * nessuna ricerca esaustiva (il pool è già ristretto, sufficiente per un roster reale).
  */
-function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 60): ?array {
+function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 250): ?array {
   if ($n <= 0 || count($pool) < $n) return null;
-  $byPrice = $pool;
-  usort($byPrice, fn($a, $b) => $a['price'] <=> $b['price']);
-  $candidates = array_slice($byPrice, 0, max($n * 6, 16));
-  // Prova molte combinazioni casuali e tiene la MIGLIORE (quella che usa più budget), non la prima
-  // valida trovata: la richiesta è "usa sempre più budget possibile", la varietà resta nel mescolamento.
+  if ($n === 1) {
+    $valid = array_values(array_filter($pool, fn($a) => $a['price'] >= $lo && $a['price'] <= $hi));
+    if (!$valid) return null;
+    usort($valid, fn($a, $b) => $b['price'] <=> $a['price']);
+    return ['artists' => [$valid[0]], 'total' => $valid[0]['price']];
+  }
   $best = null;
   for ($t = 0; $t < $tries; $t++) {
-    $sample = $candidates;
+    $sample = $pool;
     shuffle($sample);
     $picked = array_slice($sample, 0, $n);
     if (count($picked) < $n) continue;
     $total = array_sum(array_column($picked, 'price'));
     if ($total < $lo || $total > $hi) continue;
     if ($best === null || $total > $best['total']) $best = ['artists' => $picked, 'total' => $total];
+    if ($best['total'] >= $hi * 0.98) break;   // già vicinissimo al tetto: inutile continuare a provare
   }
   return $best;
 }
@@ -157,8 +162,8 @@ if ($mode === 'uno') {
   ]);
 }
 
-// mode "piu": schema fisso a 4 righe, sempre 5 posti totali (paganti + aperture).
-$scheme = [[2, 3], [3, 2], [4, 1], [5, 0]];
+// mode "piu": schema fisso a 5 righe, sempre 6 posti totali (paganti + aperture).
+$scheme = [[1, 5], [2, 4], [3, 3], [4, 2], [5, 1]];
 $usedOpenerIds = [];
 $out = [];
 foreach ($scheme as [$paidN, $openN]) {
