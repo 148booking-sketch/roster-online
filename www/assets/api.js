@@ -264,6 +264,7 @@ const ICONS = {
   clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
   send:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
   message:'<path d="M21 12a8 8 0 0 1-8 8H4l2.5-3A8 8 0 1 1 21 12z"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
 };
 function icon(name, size = 18, stroke = 1.75) {
   const p = ICONS[name]; if (!p) return '';
@@ -539,6 +540,7 @@ function mountPromoterShell(u, active) {
   const navItems = isArtist
     ? item('cerca', '/', 'search', 'Cerca artisti')
       + item('profilo', '/profilo.html', 'mic', 'Il mio profilo')
+      + item('multilink', '/profilo.html#multilink', 'link', 'Multi link')
       + item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')
     : item('cerca', '/', 'search', 'Cerca artisti')
       + item('mappa', '/mappa.html', 'pin', 'Mappa')

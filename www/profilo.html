@@ -43,7 +43,7 @@ body{background:#f7f7f7}
 
   <div id="reviewBanner" class="rev-banner" style="display:none"></div>
 
-  <form onsubmit="return save(event)">
+  <form id="profileForm" onsubmit="return save(event)">
     <div id="formMount"></div>
     <button id="saveBtn" class="btn primary" style="width:100%;margin-top:8px">Salva profilo</button>
   </form>
@@ -87,7 +87,7 @@ async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   if(me.user.role!=='artist'){ location.href='/cerca.html'; return; }
-  mountPromoterShell(me.user, 'profilo');
+  mountPromoterShell(me.user, location.hash==='#multilink' ? 'multilink' : 'profilo');
   await loadGenres();
   artistFormMount('formMount', '');
 
@@ -125,6 +125,8 @@ async function init(){
   if (new URLSearchParams(location.search).get('welcome')) toast('Email verificata ✓ Completa il tuo profilo');
   artistFormPopulate('', p);
   initMultilink(p);
+  switchView();
+  window.addEventListener('hashchange', switchView);
 
   // hero (design 4a): avatar, nome, meta, stato, stats
   const nm = p.stage_name || me.user.display_name || 'Il mio profilo';
@@ -143,13 +145,27 @@ async function init(){
     .filter(([k])=>s[k]!=null&&s[k]>0).slice(0,4);
   if(items.length){
     prStats.style.display='';
+    prStats.dataset.has='1';
     prStats.innerHTML=items.map(([k,l])=>`<div class="pr-stat"><div class="l">${l}</div><div class="n">${fmt(s[k])}</div></div>`).join('');
   }
   injectIcons();
 }
 
+/* vista: form profilo (default) oppure scheda dedicata Multi link (#multilink) */
+function switchView(){
+  const ml = location.hash === '#multilink';
+  const pf = document.getElementById('profileForm');
+  if (pf) pf.style.display = ml ? 'none' : '';
+  const sec = document.getElementById('multilinkSec');
+  if (sec) sec.style.display = ml ? '' : 'none';
+  const stats = document.getElementById('prStats');
+  if (stats && stats.dataset.has) stats.style.display = ml ? 'none' : '';
+  document.querySelectorAll('.ps-item').forEach(el => {
+    const href = el.getAttribute('href') || '';
+    if (href.startsWith('/profilo.html')) el.classList.toggle('on', (href.includes('#multilink')) === ml);
+  });
+}
 function initMultilink(p){
-  document.getElementById('multilinkSec').style.display = '';
   if (!p.slug) { document.getElementById('mlNoSlug').style.display = ''; }
   else {
     const url = location.origin + '/l/' + p.slug;
