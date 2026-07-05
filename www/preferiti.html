@@ -20,7 +20,11 @@
 .avz-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:14px}
 .avz-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 .avz-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px 18px;overflow-x:auto}
-.avz-grid{display:grid;grid-template-columns:210px repeat(21,minmax(19px,1fr));gap:4px;align-items:center;min-width:960px}
+.avz-grid{display:grid;grid-template-columns:210px repeat(21,minmax(26px,1fr));gap:4px;align-items:center;min-width:1090px}
+/* scroll orizzontale fluido (touch/trackpad) con prima colonna fissa */
+.avz-box{-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.avz-artist,.avz-corner{position:sticky;left:0;background:#fff;z-index:2}
+@media(max-width:720px){.avz-grid{grid-template-columns:150px repeat(21,28px);min-width:0}.avz-artist,.avz-corner{left:-1px;box-shadow:4px 0 8px -6px rgba(0,0,0,.25)}}
 .avz-dow{text-align:center;font:700 9px var(--f-body);color:#9a9aa2;line-height:1.2}
 .avz-dow b{display:block;color:#222;font-size:12px}
 .avz-dow .mo{display:block;color:#9a9aa2;font-size:8.5px;letter-spacing:.04em}
@@ -92,7 +96,7 @@
     <div class="mbody">
       <div class="avail" id="rq_when"></div>
       <div class="field" style="margin:14px 0 0"><label>Link evento</label><input type="url" id="rq_link" placeholder="https://… (pagina o locandina)"></div>
-      <div class="autocomplete field" style="margin:14px 0 0"><label>Comune</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off"></div>
+      <div class="autocomplete field" style="margin:14px 0 0"><label>Comune *</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off" required></div>
       <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
     </div>
     <div class="mfoot">
@@ -155,7 +159,7 @@ function draw(){
     `${days[0].getDate()} ${MESI[days[0].getMonth()].toLowerCase()} – ${days[NDAYS-1].getDate()} ${MESI[days[NDAYS-1].getMonth()].toLowerCase()} ${days[NDAYS-1].getFullYear()}`;
 
   // intestazione: giorno settimana + "9 AGO"
-  let html='<div></div>'+days.map(d=>{
+  let html='<div class="avz-corner"></div>'+days.map(d=>{
     const iso=isoOf(d);
     return `<div class="avz-dow${iso===todayIso?' today':''}">${GG[d.getDay()]}<b>${d.getDate()}</b><span class="mo">${MESI[d.getMonth()]}</span></div>`;
   }).join('');
@@ -212,6 +216,7 @@ async function sendReq(){
   const msg=(rq_msg.value||'').trim();
   if(!msg){ toast('Scrivi un messaggio',true); return; }
   try{
+    if(!(rq_comune.value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
     await api('booking-request.php',{method:'POST',body:{
       artist_user_id:REQ.artist.user_id, event_date:REQ.date,
       event_link:(rq_link.value||'').trim()||null, comune:(rq_comune.value||'').trim()||null, message:msg}});

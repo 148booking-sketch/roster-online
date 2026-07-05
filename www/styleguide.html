@@ -155,8 +155,8 @@
     <p class="desc">In alto in questa pagina (live). Logo, link testuali con underline attivo, campana notifiche, menu utente con avatar a iniziali e tendina (voci di ruolo + Account + Esci). I link cambiano per ruolo: pubblico, artista, promoter/agenzia, admin.</p>
     <div class="sg-panel spec">
       <b>Pubblico:</b> Cerca artisti · Mappa · Calendario — a destra Accedi + Registrati.<br>
-      <b>Promoter / Agenzia:</b> Cerca · Mappa · Calendario · Preferiti · Le mie richieste — campana + avatar (Roster* · Preferiti · Account · Esci). <span style="color:var(--muted)">*solo agenzia</span><br>
-      <b>Artista:</b> Il mio profilo · Le mie richieste — avatar.<br>
+      <b>Promoter / Agenzia:</b> Cerca · Mappa · Calendario · Preferiti · Richieste — campana + avatar (Roster* · Preferiti · Account · Esci). <span style="color:var(--muted)">*solo agenzia</span><br>
+      <b>Artista:</b> Il mio profilo · Richieste — avatar.<br>
       <b>Admin:</b> Cerca · Admin — campana + avatar (Pannello admin · Account · Esci).
     </div>
   </section>
@@ -164,9 +164,9 @@
   <!-- SHELL PROMOTER -->
   <section class="sg-sec">
     <h2>Shell promoter / agenzia</h2>
-    <p class="desc">Per promoter e agenzie loggati, le pagine di lavoro (<b>Preferiti</b>, <b>Le mie richieste</b>, <b>Account & notifiche</b>) usano una <b>sidebar bianca</b> (216px) al posto dell'header: logo + "Area promoter/agenzia", voci con badge contatore (attiva = fondo rosa chiaro + barra brand), Esci e card utente in basso. Montata da <code>mountPromoterShell(u, vocattiva)</code> in <code>api.js</code> sulle pagine con <code>#pageContent</code>. Home, mappa, calendario e pagina artista restano con l'header orizzontale.</p>
+    <p class="desc">Per promoter e agenzie loggati, le pagine di lavoro (<b>Preferiti</b>, <b>Richieste</b>, <b>Account & notifiche</b>) usano una <b>sidebar bianca</b> (216px) al posto dell'header: logo + "Area promoter/agenzia", voci con badge contatore (attiva = fondo rosa chiaro + barra brand), Esci e card utente in basso. Montata da <code>mountPromoterShell(u, vocattiva)</code> in <code>api.js</code> sulle pagine con <code>#pageContent</code>. Home, mappa, calendario e pagina artista restano con l'header orizzontale.</p>
     <div class="sg-panel spec">
-      Voci: Cerca artisti · Mappa · Preferiti <span class="badge">n</span> · Le mie richieste <span class="badge">n</span> · Account & notifiche · <i>(solo agenzia)</i> Il mio roster · Esci + card utente.<br>
+      Voci: Cerca artisti · Mappa · Preferiti <span class="badge">n</span> · Richieste <span class="badge">n</span> · Account & notifiche · <i>(solo agenzia)</i> Il mio roster · Esci + card utente.<br>
       Classi: <code>.pshell / .pside / .ps-item(.on) / .ps-badge / .pmain / .pmain-pad / .ptitle / .psub</code>.
     </div>
   </section>

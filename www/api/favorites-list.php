@@ -26,7 +26,7 @@ $st = db()->prepare(
    FROM favorites f
    JOIN artist_profiles ap ON ap.user_id = f.artist_user_id
    WHERE f.user_id = ? AND ap.published = 1
-   ORDER BY f.created_at DESC"
+   ORDER BY ap.top8 DESC, ap.verified DESC, ap.stage_name ASC"
 );
 $st->execute([$uid]);
 $rows = $st->fetchAll();

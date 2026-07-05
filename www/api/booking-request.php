@@ -82,6 +82,7 @@ $comune   = trim($in['comune'] ?? '') ?: null;
 
 if ($artistId <= 0) fail('artist_required');
 if ($msg === '')    fail('message_required');
+if ($comune === null) fail('comune_required');
 
 // verifica che l'artista esista
 $chk = db()->prepare("SELECT id FROM users WHERE id=? AND role='artist'");

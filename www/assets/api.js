@@ -16,6 +16,7 @@ async function api(path, {method = 'GET', body = null} = {}) {
 
 /* messaggi d'errore in italiano */
 const ERR = {
+  comune_required: "Indica il comune dell'evento.",
   email_invalid:'Email non valida', password_too_short:'Password troppo corta (min 8)',
   role_invalid:'Ruolo non valido', email_taken:'Email già registrata',
   credentials_invalid:'Email o password errati', account_blocked:'Account bloccato',
@@ -342,7 +343,7 @@ async function renderNav(center = '') {
     links = '';
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
-    right = navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']],
+    right = navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Richieste', 'inbox']],
       [['/', 'Cerca artisti', 'search']]);
   } else if (u.role === 'admin') {
     right = navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']],
@@ -350,7 +351,7 @@ async function renderNav(center = '') {
   } else { // promoter / management
     const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
     right = navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']],
-      [['/', 'Cerca artisti', 'search'], ['/mappa.html', 'Mappa', 'pin'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
+      [['/', 'Cerca artisti', 'search'], ['/mappa.html', 'Mappa', 'pin'], ['/richieste.html', 'Richieste', 'inbox']]);
   }
 
   el.className = 'nav' + (u ? ' logged' : '');
@@ -565,11 +566,11 @@ function mountPromoterShell(u, active) {
       + item('profilo', '/profilo.html', 'mic', 'Il mio profilo')
       + item('social', '/profilo.html#social', 'globe', 'Link & social')
       + item('multilink', '/profilo.html#multilink', 'link', 'Multi link')
-      + item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')
+      + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
     : item('cerca', '/', 'search', 'Cerca artisti')
       + item('mappa', '/mappa.html', 'pin', 'Mappa')
       + item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')
-      + item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')
+      + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
       + item('account', '/account.html', 'bell', 'Account & notifiche')
       + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il mio roster')}` : '');
   const areaLabel = isArtist ? 'Area artista' : (isAg ? 'Area agenzia' : 'Area promoter');

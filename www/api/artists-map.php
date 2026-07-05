@@ -65,7 +65,8 @@ $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.
                $distSelect
         FROM artist_profiles ap
         $whereSql
-        $havingSql";
+        $havingSql
+        ORDER BY ap.top8 DESC, ap.verified DESC, ap.stage_name ASC";
 
 $bind = [];
 if ($hasOrigin) { $bind[] = $lat; $bind[] = $lat; $bind[] = $lng; }

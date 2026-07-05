@@ -119,7 +119,7 @@
       <div class="avail" id="rq_avail" style="display:none"></div>
       <div class="grid2" style="margin-top:14px">
         <div class="field" style="margin:0"><label>Link evento</label><input type="url" id="rq_link" placeholder="https://… (pagina o locandina)"></div>
-        <div class="autocomplete field" style="margin:0"><label>Comune</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off"></div>
+        <div class="autocomplete field" style="margin:0"><label>Comune *</label><input id="rq_comune" placeholder="Es. Milano" autocomplete="off" required></div>
       </div>
       <div class="field" style="margin:14px 0 0"><label>Messaggio *</label><textarea id="rq_msg" placeholder="Racconta l'evento, il locale, gli orari…" style="min-height:76px"></textarea></div>
     </div>
@@ -352,6 +352,7 @@ async function sendReq(){
   if(!date){ toast('Seleziona una data dal calendario',true); return; }
   if(!msg){ toast('Scrivi un messaggio',true); return; }
   try{
+    if(!(document.getElementById('rq_comune').value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
     await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id, event_date:date, message:msg,
       event_link:(document.getElementById('rq_link').value||'').trim()||null,
       comune:(document.getElementById('rq_comune').value||'').trim()||null}});
