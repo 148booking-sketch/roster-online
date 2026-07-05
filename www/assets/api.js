@@ -494,9 +494,9 @@ async function loadNotifs(force = false) {
 function notifTimeAgo(ts) {
   const d = new Date((ts || '').replace(' ', 'T')); if (isNaN(d)) return '';
   const s = (Date.now() - d.getTime()) / 1000;
-  if (s < 3600) return Math.max(1, Math.floor(s / 60)) + ' min fa';
-  if (s < 86400) return Math.floor(s / 3600) + ' h fa';
-  return d.toLocaleDateString('it-IT');
+  if (s < 3600) return Math.max(1, Math.floor(s / 60)) + ' min';
+  if (s < 86400) return Math.floor(s / 3600) + ' h';
+  return d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
 }
 async function refreshNotifDot() {
   const dot = document.getElementById('notifDot');
@@ -516,9 +516,8 @@ async function fillNotifPop() {
   ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
   pop.innerHTML = list.length ? list.map(n => `
     <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
-      <span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span>
+      <span class="notif-left"><span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span><span class="notif-when">${notifTimeAgo(n.ts)}</span></span>
       <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
-      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
     </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
 }
 async function toggleNotif(e) {
@@ -543,9 +542,8 @@ async function openNotifFromMenu(e) {
   ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
   box.innerHTML = list.length ? list.map(n => `
     <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
-      <span class="notif-ic">${icon(n.icon || 'inbox', 15)}</span>
+      <span class="notif-left"><span class="notif-ic">${icon(n.icon || 'inbox', 15)}</span><span class="notif-when">${notifTimeAgo(n.ts)}</span></span>
       <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
-      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
     </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
 }
 function navBell() {
