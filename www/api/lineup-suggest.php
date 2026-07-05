@@ -8,7 +8,9 @@
  *
  * mode "uno": artisti singoli con cachet ENTRO IL 20% dal budget indicato (es. budget 5.000 →
  *   mostra artisti da 4.000 a 6.000). Ordine casuale tra i compatibili: variano a ogni click.
- *   Propone anche fino a 2 artisti "senza impegno" (cachet 0) come apertura.
+ *   Se nessuno rientra nella finestra (budget molto alto o molto basso rispetto al roster),
+ *   propone gli artisti dal cachet (promo incluso) più alto disponibile, invece di non mostrare
+ *   nulla. Propone anche fino a 2 artisti "senza impegno" (cachet 0) come apertura.
  *
  * mode "piu": SEMPRE 5 righe con lo schema fisso (paganti + aperture, sempre 6 posti totali):
  *   1 artista + 5 aperture · 2+4 · 3+3 · 4+2 · 5+1.
@@ -148,14 +150,53 @@ function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 
   return $best;
 }
 
+/**
+ * Fallback per budget molto alto (o molto basso): nessun artista rientra nella finestra ±20%
+ * intorno al valore indicato. Invece di non mostrare nulla, propone gli artisti col cachet
+ * (promo incluso, se più alto) più alto disponibile nel roster, rispettando i generi scelti.
+ */
+function fetch_top_cachet(array $genres, int $limit): array {
+  $where  = ["ap.published = 1", "ap.trattativa_riservata = 0", "ap.cachet_min IS NOT NULL", "ap.cachet_min > 0"];
+  $params = [];
+  if ($genres) {
+    $ph = implode(',', array_fill(0, count($genres), '?'));
+    $where[] = "ap.user_id IN (
+        SELECT ag.artist_user_id FROM artist_genres ag JOIN genres g ON g.id = ag.genre_id
+        WHERE g.slug IN ($ph)
+      )";
+    foreach ($genres as $g) $params[] = $g;
+  }
+  $today = date('Y-m-d');
+  $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.photo_url, ap.verified,
+                 ap.cachet_min, ap.cachet_promo, ap.promo_until
+          FROM artist_profiles ap WHERE " . implode(' AND ', $where) . "
+          ORDER BY GREATEST(ap.cachet_min, COALESCE(ap.cachet_promo, 0)) DESC LIMIT $limit";
+  $st = db()->prepare($sql);
+  $st->execute($params);
+  return array_map(function ($r) use ($today) {
+    $promoOk = $r['cachet_promo'] !== null && (int) $r['cachet_promo'] > 0
+      && ($r['promo_until'] === null || $r['promo_until'] >= $today);
+    $price = $promoOk ? (int) $r['cachet_promo'] : (int) $r['cachet_min'];
+    return [
+      'user_id' => (int) $r['user_id'], 'stage_name' => $r['stage_name'], 'slug' => $r['slug'],
+      'formazione' => $r['formazione'], 'comune' => $r['comune'], 'photo_url' => $r['photo_url'],
+      'verified' => (bool) $r['verified'], 'price' => $price,
+    ];
+  }, $st->fetchAll());
+}
+
 if ($mode === 'uno') {
   $matches = array_values(array_filter($pool, fn($a) => $a['price'] >= $loBound && $a['price'] <= $hiBound));
-  usort($matches, fn($a, $b) => $b['price'] <=> $a['price']);   // usa più budget possibile = prezzo più alto prima
-  // il migliore (uso massimo del budget) sempre primo; gli altri 5 variano a ogni click tra le opzioni successive
-  $best = array_slice($matches, 0, 1);
-  $rest = array_slice($matches, 1, 20);
-  shuffle($rest);
-  $chosen = array_merge($best, array_slice($rest, 0, 5));
+  if (!$matches) {
+    $chosen = fetch_top_cachet($genres, 6);
+  } else {
+    usort($matches, fn($a, $b) => $b['price'] <=> $a['price']);   // usa più budget possibile = prezzo più alto prima
+    // il migliore (uso massimo del budget) sempre primo; gli altri 5 variano a ogni click tra le opzioni successive
+    $best = array_slice($matches, 0, 1);
+    $rest = array_slice($matches, 1, 20);
+    shuffle($rest);
+    $chosen = array_merge($best, array_slice($rest, 0, 5));
+  }
   ok([
     'suggestions' => array_map(fn($a) => ['artists' => [$a], 'total' => $a['price']], $chosen),
     'openers' => fetch_openers($genres, [], 2),
