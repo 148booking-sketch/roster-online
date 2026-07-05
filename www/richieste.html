@@ -105,7 +105,7 @@ async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   role = me.user.role;
-  if(role==='promoter'||role==='management'){ mountPromoterShell(me.user,'richieste'); }
+  if(['promoter','management','artist'].includes(role)){ mountPromoterShell(me.user,'richieste'); }
   else { await renderNav(); document.getElementById('pageContent').style.display=''; document.getElementById('pagePad').classList.remove('pmain-pad'); document.getElementById('pagePad').classList.add('container','section'); }
   pageTitle.textContent = role==='artist' ? 'Richieste ricevute' : 'Le mie richieste';
   load();

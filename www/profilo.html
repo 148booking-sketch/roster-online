@@ -29,7 +29,7 @@ body{background:#f7f7f7}
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container narrow section">
+<div id="pageContent" style="display:none"><div class="pmain-pad" style="max-width:1000px">
   <div class="pr-hero" id="prHero">
     <span class="pr-ava" id="prAva"></span>
     <div style="min-width:0;flex:1">
@@ -78,7 +78,7 @@ body{background:#f7f7f7}
       <button type="button" class="btn primary sm" onclick="saveCustomLinks()">Salva link</button>
     </div>
   </section>
-</main>
+</div></div><!-- /pageContent -->
 
 <script src="/assets/api.js"></script>
 <script src="/assets/artist-form.js"></script>
@@ -87,7 +87,7 @@ async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   if(me.user.role!=='artist'){ location.href='/cerca.html'; return; }
-  await renderNav();
+  mountPromoterShell(me.user, 'profilo');
   await loadGenres();
   artistFormMount('formMount', '');
 

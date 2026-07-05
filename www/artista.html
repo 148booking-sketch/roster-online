@@ -162,9 +162,10 @@ function rimborsoLabel(a){ switch(a.rimborso_tipo){
 /* statistiche principali in riga (design 5b) */
 function statRow(a){
   const s=a.stats||{};
-  const items=[['spotify_listeners','Spotify · ascoltatori'],['spotify_followers','Spotify'],['instagram_followers','Instagram'],
+  const seen=new Set();
+  const items=[['spotify_listeners','Spotify'],['spotify_followers','Spotify'],['instagram_followers','Instagram'],
     ['youtube_subs','YouTube'],['tiktok_followers','TikTok'],['facebook_followers','Facebook'],['twitch_followers','Twitch']]
-    .filter(([k])=>s[k]!=null && s[k]>0).slice(0,4);
+    .filter(([k,l])=>{ if(s[k]==null||s[k]<=0||seen.has(l)) return false; seen.add(l); return true; }).slice(0,4);
   if(!items.length) return '';
   return `<div class="statrow">${items.map(([k,l])=>`<div><div class="n">${fmt(s[k])}</div><div class="l">${l}</div></div>`).join('')}</div>`;
 }
@@ -266,7 +267,6 @@ function render(){
           <div class="bb-price"><div class="amount">${p.amount}</div>${p.meta?`<div class="meta">${p.meta}</div>`:''}</div>
           ${cta}
           ${row2}
-          <div class="bb-note">${a.verified?'Artista gestito direttamente da noi':'Nessun costo di intermediazione'}</div>
         </div>
       </div>
     </div>
