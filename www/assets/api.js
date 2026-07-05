@@ -334,7 +334,8 @@ async function renderNav(center = '') {
 
   let links = '', right = '';
   if (!u) {
-    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa');
+    // non loggati: header essenziale, solo Accedi e Registrati
+    links = '';
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
     links = link('/profilo.html', 'Il mio profilo', '/profilo') + link('/richieste.html', 'Le mie richieste', '/richieste');
