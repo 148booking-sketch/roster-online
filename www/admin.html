@@ -102,7 +102,7 @@
           </select>
         </div>
         <div class="dtable">
-          <div class="dt-head cols-art"><div>Artista</div><div>Show · Città</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+          <div class="dt-head cols-art"><div>Artista</div><div>Agenzia</div><div>Show · Città</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
           <div id="listA"></div>
         </div>
       </div>
@@ -849,9 +849,11 @@ function artistRow(a){
       <span class="dt-ava" style="background:${avatarColor(nm)}">${ava}</span>
       <div style="min-width:0"><div class="nm">${esc(nm)}${a.verified==1?'<span class="vchk" title="Verificato">✓</span>':''}</div><div class="mt">${esc(a.email||'')}</div></div>
     </div>
+    <div class="dt-meta" style="font-size:12.5px">${a.manager_org_name?esc(a.manager_org_name):'<span style="color:#c9c9c9">—</span>'}</div>
     <div class="dt-meta">${esc(showLabel(a.formazione))}<div>${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</div></div>
     <div class="dt-st">${st}${extra}</div>
     <div class="dt-actions">
+      ${a.slug?`<a class="dt-ibtn" title="Anteprima profilo" href="/${esc(a.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${icon('eye',14,1.8)}</a>`:''}
       ${a.published==1
         ? `<button type="button" class="dt-ibtn" title="Nascondi dalla ricerca" onclick="event.stopPropagation();approveArtist(${a.id},0,this)">${icon('eyeOff',15,1.8)}</button>`
         : `<button type="button" class="dt-ibtn ok" title="Approva (rendi visibile)" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">${icon('check',15,2.2)}</button>`}
@@ -1121,7 +1123,8 @@ async function doBootstrap(e){ e.preventDefault();
 .dt-row{display:grid;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid #f2f2f2;cursor:pointer}
 .dt-row:last-child{border-bottom:0}
 .dt-row:hover{background:#fafafa}
-.cols-art,.cols-pro{grid-template-columns:1fr 170px 150px 168px}
+.cols-art{grid-template-columns:1fr 140px 150px 120px 168px}
+.cols-pro{grid-template-columns:1fr 170px 150px 168px}
 .cols-adm{grid-template-columns:1fr 170px 110px}
 .dt-who{display:flex;align-items:center;gap:11px;min-width:0}
 .dt-ava{width:34px;height:34px;border-radius:9px;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}

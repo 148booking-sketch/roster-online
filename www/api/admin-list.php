@@ -15,8 +15,10 @@ $like  = '%' . $q . '%';
 $argsA = $q !== '' ? [$like, $like] : [];
 
 $sqlA = "SELECT u.id, u.email, u.display_name, u.status, u.created_at, u.email_verified,
-                p.stage_name, p.comune, p.provincia, p.published, p.verified, p.top8, p.formazione, p.updated_at
+                p.stage_name, p.comune, p.provincia, p.published, p.verified, p.top8, p.formazione, p.updated_at,
+                p.manager_user_id, mp.org_name AS manager_org_name
            FROM users u JOIN artist_profiles p ON p.user_id = u.id
+           LEFT JOIN promoter_profiles mp ON mp.user_id = p.manager_user_id
           WHERE u.role = 'artist'"
       . ($q !== '' ? ' AND (u.email LIKE ? OR u.display_name LIKE ?)' : '')
       . " ORDER BY u.id DESC LIMIT $limit";
