@@ -311,10 +311,11 @@ function navUser(u, items, mobileItems = []) {
     href === '__logout__'
       ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
       : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
-  const notifItem = `<button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
+  const notifItem = `<div class="menu-divider"></div>
+    <button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
     <div class="menu-notifs" id="menuNotifList" style="display:none"></div>`;
-  const nav = (mobileItems.length ? mk(mobileItems) : '') + notifItem + '<div class="menu-divider"></div>';
-  const menu = nav + mk([...items, ['__logout__', 'Esci', 'logout']]);
+  const nav = (mobileItems.length ? mk(mobileItems) + '<div class="menu-divider"></div>' : '');
+  const menu = nav + mk([...items, ['__logout__', 'Esci', 'logout']]) + notifItem;
   return `<div class="usermenu">
     <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
       <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>

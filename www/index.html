@@ -6,6 +6,16 @@
 <title>Booking Roster — trova artisti per il tuo evento</title>
 <meta name="description" content="La piattaforma che collega artisti emergenti e promoter. Cerca per budget, distanza e genere.">
 <link rel="stylesheet" href="/assets/style.css">
+<style>
+/* home: scrollando l'header scompare; resta solo la barra generi, compatta e a tutta pagina */
+.nav{position:static}
+.catbar-wrap{position:sticky;top:0;z-index:50}
+.catbar-wrap>.container{max-width:none;padding:0 26px}
+.catbar{gap:22px;padding:8px 0}
+.catbar .cat{gap:5px;font-size:11.5px;padding:4px 2px}
+.catbar .cat .ic{font-size:18px}
+.catbar .cat .ic .ic-svg{width:19px;height:19px}
+</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 .browse{display:flex;flex-direction:column;gap:18px;padding-top:18px}
