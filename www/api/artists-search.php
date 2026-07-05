@@ -59,6 +59,7 @@ if ($rimb)            { $where[] = 'ap.rimborso_tipo = ?'; $params[] = $rimb; }
 if (($_GET['trattabile'] ?? '') === '1') { $where[] = 'ap.cachet_trattabile = 1'; }
 if (($_GET['no_price'] ?? '') === '1') { $where[] = '(ap.cachet_min IS NULL OR ap.cachet_min = 0) AND (ap.cachet_max IS NULL OR ap.cachet_max = 0)'; }
 if (($_GET['promo'] ?? '') === '1') { $where[] = "ap.cachet_promo IS NOT NULL AND ap.cachet_promo > 0 AND (ap.promo_until IS NULL OR ap.promo_until >= CURDATE())"; }
+if (($_GET['trv'] ?? '') === '1') { $where[] = 'ap.trattativa_riservata = 1'; }
 
 // Filtro genere: match se l'artista ha ALMENO uno dei generi richiesti
 if ($genres) {

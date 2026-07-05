@@ -121,6 +121,10 @@
 .role-card:hover .ic{color:var(--brand)}
 .role-card h3{font-family:var(--f-display);font-size:15.5px;font-weight:700;margin:0}
 .role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
+/* card risultato line up: avatar (1 o più) + nomi + totale */
+.lu-card{display:flex;gap:12px;align-items:center;border:1px solid var(--line2);border-radius:12px;padding:12px 14px}
+.lu-card a{color:var(--txt);text-decoration:none}
+.lu-card a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -179,12 +183,37 @@
         <label class="switch"><input type="checkbox" id="fmTratt"><span class="slider"></span></label></div>
       <div class="fm-opt"><div><div class="t">In promozione</div><div class="s">Artisti con promo attiva</div></div>
         <label class="switch"><input type="checkbox" id="fmPromo"><span class="slider"></span></label></div>
-      <div class="fm-opt" style="border-bottom:0"><div><div class="t">Anche senza impegno</div><div class="s">Solo artisti con cachet da concordare</div></div>
+      <div class="fm-opt"><div><div class="t">Anche senza impegno</div><div class="s">Solo artisti con cachet da concordare</div></div>
         <label class="switch"><input type="checkbox" id="fmNoPrice"><span class="slider"></span></label></div>
+      <div class="fm-opt" style="border-bottom:0"><div><div class="t">Trattativa riservata</div><div class="s">Artisti senza cachet pubblico, da concordare privatamente</div></div>
+        <label class="switch"><input type="checkbox" id="fmTrv"><span class="slider"></span></label></div>
     </div>
     <div class="fm-foot">
       <button type="button" class="linklike" style="font-weight:600" onclick="clearFilters()">Cancella tutto</button>
       <button type="button" class="btn primary" style="margin-left:auto;border-radius:10px" onclick="applyFilters()">Mostra risultati</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP "LINE UP": consiglia artisti in base al budget -->
+<div class="overlay" id="lineupModal">
+  <div class="modal" style="max-width:520px">
+    <div class="mhead"><h3>Line up</h3><button type="button" class="iconbtn" onclick="closeLineup()">✕</button></div>
+    <div class="mbody">
+      <div id="luForm">
+        <div class="field"><label>Budget massimo (€)</label><input type="number" id="lu_budget" min="1" placeholder="Es. 1500"></div>
+        <div class="field"><label>Cerco</label>
+          <div class="fm-chips" id="luMode">
+            <span class="fm-chip dark on" data-v="uno">1 artista</span>
+            <span class="fm-chip dark" data-v="piu">Più artisti</span>
+          </div>
+        </div>
+        <div class="field"><label>Generi <span class="hint" style="display:inline">(opzionale)</span></label>
+          <div class="fm-chips" id="luGenres"></div>
+        </div>
+        <button type="button" class="btn primary" style="width:100%;margin-top:6px" onclick="submitLineup()">Consiglia line up</button>
+      </div>
+      <div id="luResults" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -210,6 +239,7 @@
           <input id="qSearch" class="qsearch" type="search" placeholder="Cerca artista..." autocomplete="off" oninput="onQInput(this.value)">
           <button type="button" class="btn dark sm" onclick="resetAllFilters()">Tutti</button>
           <button type="button" class="btn ghost sm" id="filtBtn" onclick="openFilters()"></button>
+          <button type="button" class="btn outline sm" id="lineupBtn" onclick="openLineup()"></button>
         </div>
       </div>
       <div id="results" class="grid-cards"></div>
@@ -247,7 +277,7 @@
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, comune:'', kmZona:'250' };
+const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250' };
 let genres=[], lastResults=[];
 let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
 let lastArtistCount=null, promoterCount=null;
@@ -289,6 +319,7 @@ async function init(){
   initMap();
   const qEl=document.getElementById('qSearch'); if(qEl && state.q) qEl.value=state.q;
   document.getElementById('catFilt').innerHTML=icon('filter',17,1.9);
+  document.getElementById('lineupBtn').innerHTML=icon('zap',15,1.9)+' Line up';
   const cbw=document.querySelector('.catbar-wrap');
   addEventListener('scroll',()=>{ cbw.classList.toggle('stuck', cbw.getBoundingClientRect().top<1 && scrollY>40); },{passive:true});
   paintFiltBtn();
@@ -370,6 +401,7 @@ function buildFilterParams(){
   if(state.tratt) p.set('trattabile','1');
   if(state.noPrice) p.set('no_price','1');
   if(state.promo) p.set('promo','1');
+  if(state.trv) p.set('trv','1');
   if(state.form) p.set('formazione',state.form);
   if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
   else if(state.comune){ p.set('comune',state.comune); p.set('max_km',state.kmZona||'250'); }
@@ -468,7 +500,7 @@ function activeFilterCount(){
   if(state.form) n++;
   if(state.cachetMax!=null) n++;
   if(state.comune||state.gps) n++;
-  if(state.tratt) n++; if(state.promo) n++; if(state.noPrice) n++;
+  if(state.tratt) n++; if(state.promo) n++; if(state.noPrice) n++; if(state.trv) n++;
   return n;
 }
 function paintFiltBtn(){
@@ -504,7 +536,7 @@ async function openFilters(){
   });
   // dove + opzioni
   fmComune.value=state.comune||''; fmKm.value=state.kmZona||'250';
-  fmGps.checked=!!state.gps; fmTratt.checked=state.tratt; fmPromo.checked=state.promo; fmNoPrice.checked=state.noPrice;
+  fmGps.checked=!!state.gps; fmTratt.checked=state.tratt; fmPromo.checked=state.promo; fmNoPrice.checked=state.noPrice; fmTrv.checked=state.trv;
   if(!fmComune.dataset.ac){ fmComune.dataset.ac='1'; comuniAutocomplete(fmComune, ()=>{}); }
   injectIcons(document.getElementById('filtersModal'));
   const n=activeFilterCount(); const c=document.getElementById('fmCount');
@@ -512,6 +544,58 @@ async function openFilters(){
   document.getElementById('filtersModal').classList.add('open');
 }
 function closeFilters(){ document.getElementById('filtersModal').classList.remove('open'); }
+
+/* ---- Popup "Line up": consiglia artisti in base al budget ---- */
+async function openLineup(){
+  const me=await getMe();
+  const canSeePrices=!!(me.user&&(me.user.role==='admin'||(['promoter','management'].includes(me.user.role)&&me.user.status==='active')));
+  if(!canSeePrices){ toast('Accedi come promoter verificato per usare Line up', true); return; }
+  document.getElementById('luForm').style.display='';
+  document.getElementById('luResults').style.display='none';
+  document.getElementById('lu_budget').value='';
+  document.querySelectorAll('#luMode .fm-chip').forEach(x=>{
+    x.classList.toggle('on', x.dataset.v==='uno');
+    x.onclick=function(){ document.querySelectorAll('#luMode .fm-chip').forEach(y=>y.classList.remove('on')); this.classList.add('on'); };
+  });
+  document.getElementById('luGenres').innerHTML=genres.map(g=>`<span class="fm-chip" data-slug="${g.slug}"
+    onclick="this.classList.toggle('on')">${esc(g.name)}</span>`).join('');
+  document.getElementById('lineupModal').classList.add('open');
+}
+function closeLineup(){ document.getElementById('lineupModal').classList.remove('open'); }
+
+function lineupCardHtml(s){
+  const names=s.artists.map(a=>esc(a.stage_name||'Artista')).join(' + ');
+  const avas=s.artists.map(a=>`<span class="avatar" style="width:36px;height:36px;font-size:12px;background:${avatarColor(a.stage_name||'A')}">${esc(avatarInitials(a.stage_name||'A'))}</span>`).join('');
+  const links=s.artists.map(a=>`<a href="/${esc(a.slug||'')}" target="_blank" rel="noopener">${esc(a.stage_name||'Artista')}</a>`).join(', ');
+  return `<div class="lu-card">
+    <div style="display:flex;gap:6px">${avas}</div>
+    <div style="min-width:0;flex:1">
+      <div style="font-weight:700" title="${names}">${links}</div>
+      <div class="hint" style="margin-top:2px">${s.artists.length>1?s.artists.length+' artisti · ':''}totale ${eur(s.total)}</div>
+    </div>
+  </div>`;
+}
+async function submitLineup(){
+  const budget=+document.getElementById('lu_budget').value||0;
+  if(budget<=0){ toast('Indica un budget valido', true); return; }
+  const mode=document.querySelector('#luMode .fm-chip.on')?.dataset.v||'uno';
+  const gs=[...document.querySelectorAll('#luGenres .fm-chip.on')].map(x=>x.dataset.slug);
+  const box=document.getElementById('luResults');
+  document.getElementById('luForm').style.display='none';
+  box.style.display=''; box.innerHTML='<div class="empty" style="border:0">Cerco la combinazione migliore…</div>';
+  try{
+    const r=await api('lineup-suggest.php',{method:'POST',body:{budget,mode,genres:gs}});
+    const list=r.suggestions||[];
+    const back='<button type="button" class="btn ghost" style="width:100%;margin-top:14px" onclick="backToLuForm()">Nuova ricerca</button>';
+    if(!list.length){
+      box.innerHTML='<div class="empty" style="border:0">Nessun artista trovato per questo budget/generi. Prova ad alzare il budget o allargare i generi.</div>'+back;
+      return;
+    }
+    box.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">'+list.map(lineupCardHtml).join('')+'</div>'+back;
+  }catch(err){ box.innerHTML='<div class="empty" style="border:0">'+esc(errMsg(err))+'</div>'; }
+}
+function backToLuForm(){ document.getElementById('luForm').style.display=''; document.getElementById('luResults').style.display='none'; }
+
 function pickFmShow(el){
   const was=el.classList.contains('on');
   document.querySelectorAll('#fmShows .fm-chip').forEach(x=>x.classList.remove('on'));
@@ -523,7 +607,7 @@ function fmBudgetPaint(){
 }
 function clearFilters(){
   state.genres.clear(); state.form=''; state.cachetMax=null; state.comune=''; state.gps=null; state.km='';
-  state.tratt=state.promo=state.noPrice=false;
+  state.tratt=state.promo=state.noPrice=state.trv=false;
   closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
 }
 function resetAllFilters(){
@@ -552,7 +636,7 @@ function applyFilters(){
   else if(sortSel==='budget_asc'){ state.sort='cachet'; priceDir='asc'; }
   else { state.sort=sortSel; }
   state.comune=fmComune.value.trim(); state.kmZona=fmKm.value;
-  state.tratt=fmTratt.checked; state.promo=fmPromo.checked; state.noPrice=fmNoPrice.checked;
+  state.tratt=fmTratt.checked; state.promo=fmPromo.checked; state.noPrice=fmNoPrice.checked; state.trv=fmTrv.checked;
   if(fmGps.checked && !state.gps){
     closeFilters();
     if(navigator.geolocation&&window.isSecureContext){
