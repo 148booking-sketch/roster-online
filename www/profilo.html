@@ -87,7 +87,7 @@ async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
   if(me.user.role!=='artist'){ location.href='/cerca.html'; return; }
-  mountPromoterShell(me.user, location.hash==='#multilink' ? 'multilink' : 'profilo');
+  mountPromoterShell(me.user, location.hash==='#multilink' ? 'multilink' : (location.hash==='#social' ? 'social' : 'profilo'));
   await loadGenres();
   artistFormMount('formMount', '');
 
@@ -153,16 +153,28 @@ async function init(){
 
 /* vista: form profilo (default) oppure scheda dedicata Multi link (#multilink) */
 function switchView(){
-  const ml = location.hash === '#multilink';
+  const view = location.hash === '#multilink' ? 'multilink' : (location.hash === '#social' ? 'social' : 'profilo');
   const pf = document.getElementById('profileForm');
-  if (pf) pf.style.display = ml ? 'none' : '';
+  if (pf) pf.style.display = view === 'multilink' ? 'none' : '';
+  // nella vista "social" il form mostra SOLO la sezione Link & social (il salvataggio invia comunque tutto)
+  document.querySelectorAll('#formMount > section.fsec').forEach(sec => {
+    const isSocial = sec.classList.contains('social');
+    sec.style.display = view === 'social' ? (isSocial ? '' : 'none') : (isSocial ? 'none' : '');
+  });
+  if (view === 'profilo') {
+    // nella scheda profilo la sezione social resta nascosta (ha la sua scheda dedicata)
+    const s = document.querySelector('#formMount > section.fsec.social');
+    if (s) s.style.display = 'none';
+  }
   const sec = document.getElementById('multilinkSec');
-  if (sec) sec.style.display = ml ? '' : 'none';
+  if (sec) sec.style.display = view === 'multilink' ? '' : 'none';
   const stats = document.getElementById('prStats');
-  if (stats && stats.dataset.has) stats.style.display = ml ? 'none' : '';
+  if (stats && stats.dataset.has) stats.style.display = view === 'profilo' ? '' : 'none';
   document.querySelectorAll('.ps-item').forEach(el => {
     const href = el.getAttribute('href') || '';
-    if (href.startsWith('/profilo.html')) el.classList.toggle('on', (href.includes('#multilink')) === ml);
+    if (!href.startsWith('/profilo.html')) return;
+    const key = href.includes('#multilink') ? 'multilink' : (href.includes('#social') ? 'social' : 'profilo');
+    el.classList.toggle('on', key === view);
   });
 }
 function initMultilink(p){

@@ -66,9 +66,13 @@ function artistFormHTML(p) {
       <div class="row">
         <div class="field"><label>Tipo di Show</label><div class="chips" id="${p}showChips"></div></div>
         <div class="field" style="max-width:150px"><label>On Stage</label><input id="${p}on_stage" type="number" min="0" placeholder="4"></div>
+        <div class="field" style="max-width:170px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
       </div>
       <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
-      <h3>Link & social</h3>
+    </section>
+
+    <section class="fsec social" id="${p}socialSec">
+      <h2 class="fsec-h">Link & social</h2>
       <div class="hint" style="margin:-4px 0 12px">Da Spotify/TikTok/YouTube/Twitch ricaviamo automaticamente le statistiche (ascoltatori, follower, iscritti).</div>
       <div class="row">
         <div class="field"><label>Sito web</label><input id="${p}website" placeholder="https://..."></div>
@@ -111,12 +115,11 @@ function artistFormHTML(p) {
 
     <section class="fsec tech">
       <h2 class="fsec-h">Rider tecnico</h2>
-      <div class="row">
-        <div class="field" style="max-width:200px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
-        <div class="field"><label>Scheda tecnica (URL Drive/Dropbox/PDF)</label><input id="${p}tech_sheet_url" type="url" placeholder="https://drive.google.com/..."></div>
+      <div class="field"><label>Scheda tecnica (URL Drive/Dropbox/PDF)</label><input id="${p}tech_sheet_url" type="url" placeholder="https://drive.google.com/..."></div>
+      <div class="row" style="align-items:flex-start">
+        <div class="field"><label>Cosa porta l'artista</label><div class="chips" id="${p}gearBring"></div></div>
+        <div class="field"><label>Cosa serve sul posto</label><div class="chips" id="${p}gearNeed"></div></div>
       </div>
-      <div class="field"><label>Cosa porta l'artista</label><div class="chips" id="${p}gearBring"></div></div>
-      <div class="field"><label>Cosa serve sul posto</label><div class="chips" id="${p}gearNeed"></div></div>
     </section>`;
 }
 

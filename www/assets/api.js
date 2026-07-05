@@ -565,6 +565,7 @@ function mountPromoterShell(u, active) {
   const navItems = isArtist
     ? item('cerca', '/', 'search', 'Cerca artisti')
       + item('profilo', '/profilo.html', 'mic', 'Il mio profilo')
+      + item('social', '/profilo.html#social', 'globe', 'Link & social')
       + item('multilink', '/profilo.html#multilink', 'link', 'Multi link')
       + item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')
     : item('cerca', '/', 'search', 'Cerca artisti')
