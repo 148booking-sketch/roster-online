@@ -33,7 +33,7 @@
 
   <!-- STEP 2: verifica Google Calendar -->
   <form class="panel" id="step2cal" style="display:none" onsubmit="return checkCalendar(event)">
-    <div id="eligMsg" style="margin-bottom:14px;font-size:14px;font-weight:600;color:var(--brand)"></div>
+    <div id="eligMsg" style="margin-bottom:14px;font-size:14px;font-weight:600;color:#0a7d38"></div>
     <div class="field"><label>Indirizzo iCal del tuo Google Calendar</label>
       <input type="url" id="cal_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics" required>
       <div class="hint">Su Google Calendar apri <b>Impostazioni → il tuo calendario → Integra il calendario</b> e copia l'<b>Indirizzo segreto in formato iCal</b> (finisce con <code>.ics</code>). Ci serve per mostrare ai promoter le tue date libere/occupate. Il link resta privato, non viene mai pubblicato.</div>
@@ -43,7 +43,7 @@
 
   <!-- STEP 3: dati anagrafici + nome d'arte -->
   <form class="panel" id="step3" style="display:none" onsubmit="return doReg(event)">
-    <div id="calMsg" style="margin-bottom:14px;font-size:14px;font-weight:600;color:var(--brand)"></div>
+    <div id="calMsg" style="margin-bottom:14px;font-size:14px;font-weight:600;color:#0a7d38"></div>
     <div class="row">
       <div class="field"><label>Nome</label><input id="rg_nome" required></div>
       <div class="field"><label>Cognome</label><input id="rg_cognome" required></div>

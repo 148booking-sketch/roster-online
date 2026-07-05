@@ -340,7 +340,7 @@ textarea{min-height:100px;resize:vertical}
 .chip-ic{display:inline-flex;align-items:center;gap:6px}
 .chip-ic .ic-svg{flex:none}
 .cachet{font-weight:700}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow-lg);z-index:200;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0a7d38;color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow-lg);z-index:200;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;bottom:34px}
 .toast.err{background:var(--brand)}
 /* stato vuoto (design 11e): box centrato, titolo display, sottotitolo, eventuale CTA */
