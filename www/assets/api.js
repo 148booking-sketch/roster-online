@@ -311,10 +311,10 @@ function navUser(u, items, mobileItems = []) {
     href === '__logout__'
       ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
       : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
-  const notifItem = `<button type="button" class="menu-item m-only" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
-    <div class="menu-notifs m-only" id="menuNotifList" style="display:none"></div>`;
-  const mobile = (mobileItems.length ? mk(mobileItems, 'm-only') : '') + notifItem + '<div class="menu-divider m-only"></div>';
-  const menu = mobile + mk([...items, ['__logout__', 'Esci', 'logout']]);
+  const notifItem = `<button type="button" class="menu-item" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
+    <div class="menu-notifs" id="menuNotifList" style="display:none"></div>`;
+  const nav = (mobileItems.length ? mk(mobileItems) : '') + notifItem + '<div class="menu-divider"></div>';
+  const menu = nav + mk([...items, ['__logout__', 'Esci', 'logout']]);
   return `<div class="usermenu">
     <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
       <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>
@@ -340,18 +340,14 @@ async function renderNav(center = '') {
     links = '';
     right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
   } else if (u.role === 'artist') {
-    links = link('/profilo.html', 'Il mio profilo', '/profilo') + link('/richieste.html', 'Le mie richieste', '/richieste');
-    right = navBell() + navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']],
+    right = navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']],
       [['/', 'Cerca artisti', 'search']]);
   } else if (u.role === 'admin') {
-    links = link('/', 'Cerca artisti', '/') + link('/admin', 'Admin', '/admin');
-    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']],
+    right = navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']],
       [['/', 'Cerca artisti', 'search']]);
   } else { // promoter / management
-    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa')
-          + link('/preferiti.html', 'Preferiti', '/preferiti') + link('/richieste.html', 'Le mie richieste', '/richieste');
     const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
-    right = navBell() + navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']],
+    right = navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']],
       [['/', 'Cerca artisti', 'search'], ['/mappa.html', 'Mappa', 'pin'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
   }
 
