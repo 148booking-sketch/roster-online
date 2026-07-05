@@ -207,9 +207,9 @@ function render(){
   // dettagli booking (viaggi, durata, on stage, raggio, label, agenzia, backline, scheda tecnica)
   const det=[];
   if(!a.locked && rimborsoLabel(a)) det.push(['Spese di viaggio', esc(rimborsoLabel(a))]);
+  det.push(['Disponibilità', a.travel_max_km ? ('entro '+a.travel_max_km+' km') : 'In tutta Italia']);
   if(a.durata_set_min) det.push(['Durata set', a.durata_set_min+' min']);
   if(a.componenti)     det.push(['On stage', a.componenti+(a.componenti>1?' componenti':' componente')]);
-  det.push(['Disponibilità', a.travel_max_km ? ('entro '+a.travel_max_km+' km') : 'In tutta Italia']);
   if(a.label)      det.push(['Label', esc(a.label)]);
   if(a.management) det.push(['Agenzia', esc(a.management)]);
   if(!a.locked && a.tech_sheet_url) det.push(['Scheda tecnica', `<a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener" style="color:var(--brand2);font-weight:600">Apri documento →</a>`]);
