@@ -105,3 +105,19 @@ function ensure_trattativa_col(): void {
     if (!$c) db()->exec("ALTER TABLE artist_profiles ADD COLUMN trattativa_riservata TINYINT(1) NOT NULL DEFAULT 0 AFTER cachet_trattabile");
   } catch (Throwable $e) { error_log('ensure_trattativa_col: ' . $e->getMessage()); }
 }
+
+/**
+ * Colonne instagram/photo_url/instagram_avatar su promoter_profiles (migration-25): ADD COLUMN
+ * additivo e idempotente, auto-applicato al primo uso. photo_url viene impostata automaticamente
+ * dal link Instagram (stesso meccanismo già usato per gli artisti), non è editabile a mano.
+ */
+function ensure_promoter_ig_cols(): void {
+  static $done = false; if ($done) return; $done = true;
+  try {
+    $c = db()->query("SHOW COLUMNS FROM promoter_profiles LIKE 'instagram'")->fetch();
+    if (!$c) db()->exec("ALTER TABLE promoter_profiles
+      ADD COLUMN instagram VARCHAR(255) DEFAULT NULL AFTER website,
+      ADD COLUMN photo_url VARCHAR(500) DEFAULT NULL AFTER instagram,
+      ADD COLUMN instagram_avatar VARCHAR(1000) DEFAULT NULL AFTER photo_url");
+  } catch (Throwable $e) { error_log('ensure_promoter_ig_cols: ' . $e->getMessage()); }
+}

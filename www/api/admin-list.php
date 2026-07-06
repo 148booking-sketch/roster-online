@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/_admin.php';
 require_admin();
+ensure_promoter_ig_cols();
 
 $q     = trim($_GET['q'] ?? '');
 // L'admin panel non ha una vera paginazione: chiede sempre "tutto" per filtrare/contare lato
@@ -28,7 +29,7 @@ $stA->execute($argsA);
 $artistsRows = $stA->fetchAll();
 
 $sqlP = "SELECT u.id, u.email, u.display_name, u.status, u.created_at, u.email_verified, u.role,
-                p.org_name, p.tipo, p.comune, p.provincia, p.updated_at
+                p.org_name, p.tipo, p.comune, p.provincia, p.updated_at, p.photo_url
            FROM users u JOIN promoter_profiles p ON p.user_id = u.id
           WHERE u.role IN ('promoter','management')"
       . ($q !== '' ? ' AND (u.email LIKE ? OR u.display_name LIKE ?)' : '')

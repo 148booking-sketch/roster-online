@@ -27,9 +27,11 @@
 .az-bar{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:2px 2px 12px;margin:14px 0 2px;-webkit-overflow-scrolling:touch}
 .az-bar::-webkit-scrollbar{height:5px}
 .az-bar::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
-.az-letter{flex:none;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font:600 13px var(--f-body);cursor:pointer;color:#444;user-select:none}
+.az-letter{flex:1;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font:600 13px var(--f-body);cursor:pointer;color:#444;user-select:none}
 .az-letter:hover{border-color:var(--txt)}
 .az-letter.on{background:var(--txt);border-color:var(--txt);color:#fff}
+/* mobile: torna a larghezza fissa cosi' la barra scorre orizzontalmente invece di stringersi */
+@media(max-width:720px){.az-letter{flex:none;width:32px}}
 .catbar{gap:22px;padding:8px 0}
 .catbar .cat{gap:5px;font-size:11.5px;padding:4px 2px}
 .catbar .cat .ic{font-size:18px}

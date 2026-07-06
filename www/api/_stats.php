@@ -198,6 +198,21 @@ function apify_instagram_data(string $handle, string $token): array {
   }
   return $out;
 }
+
+/**
+ * Avatar Instagram per il profilo agenzia/promoter: stesso meccanismo Apify delle statistiche
+ * artista, ma qui serve solo la foto profilo (non follower/post). Usata da admin-create-promoter
+ * e admin-update-promoter quando viene indicato un link/handle Instagram. Ritorna l'URL scrappato
+ * (da salvare in promoter_profiles.instagram_avatar) oppure null se non disponibile/nessun
+ * token Apify configurato — in quel caso il profilo resta senza foto (fallback iniziali colorate).
+ */
+function fetch_promoter_ig_avatar(string $instagramInput): ?string {
+  $h = ig_handle_norm($instagramInput);
+  $token = stats_cred('apify_token');
+  if (!$h || $token === '') return null;
+  return apify_instagram_data($h, $token)['avatar'] ?: null;
+}
+
 /** Rifà subito follower+foto Instagram e li fonde nelle stat salvate (senza toccare gli altri
  *  valori). Da chiamare solo quando il link Instagram è appena cambiato, non a ogni salvataggio.
  *  Ricalcola anche photo_url (se l'artista non ha Spotify, l'avatar IG appena arrivato deve

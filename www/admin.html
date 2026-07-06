@@ -239,16 +239,12 @@
           <input id="p_pass" minlength="8"></div>
         <div class="field" id="p_statusWrap" style="max-width:160px"><label>Stato</label>
           <select id="p_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
-          <div class="hint">"In attesa": accede e scrive richieste ma non vede i cachet. "Attivo": sblocca i prezzi.</div>
         </div>
-      </div>
-      <div class="row" id="p_roleWrap" style="display:none">
-        <div class="field" style="max-width:260px"><label>Ruolo account</label>
+        <div class="field" id="p_roleWrap" style="display:none;max-width:200px"><label>Ruolo account</label>
           <select id="p_role">
             <option value="promoter">Promoter</option>
             <option value="management">Agenzia</option>
           </select>
-          <div class="hint">Passando ad "Agenzia" l'account ottiene subito accesso a "Il mio roster" e può creare/gestire artisti propri — dati e stato restano invariati.</div>
         </div>
       </div>
       <div class="row">
@@ -266,7 +262,11 @@
         <div class="field" style="max-width:120px"><label>Prov.</label><input id="p_prov" maxlength="2" placeholder="RM"></div>
         <div class="field"><label>Telefono</label><input id="p_phone" placeholder="+39..."></div>
       </div>
-      <div class="field"><label>Sito web o altro link</label><input id="p_web" placeholder="https://..."></div>
+      <div class="row">
+        <div class="field"><label>Sito web o altro link</label><input id="p_web" placeholder="https://..."></div>
+        <div class="field"><label>Instagram</label><input id="p_instagram" placeholder="https://instagram.com/... oppure @handle"></div>
+      </div>
+      <div class="hint" style="margin:-8px 0 14px">La foto profilo viene presa automaticamente da Instagram, se collegato.</div>
       <div style="display:flex;gap:10px">
         <button class="btn primary" style="flex:1" id="p_submit">Crea promoter</button>
         <button type="button" class="btn ghost" onclick="cancelPromoter()">← Torna all'elenco</button>
@@ -769,7 +769,7 @@ async function savePromoter(e){ e.preventDefault();
   const bodyBase = {
     email:val('p_email'), org_name:val('p_org'), tipo:val('p_tipo'),
     comune:val('p_comune'), provincia:val('p_prov'), phone:val('p_phone'), website:val('p_web'),
-    status:val('p_status'),
+    instagram:val('p_instagram'), status:val('p_status'),
   };
   try {
     if (editPId){
@@ -819,6 +819,7 @@ async function editUser(id, role){
       p_roleWrap.style.display=''; setV('p_role', u.role);
       setV('p_email',u.email); setV('p_org',p.org_name); setV('p_tipo',p.tipo);
       setV('p_comune',p.comune); setV('p_prov',p.provincia); setV('p_phone',p.phone); setV('p_web',p.website);
+      setV('p_instagram',p.instagram);
     }
     window.scrollTo({top:0, behavior:'smooth'});
   } catch(err){ toast(errMsg(err), true); }
@@ -878,9 +879,10 @@ function promoterRow(p){
   const st = p.status==='active' ? '<span class="rqt-st" style="color:#0a7d38;background:#eafaf0">Attivo</span>'
     : p.status==='blocked' ? '<span class="rqt-st" style="color:#c0395e;background:#fbeaef">Bloccato</span>'
     : '<span class="rqt-st" style="color:#a5730a;background:#fff7e6">Da verificare</span>';
+  const ava=p.photo_url?`<img src="${esc(p.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(nm));
   return `<div class="dt-row cols-pro" title="Clicca per modificare" onclick="editUser(${p.id},'promoter')">
     <div class="dt-who">
-      <span class="dt-ava" style="background:${avatarColor(nm)}">${esc(avatarInitials(nm))}</span>
+      <span class="dt-ava" style="background:${avatarColor(nm)}">${ava}</span>
       <div style="min-width:0"><div class="nm">${esc(nm)}${p.role==='management'?' <span class="rqt-st" style="color:#b81e47;background:#fbe9ee">agenzia</span>':''}</div><div class="mt">${esc(p.email||'')}</div></div>
     </div>
     <div class="dt-meta">${esc(p.tipo||'')}<div>${esc([p.comune,p.provincia].filter(Boolean).join(' '))}</div></div>

@@ -9,8 +9,10 @@
  */
 require_once __DIR__ . '/_admin.php';
 require_once __DIR__ . '/_geo.php';
+require_once __DIR__ . '/_stats.php';
 only('POST');
 require_admin();
+ensure_promoter_ig_cols();
 
 $in = body();
 $id = (int)($in['id'] ?? 0);
@@ -32,17 +34,32 @@ $st = db()->prepare('SELECT id FROM users WHERE email = ? AND id <> ?');
 $st->execute([$email, $id]);
 if ($st->fetch()) fail('email_taken', 409);
 
-$status  = in_array($in['status'] ?? '', ['active','pending','blocked'], true) ? $in['status'] : 'active';
-$tipo    = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','privato','altro'], true) ? $in['tipo'] : 'locale';
-$phone   = trim($in['phone'] ?? '');
-$comune  = trim($in['comune'] ?? '');
-$prov    = strtoupper(trim($in['provincia'] ?? '')) ?: null;
-$website = normalize_url($in['website'] ?? '');
+$status    = in_array($in['status'] ?? '', ['active','pending','blocked'], true) ? $in['status'] : 'active';
+$tipo      = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','privato','altro'], true) ? $in['tipo'] : 'locale';
+$phone     = trim($in['phone'] ?? '');
+$comune    = trim($in['comune'] ?? '');
+$prov      = strtoupper(trim($in['provincia'] ?? '')) ?: null;
+$website   = normalize_url($in['website'] ?? '');
+$instagram = trim($in['instagram'] ?? '');
 
 $lat = $lng = null;
 if ($comune !== '') {
   $geo = geocode_comune($comune, $prov);
   if ($geo) { $lat = $geo['lat']; $lng = $geo['lng']; }
+}
+
+// Foto profilo agenzia da Instagram: rifà lo scrape solo se il link è cambiato (o se manca
+// ancora una foto pur avendo un link) — come per gli artisti, non ad ogni salvataggio.
+$was = db()->prepare('SELECT instagram, photo_url, instagram_avatar FROM promoter_profiles WHERE user_id = ?');
+$was->execute([$id]);
+$wasRow = $was->fetch() ?: [];
+$igAvatar = $wasRow['instagram_avatar'] ?? null;
+$photoUrl = $wasRow['photo_url'] ?? null;
+if ($instagram === '') {
+  $igAvatar = null; $photoUrl = null;   // link rimosso: niente più foto derivata
+} elseif ($instagram !== ($wasRow['instagram'] ?? '') || !$photoUrl) {
+  $igAvatar = fetch_promoter_ig_avatar($instagram);
+  $photoUrl = $igAvatar ? '/api/ig-avatar.php?u=' . $id . '&role=promoter' : null;
 }
 
 $pdo = db();
@@ -52,9 +69,11 @@ try {
       ->execute([$email, $org, $status, $newRole, $id]);
 
   $pdo->prepare(
-    'UPDATE promoter_profiles SET org_name=?, tipo=?, phone=?, comune=?, provincia=?, lat=?, lng=?, website=?
+    'UPDATE promoter_profiles SET org_name=?, tipo=?, phone=?, comune=?, provincia=?, lat=?, lng=?, website=?,
+       instagram=?, instagram_avatar=?, photo_url=?
      WHERE user_id=?'
-  )->execute([$org, $tipo, $phone, ($comune ?: null), $prov, $lat, $lng, $website, $id]);
+  )->execute([$org, $tipo, $phone, ($comune ?: null), $prov, $lat, $lng, $website,
+              ($instagram ?: null), $igAvatar, $photoUrl, $id]);
 
   $pdo->commit();
 } catch (Throwable $e) {
