@@ -97,9 +97,9 @@ function artistFormHTML(p) {
       <h2 class="fsec-h">Cachet & sconti</h2>
       <div class="row">
         <div class="field" style="max-width:195px;flex:none"><label>Trattativa riservata <span class="hint" style="display:inline" id="${p}trv_hint"></span></label>
-          <div style="display:flex;align-items:center;height:38px">
+          <label style="display:flex;align-items:center;height:38px;cursor:pointer">
             <span class="switch"><input type="checkbox" id="${p}trv_ris" onchange="trvRisUI('${p}')"><span class="slider"></span></span>
-          </div>
+          </label>
         </div>
         <div class="field trvhide-${p}" style="min-width:140px"><label>Cachet a serata (€)</label><input id="${p}cachet" type="number" min="0" placeholder="500"></div>
         <div class="field trvhide-${p}" style="max-width:170px"><label>Cachet</label>

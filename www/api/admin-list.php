@@ -16,7 +16,8 @@ $argsA = $q !== '' ? [$like, $like] : [];
 
 $sqlA = "SELECT u.id, u.email, u.display_name, u.status, u.created_at, u.email_verified,
                 p.stage_name, p.comune, p.provincia, p.published, p.verified, p.top8, p.formazione, p.updated_at,
-                p.manager_user_id, mp.org_name AS manager_org_name
+                p.manager_user_id, mp.org_name AS manager_org_name,
+                p.cachet_min, p.cachet_promo, p.promo_until, p.trattativa_riservata
            FROM users u JOIN artist_profiles p ON p.user_id = u.id
            LEFT JOIN promoter_profiles mp ON mp.user_id = p.manager_user_id
           WHERE u.role = 'artist'"

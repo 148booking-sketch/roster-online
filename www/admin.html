@@ -102,7 +102,7 @@
           </select>
         </div>
         <div class="dtable">
-          <div class="dt-head cols-art"><div>Artista</div><div>Agenzia</div><div>Show · Città</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+          <div class="dt-head cols-art"><div>Artista</div><div>Agenzia</div><div>Show · Città</div><div>Cachet</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
           <div id="listA"></div>
         </div>
       </div>
@@ -837,6 +837,15 @@ async function loadList(){
     renderLists();
   } catch(err){ toast(errMsg(err), true); }
 }
+function adminCachetLabel(a){
+  if (a.trattativa_riservata == 1) return '<span style="color:#9a9aa2;font-size:11.5px">Trattativa riservata</span>';
+  if (a.cachet_min == null) return '<span style="color:#c9c9c9">—</span>';
+  if (+a.cachet_min === 0) return '<span style="font-size:12.5px">Senza impegno</span>';
+  const today = new Date().toISOString().slice(0,10);
+  const promoOk = a.cachet_promo != null && +a.cachet_promo > 0 && (!a.promo_until || a.promo_until >= today);
+  if (promoOk) return `<div style="font-size:11px;color:#9a9aa2;text-decoration:line-through">${eur(a.cachet_min)}</div><div style="font-weight:700;color:#c0395e;font-size:13px">${eur(a.cachet_promo)}</div>`;
+  return `<div style="font-weight:600;font-size:13px">${eur(a.cachet_min)}</div>`;
+}
 function artistRow(a){
   const nm=a.stage_name||a.display_name||'—';
   const ava=a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer">`:esc(avatarInitials(nm));
@@ -851,6 +860,7 @@ function artistRow(a){
     </div>
     <div class="dt-meta" style="font-size:12.5px">${a.manager_org_name?esc(a.manager_org_name):'<span style="color:#c9c9c9">—</span>'}</div>
     <div class="dt-meta">${esc(showLabel(a.formazione))}<div>${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</div></div>
+    <div class="dt-meta">${adminCachetLabel(a)}</div>
     <div class="dt-st">${st}${extra}</div>
     <div class="dt-actions">
       ${a.slug?`<a class="dt-ibtn" title="Anteprima profilo" href="/${esc(a.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${icon('eye',14,1.8)}</a>`:''}
@@ -1123,7 +1133,7 @@ async function doBootstrap(e){ e.preventDefault();
 .dt-row{display:grid;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid #f2f2f2;cursor:pointer}
 .dt-row:last-child{border-bottom:0}
 .dt-row:hover{background:#fafafa}
-.cols-art{grid-template-columns:1fr 140px 150px 120px 168px}
+.cols-art{grid-template-columns:1fr 130px 130px 110px 110px 168px}
 .cols-pro{grid-template-columns:1fr 170px 150px 168px}
 .cols-adm{grid-template-columns:1fr 170px 110px}
 .dt-who{display:flex;align-items:center;gap:11px;min-width:0}
