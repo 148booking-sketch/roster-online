@@ -23,6 +23,13 @@
   .qsearch{width:100%;order:-1}
   .frow .btn{flex:1}
 }
+/* barra A-Z: sempre una riga sola, scorrevole quando non ci sta tutta (mobile) */
+.az-bar{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:2px 2px 12px;margin:14px 0 2px;-webkit-overflow-scrolling:touch}
+.az-bar::-webkit-scrollbar{height:5px}
+.az-bar::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
+.az-letter{flex:none;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font:600 13px var(--f-body);cursor:pointer;color:#444;user-select:none}
+.az-letter:hover{border-color:var(--txt)}
+.az-letter.on{background:var(--txt);border-color:var(--txt);color:#fff}
 .catbar{gap:22px;padding:8px 0}
 .catbar .cat{gap:5px;font-size:11.5px;padding:4px 2px}
 .catbar .cat .ic{font-size:18px}
@@ -214,6 +221,7 @@
           <button type="button" class="btn ghost sm" id="filtBtn" onclick="openFilters()"></button>
         </div>
       </div>
+      <div class="az-bar" id="azBar"></div>
       <div id="results" class="grid-cards"></div>
       <div id="empty" class="empty" style="display:none">Nessun artista trovato con questi filtri.</div>
       <div id="loadmore" style="display:none;text-align:center;padding:20px 0">
@@ -249,7 +257,7 @@
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250' };
+const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250', letter:'' };
 let genres=[], lastResults=[];
 let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
 let lastArtistCount=null, promoterCount=null;
@@ -294,6 +302,7 @@ async function init(){
   const cbw=document.querySelector('.catbar-wrap');
   addEventListener('scroll',()=>{ cbw.classList.toggle('stuck', cbw.getBoundingClientRect().top<1 && scrollY>40); },{passive:true});
   paintFiltBtn();
+  paintAzBar();
   search();
   loadPlatformStats();
 }
@@ -373,6 +382,7 @@ function buildFilterParams(){
   if(state.noPrice) p.set('no_price','1');
   if(state.promo) p.set('promo','1');
   if(state.trv) p.set('trv','1');
+  if(state.letter) p.set('letter',state.letter);
   if(state.form) p.set('formazione',state.form);
   if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
   else if(state.comune){ p.set('comune',state.comune); p.set('max_km',state.kmZona||'250'); }
@@ -482,6 +492,18 @@ function paintFiltBtn(){
   const cf=document.getElementById('catFilt');
   if(cf) cf.innerHTML=icon('filter',17,1.9)+(n?`<span class="fm-count on">${n}</span>`:'');
 }
+
+/* barra A-Z: filtra gli artisti per iniziale del nome d'arte */
+const AZ_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function paintAzBar(){
+  const el=document.getElementById('azBar'); if(!el) return;
+  el.innerHTML=AZ_LETTERS.map(l=>`<span class="az-letter${state.letter===l?' on':''}" onclick="pickLetter('${l}')">${l}</span>`).join('');
+}
+function pickLetter(l){
+  state.letter = state.letter===l ? '' : l;
+  paintAzBar();
+  scrollToResults(); search();
+}
 async function openFilters(){
   const me=await getMe();
   CAN_PRICES=!!(me.user&&(me.user.role==='admin'||(['promoter','management'].includes(me.user.role)&&me.user.status==='active')));
@@ -530,6 +552,7 @@ function fmBudgetPaint(){
 function clearFilters(){
   state.genres.clear(); state.form=''; state.cachetMax=null; state.comune=''; state.gps=null; state.km='';
   state.tratt=state.promo=state.noPrice=state.trv=false;
+  state.letter=''; paintAzBar();
   closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
 }
 function resetAllFilters(){

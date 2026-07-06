@@ -63,6 +63,10 @@ if (($_GET['trattabile'] ?? '') === '1') { $where[] = 'ap.cachet_trattabile = 1'
 if (($_GET['no_price'] ?? '') === '1') { $where[] = "ap.trattativa_riservata = 0 AND ap.cachet_min = 0 AND ap.cachet_max = 0"; }
 if (($_GET['promo'] ?? '') === '1') { $where[] = "ap.cachet_promo IS NOT NULL AND ap.cachet_promo > 0 AND (ap.promo_until IS NULL OR ap.promo_until >= CURDATE())"; }
 if (($_GET['trv'] ?? '') === '1') { $where[] = 'ap.trattativa_riservata = 1'; }
+// Barra A-Z: filtra per iniziale del nome d'arte. Solo una lettera singola A-Z (whitelist,
+// niente wildcard/injection dall'input utente).
+$letter = strtoupper(trim($_GET['letter'] ?? ''));
+if (preg_match('/^[A-Z]$/', $letter)) { $where[] = 'ap.stage_name LIKE ?'; $params[] = $letter . '%'; }
 
 // Filtro genere: match se l'artista ha ALMENO uno dei generi richiesti
 if ($genres) {
