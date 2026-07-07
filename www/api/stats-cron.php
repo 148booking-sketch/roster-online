@@ -1,7 +1,7 @@
 <?php
 /**
  * Aggiornamento statistiche social — motore per lo scheduler.
- *   GET /api/stats-cron.php?token=SEGRETO[&limit=50][&days=3][&user_id=ID]
+ *   GET /api/stats-cron.php?token=SEGRETO[&limit=50][&days=3][&user_id=ID][&ig_only=1]
  * Chiamabile da: cron dell'hosting, GitHub Action, o trigger interno del sito.
  * Token in config: 'stats_token'.
  * NB: $days è la soglia di "vecchiaia" oltre cui un artista viene ricalcolato in
@@ -9,6 +9,9 @@
  * hosting). Con apify=1 va tenuto <= alla scadenza reale delle foto Instagram
  * (~4-5 giorni, sono URL CDN firmati e temporanei) altrimenti restano rotte per
  * qualche giorno tra un refresh e l'altro.
+ * ig_only=1 limita il batch a chi ha la foto profilo servita da Instagram (l'unica
+ * sorgente che scade): pensato per un cron dedicato, veloce, che non tocca chi ha
+ * la foto da Spotify o l'icona automatica (stabili, non serve ricalcolarle).
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_stats.php';
@@ -32,9 +35,10 @@ if (!empty($_GET['user_id'])) {
   echo json_encode(['ok' => true, 'user_id' => $uid, 'stats' => $stats]); exit;
 }
 
-$limit = (int) ($_GET['limit'] ?? 50);
-$days  = (int) ($_GET['days'] ?? 3);
-$n = refresh_stale_stats($limit, $days, $apify);
+$limit  = (int) ($_GET['limit'] ?? 50);
+$days   = (int) ($_GET['days'] ?? 3);
+$igOnly = !empty($_GET['ig_only']);
+$n = refresh_stale_stats($limit, $days, $apify, $igOnly);
 meta_set('stats_batch_at', gmdate('Y-m-d H:i:s'));
 
-echo json_encode(['ok' => true, 'refreshed' => $n, 'limit' => $limit, 'days' => $days]);
+echo json_encode(['ok' => true, 'refreshed' => $n, 'limit' => $limit, 'days' => $days, 'ig_only' => $igOnly]);

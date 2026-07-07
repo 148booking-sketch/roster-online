@@ -405,7 +405,12 @@ function refresh_artist_stats(int $userId, array $socials, bool $withApify = fal
 }
 
 /** Aggiorna in blocco fino a $limit artisti con stat mancanti o più vecchie di $days giorni. */
-function refresh_stale_stats(int $limit = 10, int $days = 7, bool $withApify = false): int {
+/** $igOnly: limita il batch a chi ha la foto profilo servita dal relay Instagram
+ *  (photo_url = /api/ig-avatar.php...) — quella è l'unica a scadere (URL CDN firmato,
+ *  ~4-5 giorni), le altre sorgenti (Spotify, icona automatica) sono stabili e non
+ *  hanno bisogno di un refresh periodico. Usarlo nel cron dedicato alle foto
+ *  (risparmia tempo/credito Apify rispetto a ricalcolare tutto il roster). */
+function refresh_stale_stats(int $limit = 10, int $days = 7, bool $withApify = false, bool $igOnly = false): int {
   $limit = max(1, min(200, $limit));
   // Ritenta: mai calcolate, oppure più vecchie di $days giorni, oppure VUOTE e più
   // vecchie di 1 giorno (auto-recupero da errori transitori di tikwm/YouTube/ecc.).
@@ -413,7 +418,8 @@ function refresh_stale_stats(int $limit = 10, int $days = 7, bool $withApify = f
           WHERE (socials IS NOT NULL OR stage_name <> '')
             AND (stats_updated_at IS NULL
                  OR stats_updated_at < (NOW() - INTERVAL $days DAY)
-                 OR ((stats IS NULL OR JSON_LENGTH(stats) = 0) AND stats_updated_at < (NOW() - INTERVAL 1 DAY)))
+                 OR ((stats IS NULL OR JSON_LENGTH(stats) = 0) AND stats_updated_at < (NOW() - INTERVAL 1 DAY)))"
+       . ($igOnly ? " AND photo_url LIKE '/api/ig-avatar.php%'" : "") . "
           ORDER BY stats_updated_at IS NOT NULL, stats_updated_at ASC
           LIMIT $limit";
   $rows = db()->query($sql)->fetchAll();
