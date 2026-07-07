@@ -28,7 +28,7 @@ if (!in_array($role, ['artist','promoter','management'], true)) fail('role_inval
 $tipo = $phone = $comune = $prov = $website = null;
 $emailFreq = 'off'; $emailConsent = false;
 if (in_array($role, ['promoter','management'], true)) {
-  $tipo    = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','privato','altro'], true) ? $in['tipo'] : null;
+  $tipo    = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking_management','privato','altro'], true) ? $in['tipo'] : null;
   $phone   = trim($in['phone'] ?? '');
   $comune  = trim($in['comune'] ?? '');
   $prov    = strtoupper(trim($in['provincia'] ?? '')) ?: null;

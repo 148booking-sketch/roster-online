@@ -130,6 +130,13 @@
 .role-card:hover .ic{color:var(--brand)}
 .role-card h3{font-family:var(--f-display);font-size:15.5px;font-weight:700;margin:0}
 .role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
+
+/* Carosello loghi agenzie: striscia a scorrimento continuo e lento (marquee), in loop */
+.agency-strip{overflow:hidden;padding:30px 0 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
+.agency-strip:hover .ac-track{animation-play-state:paused}
+.agency-strip img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;display:block;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+@keyframes ac-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 </style>
 </head>
 <body>
@@ -253,6 +260,10 @@
         </a>
       </div>
     </div>
+
+    <div class="agency-strip" id="agencyStrip" style="display:none">
+      <div class="ac-track" id="acTrack"></div>
+    </div>
   </div>
 </main>
 
@@ -307,6 +318,18 @@ async function init(){
   paintAzBar();
   search();
   loadPlatformStats();
+  loadAgencyStrip();
+}
+
+async function loadAgencyStrip(){
+  try{
+    const r = await api('agencies-list.php');
+    const ags = r.agencies || [];
+    if (ags.length < 2) return;
+    const imgs = ags.map(a=>`<img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy">`).join('');
+    acTrack.innerHTML = imgs + imgs; // duplicato per il loop continuo (translateX -50%)
+    agencyStrip.style.display = '';
+  }catch(e){}
 }
 
 function renderSortIcons(){}

@@ -22,7 +22,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('email_invalid');
 if (strlen($pass) < 8) fail('password_too_short');
 if ($org === '') fail('org_name_required');
 
-$tipo      = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','privato','altro'], true) ? $in['tipo'] : 'locale';
+$tipo      = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking_management','privato','altro'], true) ? $in['tipo'] : 'locale';
 $phone     = trim($in['phone'] ?? '');
 $comune    = trim($in['comune'] ?? '');
 $prov      = strtoupper(trim($in['provincia'] ?? '')) ?: null;
