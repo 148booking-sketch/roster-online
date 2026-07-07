@@ -1017,6 +1017,7 @@ async function refreshStats(id, btn){
     const parts = [];
     parts.push(n ? n+' statistiche' : 'nessun social');
     parts.push(nc ? nc+' giorni occupati' : 'nessun calendario');
+    if (r.bio_updated) parts.push('bio Spotify aggiornata');
     toast('Aggiornato: '+parts.join(' · '));
   } catch(err){ toast(errMsg(err), true); }
   finally { btn.textContent = old; btn.disabled = false; }

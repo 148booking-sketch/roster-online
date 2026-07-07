@@ -250,7 +250,10 @@ function apify_spotify_biography(string $url, string $token): ?string {
   $cleanUrl = 'https://open.spotify.com/artist/' . $m[1];
   $items = apify_run('automation-lab~spotify-scraper', ['mode' => 'urls', 'urls' => [$cleanUrl], 'maxResults' => 1], $token);
   foreach ($items as $it) {
-    $b = trim(html_entity_decode((string)($it['biography'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    // La bio arriva con link <a href="spotify:artist:...">Nome</a> sui nomi citati: teniamo solo
+    // il testo visibile, niente markup (qui è testo semplice, non va reso cliccabile).
+    $raw = (string)($it['biography'] ?? '');
+    $b = trim(strip_tags(html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
     if ($b !== '') return $b;
   }
   return null;
