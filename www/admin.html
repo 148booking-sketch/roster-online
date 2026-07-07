@@ -960,7 +960,8 @@ function renderLists(){
 function fillManagerOptions(){
   const sel = document.getElementById('a_manager'); if (!sel) return;
   const cur = sel.value;
-  const ags = _allP.filter(p => p.role === 'management');
+  const ags = _allP.filter(p => p.role === 'management')
+    .sort((a,b) => (a.org_name||a.display_name||'').localeCompare(b.org_name||b.display_name||'', 'it'));
   sel.innerHTML = '<option value="">— nessuna —</option>' +
     ags.map(a => `<option value="${a.id}">${esc(a.org_name||a.display_name||('#'+a.id))}</option>`).join('');
   sel.value = cur;
