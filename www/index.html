@@ -132,11 +132,11 @@
 .role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
 
 /* Carosello loghi agenzie: striscia a scorrimento continuo e lento (marquee), in loop */
-.agency-strip{overflow:hidden;padding:6px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.agency-strip{--ac-size:68px;overflow:hidden;padding:6px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
 .agency-strip:hover .ac-track{animation-play-state:paused}
 .agency-strip .ac-item{display:block;flex:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
-.agency-strip img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s}
+.agency-strip img{width:var(--ac-size);height:var(--ac-size);border-radius:8px;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s}
 .agency-strip .ac-item:hover img,.agency-strip .ac-item:focus-visible img{border-color:var(--brand)}
 @keyframes ac-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
@@ -332,14 +332,26 @@ async function init(){
   loadAgencyStrip();
 }
 
+// Le icone agenzia devono essere grandi quanto 2 lettere della barra A-Z (stesso ingombro,
+// bordi arrotondati come le lettere invece del cerchio): si misura dal DOM perché la larghezza
+// di ogni lettera varia (flex:1 su desktop, larghezza fissa su mobile).
+function agencyIconSize(){
+  const letters = document.querySelectorAll('#azBar .az-letter');
+  if (letters.length < 2) return 68;
+  const r0 = letters[0].getBoundingClientRect(), r1 = letters[1].getBoundingClientRect();
+  return Math.max(24, Math.round(r1.right - r0.left));
+}
+
 async function loadAgencyStrip(){
   try{
     const r = await api('agencies-list.php');
     const ags = r.agencies || [];
     if (ags.length < 2) { agencyStrip.style.display='none'; return; }
+    const size = agencyIconSize();
+    agencyStrip.style.setProperty('--ac-size', size+'px');
     // ripete la lista quanto basta a coprire più larghezza dello schermo, cosi' lo slider
     // riempie sempre tutta la pagina anche con poche agenzie (poi si duplica per il loop -50%).
-    const itemW = 88; // ~56px avatar + 32px gap
+    const itemW = size + 32; // + gap tra le icone
     const minUnitW = Math.max(innerWidth * 1.5, 900);
     const repeat = Math.max(1, Math.ceil(minUnitW / (ags.length * itemW)));
     const unit = Array.from({length: repeat}, () => ags).flat();
@@ -348,6 +360,13 @@ async function loadAgencyStrip(){
     agencyStrip.style.display = '';
   }catch(e){}
 }
+let acResizeTimer=null;
+addEventListener('resize', ()=>{
+  clearTimeout(acResizeTimer);
+  acResizeTimer=setTimeout(()=>{
+    if (agencyStrip && getComputedStyle(agencyStrip).display !== 'none') agencyStrip.style.setProperty('--ac-size', agencyIconSize()+'px');
+  }, 200);
+});
 
 function pickAgency(el){
   state.manager = el.dataset.id;
