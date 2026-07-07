@@ -6,6 +6,7 @@
  */
 require_once __DIR__ . '/_http.php';
 ensure_trattativa_col();
+ensure_promoter_ig_cols();
 require_once __DIR__ . '/_stats.php';
 require_once __DIR__ . '/_calendar.php';
 require_once __DIR__ . '/_access.php';
@@ -14,13 +15,14 @@ $slug = trim($_GET['slug'] ?? '');
 if ($slug === '') fail('slug_required');
 
 $st = db()->prepare(
-  'SELECT user_id, stage_name, slug, formazione, componenti, bio, comune, provincia,
-          lat, lng, cachet_min, cachet_max, cachet_trattabile, trattativa_riservata, cachet_promo, promo_until, rimborso_tipo, rimborso_km, rimborso_forfait,
-          travel_max_km, durata_set_min, website, socials, custom_links, photo_url, verified,
-          label, management,
-          tech_sheet_url, gear_bring, gear_need,
-          stats, stats_updated_at, calendar_url, calendar_busy, calendar_updated_at
-   FROM artist_profiles WHERE slug = ? AND published = 1'
+  'SELECT a.user_id, a.stage_name, a.slug, a.formazione, a.componenti, a.bio, a.comune, a.provincia,
+          a.lat, a.lng, a.cachet_min, a.cachet_max, a.cachet_trattabile, a.trattativa_riservata, a.cachet_promo, a.promo_until, a.rimborso_tipo, a.rimborso_km, a.rimborso_forfait,
+          a.travel_max_km, a.durata_set_min, a.website, a.socials, a.custom_links, a.photo_url, a.verified,
+          a.label, a.management, mp.instagram AS management_instagram,
+          a.tech_sheet_url, a.gear_bring, a.gear_need,
+          a.stats, a.stats_updated_at, a.calendar_url, a.calendar_busy, a.calendar_updated_at
+   FROM artist_profiles a LEFT JOIN promoter_profiles mp ON mp.user_id = a.manager_user_id
+   WHERE a.slug = ? AND a.published = 1'
 );
 $st->execute([$slug]);
 $a = $st->fetch();
