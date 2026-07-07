@@ -211,21 +211,21 @@ function render(){
 
   // dettagli booking (viaggi, durata, on stage, raggio, label, agenzia, backline, scheda tecnica)
   const det=[];
-  if(!a.locked && rimborsoLabel(a)) det.push(['Spese di viaggio', esc(rimborsoLabel(a))]);
-  det.push(['Disponibilità', a.travel_max_km ? ('entro '+a.travel_max_km+' km') : 'In tutta Italia']);
-  if(a.durata_set_min) det.push(['Durata set', a.durata_set_min+' min']);
-  if(a.componenti)     det.push(['On stage', a.componenti+(a.componenti>1?' componenti':' componente')]);
-  if(a.label)      det.push(['Label', esc(a.label)]);
   if(a.management){
     const mgmtBadge = a.management_instagram
       ? `<a class="det-ig" href="${esc(socialHref('instagram',a.management_instagram))}" target="_blank" rel="noopener" title="Instagram ${esc(a.management)}">${
           a.management_photo ? `<img src="${esc(a.management_photo)}" alt="" referrerpolicy="no-referrer">`
           : `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">${SOCIAL_SVG.instagram}</svg>`
         }</a>` : '';
-    det.push(['Agenzia', esc(a.management), null, mgmtBadge]);
+    det.push(['Agenzia', esc(a.management), 'wide', mgmtBadge]);
   }
-  if(!a.locked && a.tech_sheet_url) det.push(['Scheda tecnica', `<a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener" style="color:var(--brand2);font-weight:600">Apri documento →</a>`]);
-  if(a.locked) det.push(['Scheda tecnica', icon('lock',13)+' riservata ai promoter']);
+  if(a.durata_set_min) det.push(['Durata set', a.durata_set_min+' min']);
+  if(a.componenti)     det.push(['On stage', a.componenti+(a.componenti>1?' componenti':' componente')]);
+  det.push(['Disponibilità', a.travel_max_km ? ('entro '+a.travel_max_km+' km') : 'In tutta Italia']);
+  if(!a.locked && rimborsoLabel(a)) det.push(['Spese di viaggio', esc(rimborsoLabel(a))]);
+  if(a.label)      det.push(['Label', esc(a.label)]);
+  if(!a.locked && a.tech_sheet_url) det.push(['Scheda tecnica', `<a href="${esc(a.tech_sheet_url)}" target="_blank" rel="noopener" style="color:var(--brand2);font-weight:600">Apri documento →</a>`, 'wide']);
+  if(a.locked) det.push(['Scheda tecnica', icon('lock',13)+' riservata ai promoter', 'wide']);
   if((a.gear_bring||[]).length) det.push(["Cosa porta l'artista", `<div class="tags">${a.gear_bring.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`, 'wide']);
   if((a.gear_need||[]).length)  det.push(['Cosa serve sul posto', `<div class="tags">${a.gear_need.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`, 'wide']);
 

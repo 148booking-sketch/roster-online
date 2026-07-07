@@ -131,14 +131,15 @@
 .role-card h3{font-family:var(--f-display);font-size:15.5px;font-weight:700;margin:0}
 .role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
 
-/* Carosello loghi agenzie: striscia a scorrimento continuo e lento (marquee), in loop */
-.agency-strip{--ac-size:68px;overflow:hidden;padding:6px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
-.agency-strip:hover .ac-track{animation-play-state:paused}
+/* Carosello loghi agenzie: scorrimento continuo e lento via JS (scrollLeft, loop), ma resta
+ * un contenitore overflow-x:auto vero — si può trascinare con mouse/dito come qualsiasi carosello. */
+.agency-strip{--ac-size:68px;overflow-x:auto;overflow-y:hidden;padding:6px 0 20px;cursor:grab;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.agency-strip::-webkit-scrollbar{display:none}
+.agency-strip.dragging{cursor:grabbing;scroll-snap-type:none}
+.agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content}
 .agency-strip .ac-item{display:block;flex:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
-.agency-strip img{width:var(--ac-size);height:var(--ac-size);border-radius:8px;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s}
+.agency-strip img{width:var(--ac-size);height:var(--ac-size);border-radius:8px;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s;-webkit-user-drag:none;user-select:none}
 .agency-strip .ac-item:hover img,.agency-strip .ac-item:focus-visible img{border-color:var(--brand)}
-@keyframes ac-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 .mgr-chip{display:flex;align-items:center;gap:8px;background:#fbe9ee;color:#b81e47;border-radius:20px;padding:7px 8px 7px 14px;font-size:13px;font-weight:600;width:fit-content;margin:0 0 12px}
 .mgr-chip button{border:0;background:rgba(184,30,71,.12);color:inherit;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center}
@@ -350,14 +351,16 @@ async function loadAgencyStrip(){
     const size = agencyIconSize();
     agencyStrip.style.setProperty('--ac-size', size+'px');
     // ripete la lista quanto basta a coprire più larghezza dello schermo, cosi' lo slider
-    // riempie sempre tutta la pagina anche con poche agenzie (poi si duplica per il loop -50%).
+    // riempie sempre tutta la pagina anche con poche agenzie (poi si duplica per il loop).
     const itemW = size + 32; // + gap tra le icone
     const minUnitW = Math.max(innerWidth * 1.5, 900);
     const repeat = Math.max(1, Math.ceil(minUnitW / (ags.length * itemW)));
     const unit = Array.from({length: repeat}, () => ags).flat();
     const imgs = unit.map(a=>`<button type="button" class="ac-item" data-id="${a.id}" data-name="${esc(a.org_name||'')}" onclick="pickAgency(this)"><img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy"></button>`).join('');
-    acTrack.innerHTML = imgs + imgs; // duplicato per il loop continuo (translateX -50%)
+    acTrack.innerHTML = imgs + imgs; // duplicato: quando scrollLeft passa metà si torna a 0, loop invisibile
     agencyStrip.style.display = '';
+    agencyStrip.scrollLeft = 0;
+    initAgencyStripInteraction();
   }catch(e){}
 }
 let acResizeTimer=null;
@@ -369,11 +372,46 @@ addEventListener('resize', ()=>{
 });
 
 function pickAgency(el){
+  if (acDraggedFar) return; // era un trascinamento, non un click
   state.manager = el.dataset.id;
   state.managerName = el.dataset.name;
   paintManagerChip();
   scrollToResults();
   search();
+}
+
+/* Scorrimento continuo lento (via scrollLeft, non transform: cosi' resta un vero overflow-x
+ * scorribile) + trascinamento con mouse (il touch scorre già in nativo su overflow-x:auto). */
+let acBound=false, acAutoScroll=true, acDragging=false, acDraggedFar=false, acStartX=0, acStartScroll=0;
+function initAgencyStripInteraction(){
+  if (acBound) return; acBound = true;
+  requestAnimationFrame(acTick);
+  agencyStrip.addEventListener('mouseenter', ()=> acAutoScroll=false);
+  agencyStrip.addEventListener('mouseleave', ()=>{ acAutoScroll=true; acEndDrag(); });
+  agencyStrip.addEventListener('touchstart', ()=> acAutoScroll=false, {passive:true});
+  agencyStrip.addEventListener('touchend', ()=> acAutoScroll=true, {passive:true});
+  agencyStrip.addEventListener('scroll', ()=>{
+    const half = acTrack.scrollWidth / 2; if (half<=0) return;
+    if (agencyStrip.scrollLeft >= half) agencyStrip.scrollLeft -= half;
+    else if (agencyStrip.scrollLeft < 0) agencyStrip.scrollLeft += half;
+  });
+  agencyStrip.addEventListener('mousedown', e=>{
+    acDragging=true; acDraggedFar=false; agencyStrip.classList.add('dragging');
+    acStartX=e.pageX; acStartScroll=agencyStrip.scrollLeft;
+  });
+  addEventListener('mousemove', e=>{
+    if(!acDragging) return;
+    e.preventDefault();
+    const dx = e.pageX - acStartX;
+    if (Math.abs(dx) > 5) acDraggedFar = true;
+    agencyStrip.scrollLeft = acStartScroll - dx;
+  });
+  addEventListener('mouseup', acEndDrag);
+}
+function acEndDrag(){ acDragging=false; agencyStrip.classList.remove('dragging'); }
+function acTick(){
+  if (agencyStrip && acAutoScroll && !acDragging) agencyStrip.scrollLeft += 0.4;
+  requestAnimationFrame(acTick);
 }
 function clearManagerFilter(){
   state.manager=null; state.managerName='';
@@ -429,7 +467,7 @@ async function loadFeatured(qs=''){
         <span class="feat-ic">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'🎵'}</span>
         <span class="feat-info">
           <span class="fn">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" title="Artista verificato">✓</span>':''}</span>
-          <span class="fs">${esc(showLabel(a.formazione))}${a.genre?' · '+esc(a.genre):''}${a.comune?' · '+esc(a.comune):''}</span>
+          <span class="fs">${esc(showLabel(a.formazione))}${a.genre?' · '+esc(a.genre):''}</span>
         </span>
       </a>`).join('') : '<div class="hint">Nessun artista in evidenza</div>';
   }catch(e){}
