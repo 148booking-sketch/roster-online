@@ -53,7 +53,7 @@ function artistFormHTML(p) {
           <input id="${p}calendar_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
           <div class="hint">Google Calendar → <b>Impostazioni del calendario</b> → <b>Indirizzo segreto in formato iCal</b>. I promoter vedranno solo <b>quali date sono libere/occupate</b>.</div>
         </div>
-        <div class="field"><label>Telefono</label><input id="${p}phone" placeholder="+39..."></div>
+        <div class="field" id="${p}phoneWrap"><label>Telefono</label><input id="${p}phone" placeholder="+39..."></div>
       </div>
 
       <div class="row">
@@ -232,12 +232,15 @@ function setTrvVerified(p, verified) {
 
 /* Campo "Agenzia": se l'artista è assegnato a un'agenzia registrata (manager_user_id),
  * mostra il suo nome reale e blocca il campo (niente testo libero disallineato dal dato vero).
- * Senza assegnazione resta un campo libero come prima. */
+ * Senza assegnazione resta un campo libero come prima. Il telefono, in tal caso, si nasconde:
+ * i contatti passano dall'agenzia, non serve più il numero diretto dell'artista. */
 function setManagementLock(p, orgName) {
   const el = document.getElementById(p + 'management');
   if (!el) return;
   if (orgName) { el.value = orgName; el.readOnly = true; el.style.background = '#f1f1f3'; }
   else { el.readOnly = false; el.style.background = ''; }
+  const phoneWrap = document.getElementById(p + 'phoneWrap');
+  if (phoneWrap) phoneWrap.style.display = orgName ? 'none' : '';
 }
 
 function rimbUI(p) {

@@ -18,7 +18,7 @@ $st = db()->prepare(
   'SELECT a.user_id, a.stage_name, a.slug, a.formazione, a.componenti, a.bio, a.comune, a.provincia,
           a.lat, a.lng, a.cachet_min, a.cachet_max, a.cachet_trattabile, a.trattativa_riservata, a.cachet_promo, a.promo_until, a.rimborso_tipo, a.rimborso_km, a.rimborso_forfait,
           a.travel_max_km, a.durata_set_min, a.website, a.socials, a.custom_links, a.photo_url, a.verified,
-          a.label, a.management, mp.instagram AS management_instagram,
+          a.label, a.management, mp.instagram AS management_instagram, mp.photo_url AS management_photo,
           a.tech_sheet_url, a.gear_bring, a.gear_need,
           a.stats, a.stats_updated_at, a.calendar_url, a.calendar_busy, a.calendar_updated_at
    FROM artist_profiles a LEFT JOIN promoter_profiles mp ON mp.user_id = a.manager_user_id

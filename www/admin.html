@@ -128,6 +128,9 @@
           <label>Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
           <select id="a_manager" onchange="onManagerPick()"><option value="">— nessuna —</option></select>
         </div>
+        <div class="field" id="a_statusWrap" style="display:none;max-width:160px;margin:0"><label>Stato</label>
+          <select id="a_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
+        </div>
         <div class="field" style="flex:none">
           <label>&nbsp;</label>
           <div style="display:flex;flex-wrap:nowrap;align-items:center;height:38px">
@@ -145,11 +148,7 @@
             <input id="a_pass" minlength="8" style="flex:1;min-width:0">
             <button type="button" class="btn ghost sm" onclick="genPass('a_pass')">genera</button>
           </div></div>
-        <div class="field" id="a_statusWrap" style="display:none;max-width:160px"><label>Stato</label>
-          <select id="a_status"><option value="active">Attivo</option><option value="pending">In attesa</option><option value="blocked">Bloccato</option></select>
-        </div>
       </div>
-      <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da noi: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
 
       <!-- ══ CAMPI CONDIVISI con profilo.html (assets/artist-form.js) ══ -->
       <div id="artistFormMount"></div>
@@ -733,7 +732,6 @@ function onVerifiedToggle(){
   a_passWrap.style.display = showPass ? '' : 'none';
   a_pass.required = showPass;
   if (!showPass) a_pass.value = '';
-  document.getElementById('a_managedHint').style.display = managed ? '' : 'none';
   setGenreVerified('a_', managed);
   setTrvVerified('a_', managed);
 }
