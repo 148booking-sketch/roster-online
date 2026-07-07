@@ -283,7 +283,7 @@
 const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250', letter:'', manager:null, managerName:'' };
 let genres=[], lastResults=[];
 let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
-let lastArtistCount=null, promoterCount=null;
+let lastArtistCount=null, promoterCount=null, agencyCount=null;
 
 // Legge i filtri passati via query string (es. dal popup "Cerca" nell'header, su qualsiasi pagina)
 function applyParamsFromURL(){
@@ -551,12 +551,13 @@ async function loadPage(reset, reqTok){
 
 function renderCounts(n){
   lastArtistCount=n;
-  const artistsTxt = n ? `${n} artist${n>1?'i':'a'} disponibil${n>1?'i':'e'}` : '';
-  const promoTxt = (artistsTxt && promoterCount!=null) ? ` · ${promoterCount} promoter registrat${promoterCount>1?'i':'o'}` : '';
-  document.getElementById('count').textContent = artistsTxt + promoTxt;
+  const artistsTxt = n ? `${n} artist${n>1?'i':'a'}` : '';
+  const promoTxt = (artistsTxt && promoterCount!=null) ? ` · ${promoterCount} promoter` : '';
+  const agencyTxt = (artistsTxt && agencyCount!=null) ? ` · ${agencyCount} agenzi${agencyCount>1?'e':'a'}` : '';
+  document.getElementById('count').textContent = artistsTxt + promoTxt + agencyTxt;
 }
 async function loadPlatformStats(){
-  try{ const r=await api('platform-stats.php'); promoterCount=r.promoters; renderCounts(lastArtistCount); }catch(e){}
+  try{ const r=await api('platform-stats.php'); promoterCount=r.promoters; agencyCount=r.agencies; renderCounts(lastArtistCount); }catch(e){}
 }
 
 function cachetLabel(a){
