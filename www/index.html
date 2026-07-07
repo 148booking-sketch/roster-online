@@ -141,7 +141,7 @@
 .agency-strip img{width:var(--ac-size);height:var(--ac-size);border-radius:8px;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s;-webkit-user-drag:none;user-select:none}
 .agency-strip .ac-item:hover img,.agency-strip .ac-item:focus-visible img{border-color:var(--brand)}
 
-.mgr-chip{display:flex;align-items:center;gap:8px;background:#fbe9ee;color:#b81e47;border-radius:20px;padding:7px 8px 7px 14px;font-size:13px;font-weight:600;width:fit-content;margin:0 0 12px}
+.mgr-chip{display:flex;align-items:center;gap:8px;background:#fbe9ee;color:#b81e47;border-radius:20px;padding:7px 8px 7px 14px;font-size:13px;font-weight:600;width:fit-content}
 .mgr-chip button{border:0;background:rgba(184,30,71,.12);color:inherit;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center}
 .mgr-chip button:hover{background:rgba(184,30,71,.22)}
 </style>
@@ -238,9 +238,15 @@
         </div>
       </div>
       <div class="az-bar" id="azBar"></div>
-      <div id="managerFilterBar" class="mgr-chip" style="display:none">
-        Agenzia: <b id="managerFilterName"></b>
-        <button type="button" onclick="clearManagerFilter()" aria-label="Rimuovi filtro">✕</button>
+      <div id="activeFiltersBar" style="display:none;flex-wrap:wrap;gap:8px;margin:0 0 12px">
+        <div id="genreFilterBar" class="mgr-chip" style="display:none">
+          Genere: <b id="genreFilterName"></b>
+          <button type="button" onclick="clearGenreFilter()" aria-label="Rimuovi filtro">✕</button>
+        </div>
+        <div id="managerFilterBar" class="mgr-chip" style="display:none">
+          Agenzia: <b id="managerFilterName"></b>
+          <button type="button" onclick="clearManagerFilter()" aria-label="Rimuovi filtro">✕</button>
+        </div>
       </div>
       <div class="agency-strip" id="agencyStrip" style="display:none">
         <div class="ac-track" id="acTrack"></div>
@@ -328,6 +334,7 @@ async function init(){
   paintFiltBtn();
   paintAzBar();
   paintManagerChip();
+  paintGenreChip();
   search();
   loadPlatformStats();
   loadAgencyStrip();
@@ -423,6 +430,31 @@ function paintManagerChip(){
   if(!bar) return;
   if(state.manager){ bar.style.display='flex'; document.getElementById('managerFilterName').textContent = state.managerName; }
   else bar.style.display='none';
+  syncActiveFiltersBar();
+}
+
+function clearGenreFilter(){
+  state.genres.clear();
+  syncCatbar(); paintFiltBtn(); paintGenreChip();
+  history.pushState({}, '', '/');
+  search();
+}
+function paintGenreChip(){
+  const bar = document.getElementById('genreFilterBar');
+  if(!bar) return;
+  const n = state.genres.size;
+  if(n){
+    const label = n===1 ? (genres.find(g=>g.slug===[...state.genres][0])?.name || [...state.genres][0]) : `${n} generi`;
+    document.getElementById('genreFilterName').textContent = label;
+    bar.style.display='flex';
+  } else bar.style.display='none';
+  syncActiveFiltersBar();
+}
+function syncActiveFiltersBar(){
+  const wrap = document.getElementById('activeFiltersBar');
+  if(!wrap) return;
+  const anyVisible = [...wrap.children].some(c => getComputedStyle(c).display !== 'none');
+  wrap.style.display = anyVisible ? 'flex' : 'none';
 }
 
 function renderSortIcons(){}
@@ -486,6 +518,7 @@ function pickCat(el){
   } else {
     history.pushState({}, '', '/');
   }
+  paintFiltBtn(); paintGenreChip();
   scrollToResults();
   search();
 }
@@ -674,6 +707,7 @@ function clearFilters(){
   state.tratt=state.promo=state.noPrice=state.trv=false;
   state.letter=''; paintAzBar();
   state.manager=null; state.managerName=''; paintManagerChip();
+  paintGenreChip();
   closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
 }
 function resetAllFilters(){
@@ -694,6 +728,7 @@ function onQInput(v){
 }
 function applyFilters(){
   state.genres=new Set([...document.querySelectorAll('#fmGenres .fm-chip.on')].map(x=>x.dataset.slug));
+  paintGenreChip();
   const showEl=document.querySelector('#fmShows .fm-chip.on');
   state.form=showEl?showEl.dataset.v:'';
   if(CAN_PRICES){ const s=document.getElementById('fmBudget'); state.cachetMax=(+s.value<+s.max)?+s.value:null; }
