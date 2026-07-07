@@ -132,7 +132,7 @@
 .role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
 
 /* Carosello loghi agenzie: striscia a scorrimento continuo e lento (marquee), in loop */
-.agency-strip{overflow:hidden;padding:30px 0 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.agency-strip{overflow:hidden;padding:6px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
 .agency-strip:hover .ac-track{animation-play-state:paused}
 .agency-strip .ac-item{display:block;flex:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
@@ -241,6 +241,9 @@
         Agenzia: <b id="managerFilterName"></b>
         <button type="button" onclick="clearManagerFilter()" aria-label="Rimuovi filtro">✕</button>
       </div>
+      <div class="agency-strip" id="agencyStrip" style="display:none">
+        <div class="ac-track" id="acTrack"></div>
+      </div>
       <div id="results" class="grid-cards"></div>
       <div id="empty" class="empty" style="display:none">Nessun artista trovato con questi filtri.</div>
       <div id="loadmore" style="display:none;text-align:center;padding:20px 0">
@@ -269,10 +272,6 @@
           <p>Gestisco un roster</p>
         </a>
       </div>
-    </div>
-
-    <div class="agency-strip" id="agencyStrip" style="display:none">
-      <div class="ac-track" id="acTrack"></div>
     </div>
   </div>
 </main>
