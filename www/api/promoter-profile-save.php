@@ -14,7 +14,7 @@ if (!in_array($u['role'], ['promoter', 'management'], true)) fail('forbidden_rol
 $in = body();
 
 $org    = trim($in['org_name'] ?? '');
-$tipo   = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking_management','privato','altro'], true) ? $in['tipo'] : 'locale';
+$tipo   = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking','management','privato','altro'], true) ? $in['tipo'] : 'locale';
 $phone  = trim($in['phone'] ?? '');
 $comune = trim($in['comune'] ?? '');
 $prov   = strtoupper(trim($in['provincia'] ?? '')) ?: null;

@@ -35,7 +35,7 @@ $st->execute([$email, $id]);
 if ($st->fetch()) fail('email_taken', 409);
 
 $status    = in_array($in['status'] ?? '', ['active','pending','blocked'], true) ? $in['status'] : 'active';
-$tipo      = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking_management','privato','altro'], true) ? $in['tipo'] : 'locale';
+$tipo      = in_array($in['tipo'] ?? '', ['locale','festival','associazione','agenzia','booking','management','privato','altro'], true) ? $in['tipo'] : 'locale';
 $phone     = trim($in['phone'] ?? '');
 $comune    = trim($in['comune'] ?? '');
 $prov      = strtoupper(trim($in['provincia'] ?? '')) ?: null;
