@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/_http.php';
 ensure_promoter_ig_cols();
+header('Cache-Control: no-store'); // sempre fresca: nuove agenzie devono comparire subito nel carosello
 
 $st = db()->query(
   "SELECT u.id, COALESCE(p.org_name, u.display_name) AS org_name, p.photo_url
