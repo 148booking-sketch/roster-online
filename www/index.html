@@ -135,7 +135,7 @@
 .agency-strip{overflow:hidden;padding:30px 0 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
 .agency-strip:hover .ac-track{animation-play-state:paused}
-.agency-strip .ac-item{display:block;flex:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.agency-strip .ac-item{display:block;flex:none;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
 .agency-strip img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;display:block;box-sizing:border-box;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:border-color .15s}
 .agency-strip .ac-item:hover img,.agency-strip .ac-item:focus-visible img{border-color:var(--brand)}
 @keyframes ac-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -344,20 +344,18 @@ async function loadAgencyStrip(){
     const minUnitW = Math.max(innerWidth * 1.5, 900);
     const repeat = Math.max(1, Math.ceil(minUnitW / (ags.length * itemW)));
     const unit = Array.from({length: repeat}, () => ags).flat();
-    const imgs = unit.map(a=>`<a href="#" class="ac-item" data-id="${a.id}" data-name="${esc(a.org_name||'')}" onclick="return pickAgency(event,this)"><img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy"></a>`).join('');
+    const imgs = unit.map(a=>`<button type="button" class="ac-item" data-id="${a.id}" data-name="${esc(a.org_name||'')}" onclick="pickAgency(this)"><img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy"></button>`).join('');
     acTrack.innerHTML = imgs + imgs; // duplicato per il loop continuo (translateX -50%)
     agencyStrip.style.display = '';
   }catch(e){}
 }
 
-function pickAgency(e, el){
-  e.preventDefault();
+function pickAgency(el){
   state.manager = el.dataset.id;
   state.managerName = el.dataset.name;
   paintManagerChip();
   scrollToResults();
   search();
-  return false;
 }
 function clearManagerFilter(){
   state.manager=null; state.managerName='';
